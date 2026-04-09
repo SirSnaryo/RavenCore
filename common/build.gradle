@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+    // Exposed as api so bukkit and velocity inherit them transitively
+    api 'redis.clients:jedis:5.2.0'
+    api 'com.google.code.gson:gson:2.11.0'
+}

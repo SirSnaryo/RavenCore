@@ -1,0 +1,35 @@
+plugins {
+    id 'com.gradleup.shadow' version '8.3.6' apply false
+    id 'xyz.jpenilla.run-paper' version '2.3.1' apply false
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    group = 'com.kammoun'
+    version = '1.0.0'
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'papermc'
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+        maven {
+            name = 'codemc'
+            url = 'https://repo.codemc.io/repository/maven-public/'
+        }
+        maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 21
+    }
+}

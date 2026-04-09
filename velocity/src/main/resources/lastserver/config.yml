@@ -1,0 +1,7 @@
+# Servers treated as "spawn" — players who disconnect from one of these
+# will NOT have their server persisted to Redis and will not be redirected
+# on their next login.
+spawn-servers:
+  - smp-spawn-1
+  - smp-spawn-2
+  - smp-spawn-3

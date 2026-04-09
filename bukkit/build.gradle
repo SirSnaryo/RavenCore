@@ -1,0 +1,54 @@
+plugins {
+    id 'com.gradleup.shadow'
+    id 'xyz.jpenilla.run-paper'
+}
+
+dependencies {
+    implementation project(':common')
+
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'com.mojang:authlib:3.13.56'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+    implementation 'de.tr7zw:item-nbt-api:2.15.5'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+    implementation 'io.netty:netty-all:4.2.10.Final'
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    archiveBaseName.set('RavenCore-Bukkit')
+    relocate 'redis.clients',              'com.kammoun.raven.libs.jedis'
+    relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
+    relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
+}
+
+def deployDirs = [
+    'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-1/plugins',
+    'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-2/plugins',
+    'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-3/plugins',
+]
+
+tasks.register('deploy') {
+    dependsOn shadowJar
+    doLast {
+        deployDirs.each { dir ->
+            copy {
+                from shadowJar.archiveFile
+                into dir
+            }
+        }
+    }
+}
+
+assemble.dependsOn shadowJar
+
+processResources {
+    filesMatching('plugin.yml') {
+        expand version: project.version
+    }
+    filteringCharset = 'UTF-8'
+}

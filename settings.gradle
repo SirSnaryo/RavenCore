@@ -1,0 +1,2 @@
+rootProject.name = 'RavenCore'
+include 'common', 'bukkit', 'velocity'

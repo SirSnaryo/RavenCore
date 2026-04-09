@@ -1,0 +1,11 @@
+# Unique name for this server on the network.
+# Used as the server identifier in Redis and cross-server events.
+# Leave empty to auto-use the name defined in server.properties.
+network:
+  server-id: ''
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ''
+  database: 0

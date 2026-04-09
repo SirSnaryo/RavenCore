@@ -1,0 +1,33 @@
+plugins {
+    id 'com.gradleup.shadow'
+}
+
+dependencies {
+    implementation project(':common')
+
+    compileOnly 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+    annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    archiveBaseName.set('RavenCore-Velocity')
+    relocate 'redis.clients',              'com.kammoun.raven.libs.jedis'
+    relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
+    relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
+}
+
+tasks.register('deploy') {
+    dependsOn shadowJar
+    doLast {
+        copy {
+            from shadowJar.archiveFile
+            into 'C:/Users/Kammoun/Desktop/RavenMC/Proxy 2/plugins'
+        }
+    }
+}
+
+assemble.dependsOn shadowJar

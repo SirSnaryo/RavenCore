@@ -1,0 +1,2 @@
+# LastLocation module config.
+# server-id and Redis are inherited from the main config.yml — do not duplicate them here.
