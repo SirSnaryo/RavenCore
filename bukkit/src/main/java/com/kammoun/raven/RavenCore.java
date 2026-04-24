@@ -1,5 +1,7 @@
 package com.kammoun.raven;
 
+import com.kammoun.raven.clearinventory.ClearInventoryModule;
+import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
 import com.kammoun.raven.library.redis.RedisCredentials;
@@ -21,6 +23,8 @@ public final class RavenCore extends JavaPlugin {
     private NetworkEventBus networkEventBus;
     private NetworkPlayerManager networkPlayerManager;
     private LastLocationModule lastLocationModule;
+    private EconomyModule economyModule;
+    private ClearInventoryModule clearInventoryModule;
 
     @Override
     public void onEnable() {
@@ -42,14 +46,26 @@ public final class RavenCore extends JavaPlugin {
 
         networkEventBus = new NetworkEventBus(redisMessenger, serverId,
                 runnable -> Bukkit.getScheduler().runTask(this, runnable));
-        networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(), serverId);
+        networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(), serverId, networkEventBus);
 
         lastLocationModule = new LastLocationModule();
         lastLocationModule.onEnable(this);
+
+        economyModule = new EconomyModule();
+        economyModule.onEnable(this);
+
+        clearInventoryModule = new ClearInventoryModule();
+        clearInventoryModule.onEnable(this);
     }
 
     @Override
     public void onDisable() {
+        if (clearInventoryModule != null) {
+            clearInventoryModule.onDisable(this);
+        }
+        if (economyModule != null) {
+            economyModule.onDisable(this);
+        }
         if (lastLocationModule != null) {
             lastLocationModule.onDisable(this);
         }

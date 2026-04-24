@@ -1,0 +1,2 @@
+require-confirmation: true
+confirmation-timeout: 30

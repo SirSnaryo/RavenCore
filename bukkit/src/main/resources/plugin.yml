@@ -1,5 +1,52 @@
 name: RavenCore
-version: '1.0.0'
+version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
+softdepend: [Vault, PlaceholderAPI]
+
+commands:
+  balance:
+    description: Check your balance or another player's balance
+    usage: /balance [player]
+    aliases: [bal, money]
+    permission: raven.economy.balance
+    permission-message: §cYou don't have permission to use this command.
+  pay:
+    description: Pay another online player
+    usage: /pay <player> <amount>
+    permission: raven.economy.pay
+    permission-message: §cYou don't have permission to use this command.
+  eco:
+    description: Admin economy management
+    usage: /eco <give|take|set|reset> <player> [amount]
+    aliases: [economy]
+    permission: raven.economy.admin
+    permission-message: §cYou don't have permission to use this command.
+
+  clearinventory:
+    description: Clear your own or another player's inventory
+    usage: /clearinventory [player]
+    aliases: [ci, clearinv]
+    permission: raven.clearinventory.self
+    permission-message: §cYou don't have permission to use this command.
+
+permissions:
+  raven.clearinventory.self:
+    description: Clear your own inventory
+    default: true
+  raven.clearinventory.others:
+    description: Clear another player's inventory
+    default: op
+  raven.economy.balance:
+    description: Check own balance
+    default: true
+  raven.economy.balance.others:
+    description: Check other players' balances
+    default: op
+  raven.economy.pay:
+    description: Pay other players
+    default: true
+  raven.economy.admin:
+    description: Admin economy commands (give, take, set, reset)
+    default: op

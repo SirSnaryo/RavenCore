@@ -1,0 +1,31 @@
+balance:
+  usage-console: "&cUsage: /balance <player>"
+  own: "&aYour balance: &f{balance}"
+  no-permission: "&cYou don't have permission to check other players' balances."
+  no-account: "&cPlayer &f{player} &chas no economy account."
+  other: "&a{player}'s balance: &f{balance}"
+
+pay:
+  usage: "&cUsage: /pay <player> <amount>"
+  invalid-amount: "&cInvalid amount: &f{amount}"
+  amount-positive: "&cAmount must be greater than zero."
+  player-not-found: "&cPlayer &f{player} &cis not online on the network."
+  self-pay: "&cYou cannot pay yourself."
+  insufficient-funds: "&cInsufficient funds. Your balance: &f{balance}"
+  sent: "&aYou paid &f{amount} &ato &f{player}&a."
+  received: "&aYou received &f{amount} &afrom &f{player}&a."
+
+eco:
+  usage: "&eUsage: &f/eco <give|take|set|reset> <player> [amount]"
+  no-permission: "&cNo permission."
+  usage-amount: "&cUsage: /eco {action} <player> <amount>"
+  usage-reset: "&cUsage: /eco reset <player>"
+  invalid-amount: "&cInvalid amount: &f{amount}"
+  amount-negative: "&cAmount cannot be negative."
+  operation-failed: "&cOperation failed (insufficient funds or invalid amount)."
+  admin-give: "&aGave &f{amount} &ato &f{player}&a. New balance: &f{balance}"
+  admin-take: "&aTook &f{amount} &afrom &f{player}&a. New balance: &f{balance}"
+  admin-set: "&aSet &f{player}&a's balance to &f{amount}&a."
+  admin-notify: "&aAn admin updated your balance to &f{balance}&a."
+  reset-success: "&aReset &f{player}&a's balance to &f{balance}&a."
+  reset-notify: "&aYour balance has been reset by an admin."

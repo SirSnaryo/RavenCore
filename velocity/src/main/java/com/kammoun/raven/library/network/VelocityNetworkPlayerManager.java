@@ -1,20 +1,18 @@
 package com.kammoun.raven.library.network;
 
 import com.kammoun.raven.library.network.AbstractNetworkPlayerManager;
+import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.proxy.ProxyServer;
 import redis.clients.jedis.JedisPool;
 
-/**
- * Tracks online players in Redis from the Velocity proxy.
- * Registers/unregisters when a player first joins the network or fully disconnects.
- */
 public class VelocityNetworkPlayerManager extends AbstractNetworkPlayerManager {
 
-    public VelocityNetworkPlayerManager(Object plugin, ProxyServer server, JedisPool pool, String serverId) {
-        super(pool, serverId);
+    public VelocityNetworkPlayerManager(Object plugin, ProxyServer server, JedisPool pool,
+                                        String serverId, NetworkEventBus eventBus) {
+        super(pool, serverId, eventBus);
         server.getEventManager().register(plugin, this);
     }
 

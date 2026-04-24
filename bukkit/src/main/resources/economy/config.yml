@@ -1,0 +1,6 @@
+starting-balance: 0.0
+
+currency:
+  singular: "Coin"
+  plural: "Coins"
+  fractional-digits: 2

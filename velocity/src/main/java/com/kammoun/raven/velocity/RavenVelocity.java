@@ -76,7 +76,7 @@ public class RavenVelocity {
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, Runnable::run);
 
         networkPlayerManager = new VelocityNetworkPlayerManager(
-                this, server, redisMessenger.getConnection().getPool(), serverId
+                this, server, redisMessenger.getConnection().getPool(), serverId, networkEventBus
         );
 
         lastServerModule = new LastServerModule(redisMessenger.getConnection().getPool());

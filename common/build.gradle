@@ -8,5 +8,6 @@ dependencies {
 
     // Exposed as api so bukkit and velocity inherit them transitively
     api 'redis.clients:jedis:5.2.0'
+    api 'org.slf4j:slf4j-nop:1.7.36'
     api 'com.google.code.gson:gson:2.11.0'
 }

@@ -1,13 +1,18 @@
 package com.kammoun.raven.library.network;
 
 import com.google.gson.Gson;
+import com.kammoun.raven.library.redis.event.NetworkEventBus;
+import com.kammoun.raven.library.redis.event.NetworkPlayerJoinEvent;
+import com.kammoun.raven.library.redis.event.NetworkPlayerQuitEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public abstract class AbstractNetworkPlayerManager {
@@ -16,24 +21,58 @@ public abstract class AbstractNetworkPlayerManager {
 
     protected final JedisPool pool;
     protected final String serverId;
+    private final NetworkEventBus eventBus;
     private final Gson gson = new Gson();
 
-    protected AbstractNetworkPlayerManager(JedisPool pool, String serverId) {
+    // In-memory cache: uuid → playerName for all players on the whole network
+    private final Map<UUID, String> nameCache = new ConcurrentHashMap<>();
+
+    protected AbstractNetworkPlayerManager(JedisPool pool, String serverId, NetworkEventBus eventBus) {
         this.pool = pool;
         this.serverId = serverId;
+        this.eventBus = eventBus;
+
+        // Seed cache with players already online on other servers before this node started
+        getOnlineNetworkPlayers().forEach(info -> nameCache.put(info.getUuid(), info.getPlayerName()));
+
+        // Keep cache in sync with remote join/quit events
+        eventBus.subscribe(NetworkPlayerJoinEvent.class, event -> {
+            if (!serverId.equals(event.getSourceServer())) {
+                nameCache.put(UUID.fromString(event.getUuid()), event.getPlayerName());
+            }
+        });
+
+        eventBus.subscribe(NetworkPlayerQuitEvent.class, event -> {
+            if (!serverId.equals(event.getSourceServer())) {
+                nameCache.remove(UUID.fromString(event.getUuid()));
+            }
+        });
     }
 
     protected void registerPlayer(UUID uuid, String playerName) {
+        nameCache.put(uuid, playerName);
+
         NetworkPlayerInfo info = new NetworkPlayerInfo(uuid, playerName, serverId);
         try (Jedis jedis = pool.getResource()) {
             jedis.hset(HASH_KEY, uuid.toString(), gson.toJson(info));
         }
+
+        NetworkPlayerJoinEvent event = new NetworkPlayerJoinEvent();
+        event.setUuid(uuid.toString());
+        event.setPlayerName(playerName);
+        eventBus.publish(event);
     }
 
     protected void unregisterPlayer(UUID uuid) {
+        nameCache.remove(uuid);
+
         try (Jedis jedis = pool.getResource()) {
             jedis.hdel(HASH_KEY, uuid.toString());
         }
+
+        NetworkPlayerQuitEvent event = new NetworkPlayerQuitEvent();
+        event.setUuid(uuid.toString());
+        eventBus.publish(event);
     }
 
     public Optional<NetworkPlayerInfo> findPlayer(UUID uuid) {
@@ -70,5 +109,13 @@ public abstract class AbstractNetworkPlayerManager {
 
     public String getPlayerServer(UUID uuid) {
         return findPlayer(uuid).map(NetworkPlayerInfo::getServerId).orElse(null);
+    }
+
+    /**
+     * Returns all player names currently online across the whole network.
+     * Reads from the in-memory cache — no Redis I/O, safe to call on tab completion.
+     */
+    public Collection<String> getNetworkPlayerNames() {
+        return Collections.unmodifiableCollection(nameCache.values());
     }
 }

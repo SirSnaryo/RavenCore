@@ -1,0 +1,7 @@
+confirm: "&eAre you sure? Run &f/clearinventory &eagain within &f{seconds}s &eto confirm."
+cleared-self: "&aYour inventory has been cleared."
+cleared-other: "&aCleared &f{player}&a's inventory."
+cleared-by-admin: "&aYour inventory was cleared by an admin."
+no-permission-others: "&cYou don't have permission to clear other players' inventories."
+player-not-found: "&cPlayer &f{player} &cwas not found on this server."
+console-requires-player: "&cConsole must specify a player: /clearinventory <player>"

@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.network;
 
+import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -9,8 +10,8 @@ import redis.clients.jedis.JedisPool;
 
 public class NetworkPlayerManager extends AbstractNetworkPlayerManager implements Listener {
 
-    public NetworkPlayerManager(Plugin plugin, JedisPool pool, String serverId) {
-        super(pool, serverId);
+    public NetworkPlayerManager(Plugin plugin, JedisPool pool, String serverId, NetworkEventBus eventBus) {
+        super(pool, serverId, eventBus);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
