@@ -12,8 +12,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -24,9 +26,7 @@ public class ProxyCommandFilterModule extends VModule {
     private static final LegacyComponentSerializer LEGACY_SERIALIZER =
             LegacyComponentSerializer.legacyAmpersand();
 
-    private static final Field CHILDREN_FIELD = getCommandNodeField("children");
-    private static final Field LITERALS_FIELD = getCommandNodeField("literals");
-    private static final Field ARGUMENTS_FIELD = getCommandNodeField("arguments");
+    private static final List<Field> COMMAND_NODE_MAP_FIELDS = findCommandNodeMapFields();
 
     private String bypassPermission;
     private String denyMessage;
@@ -41,6 +41,10 @@ public class ProxyCommandFilterModule extends VModule {
         bypassPermission = getString("bypass-permission", "raven.proxycommandfilter.bypass");
         denyMessage = getString("deny-message", "&cYou do not have permission to use this command.");
         blockedCommands = normalizeCommands(getStringList("blocked-commands"));
+
+        if (COMMAND_NODE_MAP_FIELDS.isEmpty()) {
+            getLogger().warning("No Brigadier command maps were detected. Command hiding may not work on this runtime.");
+        }
 
         registerListener(this);
         getLogger().info("ProxyCommandFilter enabled. Blocked commands: " + blockedCommands);
@@ -133,9 +137,9 @@ public class ProxyCommandFilterModule extends VModule {
 
     private void removeCommandNode(RootCommandNode<?> rootNode, String commandName) {
         try {
-            removeFromNodeMap(CHILDREN_FIELD, rootNode, commandName);
-            removeFromNodeMap(LITERALS_FIELD, rootNode, commandName);
-            removeFromNodeMap(ARGUMENTS_FIELD, rootNode, commandName);
+            for (Field field : COMMAND_NODE_MAP_FIELDS) {
+                removeFromNodeMap(field, rootNode, commandName);
+            }
         } catch (IllegalAccessException e) {
             getLogger().log(Level.WARNING, "Failed to remove command from Brigadier tree: " + commandName, e);
         }
@@ -152,13 +156,20 @@ public class ProxyCommandFilterModule extends VModule {
         return LEGACY_SERIALIZER.deserialize(message);
     }
 
-    private static Field getCommandNodeField(String fieldName) {
-        try {
-            Field field = CommandNode.class.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field;
-        } catch (NoSuchFieldException e) {
-            throw new IllegalStateException("Failed to access Brigadier field: " + fieldName, e);
+    private static List<Field> findCommandNodeMapFields() {
+        List<Field> fields = new ArrayList<>();
+        for (Field field : CommandNode.class.getDeclaredFields()) {
+            if (!Map.class.isAssignableFrom(field.getType())) {
+                continue;
+            }
+
+            try {
+                field.setAccessible(true);
+                fields.add(field);
+            } catch (Exception ignored) {
+                // Ignore inaccessible fields and keep any compatible ones we can reach.
+            }
         }
+        return fields;
     }
 }
