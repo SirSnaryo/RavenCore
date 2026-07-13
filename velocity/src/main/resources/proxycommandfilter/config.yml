@@ -1,0 +1,9 @@
+# Players with this permission can see and use the blocked proxy commands.
+bypass-permission: "raven.proxycommandfilter.bypass"
+
+# Commands are matched by their root label only.
+blocked-commands:
+  - "server"
+  - "queue"
+
+deny-message: "&cYou do not have permission to use this command."
