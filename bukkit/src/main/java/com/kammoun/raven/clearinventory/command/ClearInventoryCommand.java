@@ -3,6 +3,8 @@ package com.kammoun.raven.clearinventory.command;
 import com.kammoun.raven.clearinventory.config.ClearInventoryMessages;
 import com.kammoun.raven.library.command.KCommand;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
+import com.kammoun.raven.library.redis.event.ClearInventoryEvent;
+import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 public class ClearInventoryCommand extends KCommand {
 
     private final NetworkPlayerManager networkPlayerManager;
+    private final NetworkEventBus networkEventBus;
     private final ClearInventoryMessages messages;
     private final boolean requireConfirmation;
     private final long confirmationTimeoutMs;
@@ -24,11 +27,13 @@ public class ClearInventoryCommand extends KCommand {
     private final Map<UUID, Long> pendingConfirmations = new ConcurrentHashMap<>();
 
     public ClearInventoryCommand(NetworkPlayerManager networkPlayerManager,
+                                 NetworkEventBus networkEventBus,
                                  ClearInventoryMessages messages,
                                  boolean requireConfirmation,
                                  int confirmationTimeoutSeconds) {
-        super("clearinventory", null, false);
+        super("clear", null, false);
         this.networkPlayerManager = networkPlayerManager;
+        this.networkEventBus = networkEventBus;
         this.messages = messages;
         this.requireConfirmation = requireConfirmation;
         this.confirmationTimeoutMs = confirmationTimeoutSeconds * 1000L;
@@ -52,15 +57,27 @@ public class ClearInventoryCommand extends KCommand {
             return;
         }
 
-        Player target = Bukkit.getPlayerExact(args[0]);
-        if (target == null) {
-            sender.sendMessage(messages.format("player-not-found", "player", args[0]));
+        String targetName = args[0];
+        Player target = Bukkit.getPlayerExact(targetName);
+
+        if (target != null) {
+            // Player is on this server
+            clearInventory(target);
+            sender.sendMessage(messages.format("cleared-other", "player", target.getName()));
+            target.sendMessage(messages.get("cleared-by-admin"));
             return;
         }
 
-        clearInventory(target);
-        sender.sendMessage(messages.format("cleared-other", "player", target.getName()));
-        target.sendMessage(messages.get("cleared-by-admin"));
+        // Player is on another server — publish cross-server event
+        if (networkPlayerManager.findPlayer(targetName).isPresent()) {
+            ClearInventoryEvent event = new ClearInventoryEvent();
+            event.setTargetUuid(networkPlayerManager.findPlayer(targetName).get().getUuid().toString());
+            event.setSenderName(sender.getName());
+            networkEventBus.publish(event);
+            sender.sendMessage(messages.format("cleared-other", "player", targetName));
+        } else {
+            sender.sendMessage(messages.format("player-not-found", "player", targetName));
+        }
     }
 
     @Override

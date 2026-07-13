@@ -42,7 +42,7 @@ public class PlaceholderHelper {
         if (meta.hasDisplayName()) {
             String name = meta.getDisplayName();
             for (int i = 0; i < placeholders.length; i += 2) {
-                name = name.replaceAll( placeholders[i], placeholders[i + 1]);
+                name = name.replace(placeholders[i], placeholders[i + 1]);
             }
             meta.setDisplayName(name);
         }

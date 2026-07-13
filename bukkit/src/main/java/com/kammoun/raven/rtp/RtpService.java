@@ -1,0 +1,83 @@
+package com.kammoun.raven.rtp;
+
+import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.platform.bungee.BungeeHelper;
+import com.kammoun.raven.library.util.CooldownManager;
+import com.kammoun.raven.rtp.config.RtpMessages;
+import com.kammoun.raven.rtp.pool.PooledLocation;
+import com.kammoun.raven.rtp.pool.RtpPoolStore;
+import com.kammoun.raven.rtp.transfer.RtpTransferHelper;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+
+import java.util.Optional;
+
+/**
+ * The actual "give this player a destination" logic, shared by every RTP menu/command
+ * entry point: enforces the cooldown, pops a location from the target server's pool,
+ * and either teleports locally or hands the player off cross-server.
+ */
+public class RtpService {
+
+    private static final String COOLDOWN_KEY = "rtp";
+
+    private final RavenCore api;
+    private final CooldownManager cooldowns = new CooldownManager();
+    private final RtpPoolStore poolStore;
+    private final RtpMessages messages;
+    private final BungeeHelper bungeeHelper;
+    private final int cooldownSeconds;
+
+    public RtpService(RavenCore api, RtpPoolStore poolStore, RtpMessages messages,
+                       BungeeHelper bungeeHelper, int cooldownSeconds) {
+        this.api = api;
+        this.poolStore = poolStore;
+        this.messages = messages;
+        this.bungeeHelper = bungeeHelper;
+        this.cooldownSeconds = cooldownSeconds;
+    }
+
+    /** {@code destinationLabel} is only used in the messages sent back to the player. */
+    public void requestTeleport(Player player, String targetServer, String destinationLabel) {
+        if (cooldowns.isOnCooldown(player, COOLDOWN_KEY)) {
+            player.sendMessage(messages.format("cooldown",
+                    "seconds", String.valueOf(cooldowns.getRemainingSeconds(player, COOLDOWN_KEY))));
+            return;
+        }
+
+        player.closeInventory();
+        Bukkit.getAsyncScheduler().runNow(api, task -> {
+            Optional<PooledLocation> destination = poolStore.pop(targetServer);
+            player.getScheduler().run(api,
+                    t -> onDestinationResolved(player, targetServer, destinationLabel, destination), null);
+        });
+    }
+
+    private void onDestinationResolved(Player player, String targetServer, String destinationLabel,
+                                        Optional<PooledLocation> destination) {
+        if (destination.isEmpty()) {
+            player.sendMessage(messages.format("pool-empty", "destination", destinationLabel));
+            return;
+        }
+
+        // Only burn the cooldown once a destination was actually found.
+        cooldowns.setCooldown(player, COOLDOWN_KEY, cooldownSeconds);
+        player.sendMessage(messages.format("teleporting", "destination", destinationLabel));
+
+        PooledLocation loc = destination.get();
+        if (targetServer.equals(api.getServerId())) {
+            World world = Bukkit.getWorld(loc.world);
+            if (world == null) {
+                player.sendMessage(messages.get("world-missing"));
+                return;
+            }
+            player.teleportAsync(new Location(world, loc.x, loc.y, loc.z, loc.yaw, 0f));
+            return;
+        }
+
+        RtpTransferHelper.transfer(api, api.getRedisMessenger().getConnection().getPool(),
+                bungeeHelper, player, loc, targetServer);
+    }
+}

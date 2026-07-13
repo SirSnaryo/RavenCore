@@ -21,9 +21,12 @@ public class VelocityNetworkPlayerManager extends AbstractNetworkPlayerManager {
     public void onServerConnect(ServerPostConnectEvent event) {
         // previousServer == null means the player just joined the network (not switching servers)
         if (event.getPreviousServer() == null) {
+            // world is unknown at the proxy layer; the backend's own registerPlayer call
+            // (fired by its PlayerJoinEvent) overwrites this with the real world moments later
             registerPlayer(
                     event.getPlayer().getUniqueId(),
-                    event.getPlayer().getUsername()
+                    event.getPlayer().getUsername(),
+                    null
             );
         }
     }

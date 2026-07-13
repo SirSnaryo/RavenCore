@@ -3,6 +3,7 @@ package com.kammoun.raven.library.network;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
@@ -17,11 +18,16 @@ public class NetworkPlayerManager extends AbstractNetworkPlayerManager implement
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        registerPlayer(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+        registerPlayer(event.getPlayer().getUniqueId(), event.getPlayer().getName(), event.getPlayer().getWorld().getName());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         unregisterPlayer(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        updatePlayerWorld(event.getPlayer().getUniqueId(), event.getPlayer().getWorld().getName());
     }
 }

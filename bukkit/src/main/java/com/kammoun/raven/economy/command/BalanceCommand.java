@@ -2,7 +2,7 @@ package com.kammoun.raven.economy.command;
 
 import com.kammoun.raven.economy.config.EconomyMessages;
 import com.kammoun.raven.economy.service.EconomyService;
-import com.kammoun.raven.economy.RavenEconomy;
+import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.command.KCommand;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
 import org.bukkit.Bukkit;

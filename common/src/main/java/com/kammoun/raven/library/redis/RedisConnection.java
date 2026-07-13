@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RedisConnection {
@@ -127,7 +128,7 @@ public class RedisConnection {
                 try {
                     handler.accept(message);
                 } catch (Exception e) {
-                    logger.warning("[Redis] Handler error on channel '" + channel + "': " + e.getMessage());
+                    logger.log(Level.WARNING, "[Redis] Handler error on channel '" + channel + "'", e);
                 }
             }
         }

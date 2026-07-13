@@ -20,7 +20,9 @@ dependencies {
 
     implementation 'de.tr7zw:item-nbt-api:2.15.5'
     implementation 'com.zaxxer:HikariCP:5.0.1'
-    implementation 'io.netty:netty-all:4.2.10.Final'
+    implementation('com.mysql:mysql-connector-j:8.3.0') {
+        exclude group: 'com.google.protobuf'
+    }
 }
 
 shadowJar {
@@ -32,6 +34,7 @@ shadowJar {
 }
 
 def deployDirs = [
+    'C:/Users/Kammoun/Desktop/RavenMC',
     'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-1/plugins',
     'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-2/plugins',
     'C:/Users/Kammoun/Desktop/RavenMC/SMP-Spawn-3/plugins',

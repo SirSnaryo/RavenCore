@@ -5,9 +5,11 @@ import com.kammoun.raven.economy.command.BalanceCommand;
 import com.kammoun.raven.economy.command.EcoCommand;
 import com.kammoun.raven.economy.command.PayCommand;
 import com.kammoun.raven.economy.config.EconomyMessages;
+import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.economy.service.EconomyService;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.redis.event.PaymentNotificationEvent;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -89,9 +91,7 @@ public class EconomyModule extends KModule<RavenCore> {
         api.getNetworkEventBus().unsubscribe(PaymentNotificationEvent.class);
         if (economyService != null) {
             Bukkit.getOnlinePlayers().forEach(p ->
-                    Bukkit.getAsyncScheduler().runNow(api, task ->
-                            economyService.unloadPlayer(p.getUniqueId())
-                    )
+                    economyService.unloadPlayer(p.getUniqueId())
             );
             economyService.shutdown();
         }

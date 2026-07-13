@@ -1,0 +1,74 @@
+Title: '&8sʜᴏᴘ - ᴇɴᴅ'
+Size: 27
+
+items:
+  back-page:
+    name: '&#e00202 ʙᴀᴄᴋ'
+    material: RED_STAINED_GLASS_PANE
+    slot: 18
+    lore:
+      - '&fClick to return'
+  ender-chest:
+    slot: 9
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅᴇʀ ᴄʜᴇsᴛ'
+    displayName: '&fEnder Chest'
+    material: ENDER_CHEST
+    price: 2500
+    max-stack: 64
+  ender-pearl:
+    slot: 10
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅᴇʀ ᴘᴇᴀʀʟ'
+    displayName: '&fEnder Pearl'
+    material: ENDER_PEARL
+    price: 75
+    max-stack: 16
+  end-stone:
+    slot: 11
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅ sᴛᴏɴᴇ'
+    displayName: '&fEnd Stone'
+    material: END_STONE
+    amount: 16
+    price: 32
+    max-stack: 64
+  dragon-breath:
+    slot: 12
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴅʀᴀɢᴏɴ''s ʙʀᴇᴀᴛʜ'
+    displayName: '&eDragon''s Breath'
+    material: DRAGON_BREATH
+    price: 32
+    max-stack: 64
+  end-rod:
+    slot: 13
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅ ʀᴏᴅ'
+    displayName: '&fEnd Rod'
+    material: END_ROD
+    price: 100
+    max-stack: 64
+  chorus-fruit:
+    slot: 14
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴄʜᴏʀᴜs ғʀᴜɪᴛ'
+    displayName: '&fChorus Fruit'
+    material: CHORUS_FRUIT
+    price: 10
+    max-stack: 64
+  popped-chorus-fruit:
+    slot: 15
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴘᴏᴘᴘᴇᴅ ᴄʜᴏʀᴜs ғʀᴜɪᴛ'
+    displayName: '&fPopped Chorus Fruit'
+    material: POPPED_CHORUS_FRUIT
+    price: 15
+    max-stack: 64
+  shulker-shell:
+    slot: 16
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ sʜᴜʟᴋᴇʀ sʜᴇʟʟ'
+    displayName: '&fShulker Shell'
+    material: SHULKER_SHELL
+    price: 350
+    max-stack: 64
+  shulker-box:
+    slot: 17
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ sʜᴜʟᴋᴇʀ ʙᴏx'
+    displayName: '&fShulker Box'
+    material: SHULKER_BOX
+    price: 800
+    max-stack: 1

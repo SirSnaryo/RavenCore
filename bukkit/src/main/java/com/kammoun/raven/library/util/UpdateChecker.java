@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.util;
 
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class UpdateChecker {
      * Calls {@code onNewVersion} with the latest version string only if an update is available.
      */
     public void check(Consumer<String> onNewVersion) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runAsync(() -> {
             try (InputStream stream = new URL(
                     "https://api.spigotmc.org/legacy/update.php?resource=" + resourceId).openStream();
                  Scanner scanner = new Scanner(stream)) {
@@ -44,7 +45,7 @@ public class UpdateChecker {
                 String current = plugin.getDescription().getVersion().trim();
 
                 if (!current.equals(latest)) {
-                    plugin.getServer().getScheduler().runTask(plugin, () -> onNewVersion.accept(latest));
+                    SchedulerUtil.run(() -> onNewVersion.accept(latest));
                 }
 
             } catch (IOException e) {

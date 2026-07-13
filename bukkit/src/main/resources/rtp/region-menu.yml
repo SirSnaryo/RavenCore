@@ -1,0 +1,22 @@
+Title: "ʀᴛᴘ ⁍ ᴏᴠᴇʀᴡᴏʀʟᴅ"
+Size: 27
+
+Item-Slots: [10,11,12,13,14,15,16]
+
+Items:
+  Region:
+    material: FILLED_MAP
+    name: "&#55C13C{region}"
+    lore:
+      - "&7Click to get teleported"
+      - "&7somewhere random in {region}."
+
+Navigation:
+  Go-Back:
+    material: ARROW
+    slot: 18
+    name: "&7« Back"
+  Close-Page:
+    material: BARRIER
+    slot: 22
+    name: "&cClose"

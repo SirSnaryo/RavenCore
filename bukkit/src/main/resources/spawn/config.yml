@@ -1,0 +1,15 @@
+# Soft player-count cap applied to a server's SPAWN/AFK row, used for greying
+# out full servers in the /spawn and /afk GUI. Only applied when a server's row
+# is first created via /setspawn or /setafk — re-running either command later
+# never overwrites a previously configured max_players (or enabled) value.
+#
+# There is currently no in-game command to change max_players/enabled on an
+# existing row. To adjust one after the fact, edit it directly:
+#   UPDATE ravencore_locations SET max_players = 50 WHERE server_name = '...' AND type = 'SPAWN';
+default-max-players: 100
+
+# How long (in seconds) a player waits after clicking a destination in /spawn or /afk
+# before actually being teleported. Moving during the countdown cancels it. Set to 0
+# to teleport instantly.
+teleport-countdown:
+  seconds: 5

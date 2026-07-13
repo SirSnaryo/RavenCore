@@ -1,4 +1,4 @@
-package com.kammoun.raven.economy;
+package com.kammoun.raven.economy.hook;
 
 import com.kammoun.raven.economy.service.EconomyService;
 import net.milkbowl.vault.economy.Economy;

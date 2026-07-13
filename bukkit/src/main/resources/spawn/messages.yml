@@ -1,0 +1,10 @@
+not-ready: "&#e00202Error, Please try again in a moment."
+none-available: "&#e00202No {type} locations are currently available on the network."
+server-full: "&#e00202Server &f{server} &#e00202is full."
+world-missing: "&#e00202That destination's world is currently unavailable. Please try again."
+set:
+  success: "&aSet the {type} location for &f{server} &ato your current position."
+  failure: "&#e00202Failed to save the location. Check console for details."
+teleport:
+  countdown: "&7Teleporting in &#00c1fe{seconds} &7seconds..."
+  cancelled: "&#e00202Teleport cancelled."

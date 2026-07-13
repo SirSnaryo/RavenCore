@@ -1,7 +1,7 @@
 package com.kammoun.raven.library.item;
 
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import de.tr7zw.changeme.nbtapi.NBTItem;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.block.banner.Pattern;
@@ -38,7 +38,7 @@ public class ItemBuilder {
 
     public ItemBuilder name(String name) {
         if (name != null)
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+            meta.setDisplayName(ChatFormatter.color(name));
         return this;
     }
 
@@ -50,7 +50,7 @@ public class ItemBuilder {
     public ItemBuilder lore(List<String> lore) {
         if (lore != null && !lore.isEmpty())
             meta.setLore(lore.stream()
-                    .map(l -> ChatColor.translateAlternateColorCodes('&', l))
+                    .map(ChatFormatter::color)
                     .collect(Collectors.toList()));
         return this;
     }

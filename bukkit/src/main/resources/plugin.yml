@@ -3,8 +3,9 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [Vault, PlaceholderAPI]
-
+softdepend: [PlaceholderAPI]
+depend: [Vault]
+load: STARTUP
 commands:
   balance:
     description: Check your balance or another player's balance
@@ -24,14 +25,66 @@ commands:
     permission: raven.economy.admin
     permission-message: §cYou don't have permission to use this command.
 
-  clearinventory:
+  tp:
+    description: Teleport yourself or another player to a player
+    usage: /tp <destination> | /tp <player> <destination>
+    aliases: [teleport]
+    permission: raven.teleport
+    permission-message: §cYou don't have permission to use this command.
+
+  clear:
     description: Clear your own or another player's inventory
-    usage: /clearinventory [player]
-    aliases: [ci, clearinv]
+    usage: /clear [player]
+    aliases: [ci, clearinv, clearinventory]
     permission: raven.clearinventory.self
     permission-message: §cYou don't have permission to use this command.
 
+  spawn:
+    description: Open the spawn server selection menu
+    usage: /spawn
+    permission: raven.spawn
+    permission-message: §cYou don't have permission to use this command.
+
+  afk:
+    description: Open the AFK server selection menu
+    usage: /afk
+    permission: raven.afk
+    permission-message: §cYou don't have permission to use this command.
+
+  setspawn:
+    description: Set this server's spawn location to your current position
+    usage: /setspawn
+    permission: raven.setspawn
+    permission-message: §cYou don't have permission to use this command.
+
+  setafk:
+    description: Set this server's AFK location to your current position
+    usage: /setafk
+    permission: raven.setafk
+    permission-message: §cYou don't have permission to use this command.
+
+  rtp:
+    description: Teleport to a random location
+    usage: /rtp
+    permission: raven.rtp
+    permission-message: §cYou don't have permission to use this command.
+
+  shop:
+    description: Open the server shop
+    usage: /shop [category|reload]
+    permission: raven.shop
+    permission-message: §cYou don't have permission to use this command.
+
+  spawner:
+    description: Manage and give spawner items
+    usage: /spawner <give|list|reload>
+    permission: raven.spawner.admin
+    permission-message: §cYou don't have permission to use this command.
+
 permissions:
+  raven.teleport:
+    description: Teleport yourself or others across the network
+    default: op
   raven.clearinventory.self:
     description: Clear your own inventory
     default: true
@@ -49,4 +102,31 @@ permissions:
     default: true
   raven.economy.admin:
     description: Admin economy commands (give, take, set, reset)
+    default: op
+  raven.spawn:
+    description: Open the spawn server selection menu
+    default: true
+  raven.afk:
+    description: Open the AFK server selection menu
+    default: true
+  raven.setspawn:
+    description: Set this server's spawn location
+    default: op
+  raven.setafk:
+    description: Set this server's AFK location
+    default: op
+  raven.rtp:
+    description: Teleport to a random location
+    default: true
+  raven.shop:
+    description: Open the server shop
+    default: true
+  raven.shop.admin:
+    description: Reload the shop configuration
+    default: op
+  raven.spawner.admin:
+    description: Manage spawner types, give spawner items, and bypass ownership checks
+    default: op
+  raven.spawner.silktouch:
+    description: Bypass the Silk Touch requirement when breaking placed spawners
     default: op

@@ -1,0 +1,62 @@
+# RTP's own server list. Kept separate from the portal module's overworld-regions
+# on purpose, so RTP's world choices/labels can diverge from portal routing.
+# Each entry needs a matching server-role: overworld server running this same config.
+#
+# min-radius/max-radius/min-y/max-y are per-destination since NA/EU/Nether/End are
+# different worlds with different sane search bounds (e.g. the End is a small island
+# around 0,0; the Nether has a much lower build height than the Overworld).
+overworld-worlds:
+  na:
+    server: smp-world-na
+    display-name: "NA"
+    min-radius: 500
+    max-radius: 10000
+    min-y: -64
+    max-y: 320
+  eu:
+    server: smp-world-eu
+    display-name: "EU"
+    min-radius: 500
+    max-radius: 10000
+    min-y: -64
+    max-y: 320
+
+nether:
+  server: smp-nether
+  min-radius: 100
+  max-radius: 2500
+  min-y: 32
+  max-y: 120
+
+end:
+  server: smp-end
+  min-radius: 100
+  max-radius: 1000
+  min-y: 60
+  max-y: 100
+
+# How long (in seconds) a player must wait between /rtp uses.
+cooldown-seconds: 5
+
+pool:
+  # How many safe locations to keep pre-generated and ready to hand out per server.
+  target-size: 50
+  # Refill back up to target-size once the pool drops to/below this size.
+  refill-threshold: 15
+  # How often (in seconds) to check whether the pool needs topping up. Also runs once
+  # immediately on server start to build the initial pool.
+  refill-interval-seconds: 30
+
+  # Give up on a candidate x/z after this many failed safety checks and try a new one.
+  max-attempts-per-location: 10
+
+  # Block types that make a candidate landing spot unsafe.
+  unsafe-blocks:
+    - LAVA
+    - WATER
+    - FIRE
+    - CACTUS
+    - MAGMA_BLOCK
+    - POWDER_SNOW
+    - SWEET_BERRY_BUSH
+    - WITHER_ROSE

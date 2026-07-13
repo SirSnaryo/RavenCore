@@ -1,0 +1,35 @@
+# Target server names as registered in your Velocity config.
+servers:
+  nether: smp-nether
+  end: smp-end
+
+# Each overworld server and the coordinate region it covers.
+# On Nether → Overworld, the converted coordinates are matched against these
+# regions to pick the correct server. The first region is used as fallback.
+# Adjacent regions sharing an edge will automatically have a virtual border between them.
+overworld-regions:
+  smp-world-na:
+    server: smp-world-na
+    min-x: -20000
+    max-x:  0
+    min-z: -20000
+    max-z:  20000
+  smp-world-eu:
+    server: smp-world-eu
+    min-x:  0
+    max-x:  20000
+    min-z: -20000
+    max-z:  20000
+
+# Virtual border settings (applies to all derived region borders).
+border:
+  # How close (in blocks) a player must be to see the particle wall.
+  detection-distance: 30
+  # Vertical spacing between particle rows in the wall.
+  particle-spacing: 1.5
+  # How many blocks tall the particle wall is.
+  wall-height: 50
+  # Any Bukkit Particle enum value.
+  particle: DUST_PLUME
+  # Sent when a player tries to break or place a block past the border.
+  deny-message: ""

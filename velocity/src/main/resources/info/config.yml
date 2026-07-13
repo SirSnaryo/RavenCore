@@ -1,0 +1,31 @@
+# Whether to play a sound to the player when they send a link command.
+play-sound: true
+# Namespaced sound key played on discord/store, e.g. "minecraft:entity.player.levelup".
+sound: "minecraft:entity.player.levelup"
+
+link-sent: "&7The link has been sent in chat!"
+
+discord:
+  - "&7Join our Discord community"
+  - "&7&l•&r &7&ndiscord.gg/example"
+
+store:
+  - "&7Visit our store"
+  - "&7&l•&r &7&nhttps://store.example.com"
+
+rules:
+  - "&7Rule 1: &fBe respectful to all players"
+  - "&7Rule 2: &fNo cheating, hacking, or exploiting bugs"
+  - "&7Rule 3: &fNo spamming or advertising"
+
+media:
+  - "&7Follow us on social media!"
+  - "&7&l•&r &7&nyoutube.com/example"
+  - "&7&l•&r &7&ntiktok.com/@example"
+
+help:
+  - "&7Available commands:"
+  - "&7/discord &8- &7Get our Discord invite link"
+  - "&7/store &8- &7Get our store link"
+  - "&7/rules &8- &7View the server rules"
+  - "&7/media &8- &7View our social media links"

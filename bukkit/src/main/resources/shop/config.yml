@@ -1,0 +1,99 @@
+Price-Lore:
+  - "&fBuy price: &a$%price%"
+
+purchase-inventory:
+  buttons:
+    minus-64:
+      name: '&#e00202 -64'
+      material: RED_STAINED_GLASS_PANE
+      slot: 9
+    minus-16:
+      name: '&#e00202 -16'
+      material: RED_STAINED_GLASS_PANE
+      slot: 10
+    minus-1:
+      name: '&#e00202 -1'
+      material: RED_STAINED_GLASS_PANE
+      slot: 11
+    plus-1:
+      name: '&#02de4f +1'
+      material: LIME_STAINED_GLASS_PANE
+      slot: 15
+    plus-16:
+      name: '&#02de4f +16'
+      material: LIME_STAINED_GLASS_PANE
+      slot: 16
+    plus-64:
+      name: '&#02de4f +64'
+      material: LIME_STAINED_GLASS_PANE
+      slot: 17
+
+main-inventory:
+  Title: 'sʜᴏᴘ'
+  Size: 27
+  items:
+    back-page:
+      name: '&#e00202 ʙᴀᴄᴋ'
+      material: RED_STAINED_GLASS_PANE
+      slot: 18
+      lore:
+        - '&fClick to return'
+    decline:
+      name: '&#e00202 ᴄᴀɴᴄᴇʟ'
+      material: RED_STAINED_GLASS_PANE
+      slot: 21
+      lore:
+        - '&fClick to cancel'
+    accept:
+      name: '&#02de4f ᴄᴏɴꜰɪʀᴍ'
+      material: LIME_STAINED_GLASS_PANE
+      slot: 23
+      lore:
+        - '&fClick to buy'
+
+  categories:
+    end-shop:
+      displayName: '&aᴇɴᴅ'
+      material: END_STONE
+      slot: 11
+      lore:
+        - '&fClick to view the end shop'
+      category: 'end-shop.yml'
+
+    nether:
+      displayName: '&aɴᴇᴛʜᴇʀ'
+      material: NETHERRACK
+      slot: 12
+      lore:
+        - '&fClick to view the nether shop'
+      category: 'nether-shop.yml'
+
+    gear:
+      displayName: '&aɢᴇᴀʀ'
+      material: TOTEM_OF_UNDYING
+      slot: 13
+      lore:
+        - '&fClick to view the gear shop'
+      category: 'gear-shop.yml'
+
+    food:
+      displayName: '&aғᴏᴏᴅ'
+      material: COOKED_BEEF
+      slot: 14
+      lore:
+        - '&fClick to view the food shop'
+      category: 'food-shop.yml'
+
+    shard:
+      displayName: '&dSʜᴀʀᴅ'
+      material: AMETHYST_SHARD
+      slot: 15
+      lore:
+        - '&fClick to view the shard shop'
+      commands:
+        - 'shard shop'
+
+messages:
+  not-enough-balance: '&cYou don''t have enough money.'
+  buying: '&aYou bought %amount% %item-name%'
+  not-enough-space: '&cYou do not have enough space in your inventory.'

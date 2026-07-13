@@ -10,11 +10,13 @@ public class NetworkPlayerInfo {
     private final UUID uuid;
     private final String playerName;
     private final String serverId;
+    private final String world;
 
-    public NetworkPlayerInfo(UUID uuid, String playerName, String serverId) {
+    public NetworkPlayerInfo(UUID uuid, String playerName, String serverId, String world) {
         this.uuid = uuid;
         this.playerName = playerName;
         this.serverId = serverId;
+        this.world = world;
     }
 
 }

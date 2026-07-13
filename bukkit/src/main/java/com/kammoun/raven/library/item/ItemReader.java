@@ -36,8 +36,9 @@ public final class ItemReader {
                 : new ItemBuilder(material);
 
         builder.amount(section.getInt("amount", 1));
-        if (section.contains("name"))        builder.name(section.getString("name"));
-        if (section.contains("displayName")) builder.name(section.getString("displayName"));
+        if (section.contains("name"))         builder.name(section.getString("name"));
+        if (section.contains("displayName"))  builder.name(section.getString("displayName"));
+        if (section.contains("display-name")) builder.name(section.getString("display-name"));
         if (section.contains("lore"))        builder.lore(section.getStringList("lore"));
         if (section.contains("damage"))      builder.damage(section.getInt("damage"));
         if (section.contains("custom-model-data")) builder.modelData(section.getInt("custom-model-data"));

@@ -1,0 +1,4 @@
+cooldown: "&cYou can use /rtp again in {seconds}s."
+pool-empty: "&cNo random locations are ready for {destination} yet — try again shortly."
+teleporting: "&aTeleporting you to &e{destination}&a..."
+world-missing: "&cSomething went wrong loading your destination. Please try again."

@@ -23,9 +23,11 @@ shadowJar {
 tasks.register('deploy') {
     dependsOn shadowJar
     doLast {
-        copy {
-            from shadowJar.archiveFile
-            into 'C:/Users/Kammoun/Desktop/RavenMC/Proxy 2/plugins'
+        ['C:/Users/Kammoun/Desktop/RavenMC', 'C:/Users/Kammoun/Desktop/RavenMC/Proxy 2/plugins'].each { dir ->
+            copy {
+                from shadowJar.archiveFile
+                into dir
+            }
         }
     }
 }

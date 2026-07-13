@@ -1,0 +1,88 @@
+package com.kammoun.raven.spawn;
+
+import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.library.redis.event.LocationsUpdatedEvent;
+import com.kammoun.raven.spawn.cache.LocationCache;
+import com.kammoun.raven.spawn.command.AfkCommand;
+import com.kammoun.raven.spawn.command.SetAfkCommand;
+import com.kammoun.raven.spawn.command.SetSpawnCommand;
+import com.kammoun.raven.spawn.command.SpawnCommand;
+import com.kammoun.raven.spawn.config.SpawnMessages;
+import com.kammoun.raven.spawn.countdown.TeleportCountdown;
+import com.kammoun.raven.spawn.db.LocationRepository;
+import com.kammoun.raven.spawn.db.LocationsTable;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
+public class SpawnModule extends KModule<RavenCore> {
+
+    private LocationRepository repository;
+    private LocationCache cache;
+    private SpawnMessages messages;
+    private TeleportCountdown countdown;
+    private ScheduledTask refreshTask;
+
+    public SpawnModule() {
+        super("spawn");
+    }
+
+    @Override
+    public void onModuleEnable() {
+        repository = new LocationRepository(api.getMySqlManager());
+
+        // Deliberate exception to "JDBC off main thread": this is one-time startup DDL,
+        // and must complete before the first cache.reload() below to avoid racing the
+        // table's own creation.
+        new LocationsTable(api.getMySqlManager()).createTable();
+
+        cache = new LocationCache(repository, api);
+        int defaultMaxPlayers = getConfig().getInt("default-max-players", 20);
+        messages = new SpawnMessages(loadMessages());
+
+        cache.reload();
+
+        int countdownSeconds = getConfig().getInt("teleport-countdown.seconds", 5);
+        countdown = new TeleportCountdown(api, messages, countdownSeconds);
+        countdown.start();
+
+        registerCommand(new SetSpawnCommand(api, repository, cache, messages, defaultMaxPlayers), "setspawn");
+        registerCommand(new SetAfkCommand(api, repository, cache, messages, defaultMaxPlayers), "setafk");
+        registerCommand(new SpawnCommand(api, getBungeeHelper(), cache, api.getNetworkPlayerManager(), messages, countdown), "spawn");
+        registerCommand(new AfkCommand(api, getBungeeHelper(), cache, api.getNetworkPlayerManager(), messages, countdown), "afk");
+
+        onEvent(PlayerJoinEvent.class, event ->
+                LocationTransferHelper.consumeOnJoin(api, api.getRedisMessenger().getConnection().getPool(), event.getPlayer()));
+
+        onEvent(PlayerMoveEvent.class, countdown::onMove);
+
+        api.getNetworkEventBus().subscribe(LocationsUpdatedEvent.class, event -> {
+            if (api.getServerId().equals(event.getSourceServer())) return; // already reloaded locally by the writer
+            cache.reload();
+        });
+
+        refreshTask = api.getServer().getAsyncScheduler()
+                .runAtFixedRate(api, task -> cache.reload(), 60, 60, TimeUnit.SECONDS);
+
+        getLogger().info("[Spawn] Enabled.");
+    }
+
+    @Override
+    public void onModuleDisable() {
+        if (refreshTask != null) refreshTask.cancel();
+        if (countdown != null) countdown.stop();
+        api.getNetworkEventBus().unsubscribe(LocationsUpdatedEvent.class);
+        getLogger().info("[Spawn] Disabled.");
+    }
+
+    private FileConfiguration loadMessages() {
+        saveDefaultConfig("messages.yml");
+        return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml"));
+    }
+}

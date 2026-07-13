@@ -49,7 +49,7 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
         fillerItem = ItemReader.readMenuItem(config.getConfigurationSection("Navigation.Filler-Item"));
     }
 
-    protected abstract void setMenuItems(String... placeholders);
+    protected abstract void setMenuItems(Player player, String... placeholders);
 
     protected void setItem(MenuItem item) {
         if (item == null || item.getSlot() < 0) return;
@@ -72,7 +72,7 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
         menuItems.clear();
 
         setNavigationItems(currentPage, maxPage);
-        setMenuItems(placeholders);
+        setMenuItems(player, placeholders);
         addFillerItem();
 
         player.openInventory(inventory);

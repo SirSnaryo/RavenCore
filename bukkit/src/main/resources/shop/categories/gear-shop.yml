@@ -1,0 +1,73 @@
+Title: '&8sʜᴏᴘ - ɢᴇᴀʀ'
+Size: 27
+
+items:
+  back-page:
+    name: '&#e00202 ʙᴀᴄᴋ'
+    material: RED_STAINED_GLASS_PANE
+    slot: 18
+    lore:
+      - '&fClick to return'
+  obsidian:
+    slot: 9
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴏʙsɪᴅɪᴀɴ'
+    displayName: '&fObsidian'
+    material: OBSIDIAN
+    price: 100
+    max-stack: 64
+  end-crystal:
+    slot: 10
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅ ᴄʀʏsᴛᴀʟ'
+    displayName: '&fEnd Crystal'
+    material: END_CRYSTAL
+    price: 350
+    max-stack: 64
+  respawn-anchor:
+    slot: 11
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ʀᴇsᴘᴀᴡɴ ᴀɴᴄʜᴏʀ'
+    displayName: '&fRespawn Anchor'
+    material: RESPAWN_ANCHOR
+    price: 1000
+    max-stack: 64
+  glowstone:
+    slot: 12
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ɢʟᴏᴡ sᴛᴏɴᴇ'
+    displayName: '&fGlowstone'
+    material: GLOWSTONE
+    price: 100
+    max-stack: 64
+  totem:
+    slot: 13
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴛᴏᴛᴇᴍ ᴏꜰ ᴜɴᴅʏɪɴɢ'
+    displayName: '&f&eTotem of Undying'
+    material: TOTEM_OF_UNDYING
+    price: 1250
+    max-stack: 1
+  ender-pearl:
+    slot: 14
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇɴᴅᴇʀ ᴘᴇᴀʀʟ'
+    displayName: '&fEnder Pearl'
+    material: ENDER_PEARL
+    price: 75
+    max-stack: 16
+  golden-apple:
+    slot: 15
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ɢᴏʟᴅᴇɴ ᴀᴘᴘʟᴇ'
+    displayName: '&f&bGolden Apple'
+    material: GOLDEN_APPLE
+    price: 250
+    max-stack: 64
+  exp-bottle:
+    slot: 16
+    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴇxᴘᴇʀɪᴇɴᴄᴇ ʙᴏᴛᴛʟᴇ'
+    displayName: '&f&eBottle o'' Enchanting'
+    material: EXPERIENCE_BOTTLE
+    price: 100
+    max-stack: 64
+  arrow:
+    slot: 17
+    purchase-inventory-title: 'ʙᴜʏɪnɢ ᴀʀʀᴏᴡ'
+    displayName: '&fArrow'
+    material: ARROW
+    price: 500
+    max-stack: 64

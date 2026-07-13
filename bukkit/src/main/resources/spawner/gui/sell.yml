@@ -1,0 +1,23 @@
+Title: "&7ᴄᴏɴꜰɪʀᴍ ѕᴇʟʟ"
+Size: 27
+
+Items:
+
+  Decline:
+    material: RED_STAINED_GLASS_PANE
+    display-name: "&#ee340bᴅᴇᴄʟɪɴᴇ"
+    lore:
+      - "&fClick to cancel"
+    slot: 11
+
+  Contents:
+    display-name: "&#34ee80ʟᴏᴏᴛ"
+    slot: 13
+
+  Confirm:
+    material: LIME_STAINED_GLASS_PANE
+    display-name: "&#3fee0bᴄᴏɴꜰɪʀᴍ"
+    lore:
+      - "&fClick to sell all items"
+      - "&7($%value%)"
+    slot: 15

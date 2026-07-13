@@ -4,6 +4,7 @@ import com.kammoun.raven.library.skin.cache.ConcurrentSkinCache;
 import com.kammoun.raven.library.skin.cache.SQLiteSkinStorage;
 import com.kammoun.raven.library.skin.cache.SkinCache;
 import com.kammoun.raven.library.skin.model.SkinData;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -74,7 +75,7 @@ public final class SkinService {
     }
 
     public void cacheOnlinePlayer(@NotNull Player player) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runAsync( () -> {
             String texture = extractTextureFromPlayerProfile(player);
             if (texture != null) {
                 String signature = MojangUtils.getSignaturePaper(player);

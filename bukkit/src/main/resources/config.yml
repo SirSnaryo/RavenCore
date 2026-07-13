@@ -3,9 +3,30 @@
 # Leave empty to auto-use the name defined in server.properties.
 network:
   server-id: ''
+  # All regional overworld servers (NA, EU, etc.) share one world seed so terrain
+  # lines up across the borders drawn by the portal module. Set this to that shared
+  # seed and every server will verify its own world matches on startup — a mismatch
+  # logs a severe error and shuts the server down instead of starting with broken
+  # terrain at the border. Leave empty to skip this check.
+  expected-seed: ''
+
+# server-role options:
+#   overworld — normal survival world (default)
+#   nether    — dedicated Nether server; all non-NETHER worlds are unloaded
+#   end       — dedicated End server; all non-THE_END worlds are unloaded
+#   spawn     — lobby/spawn server; no gameplay modules loaded
+server-role: overworld
 
 redis:
   host: 127.0.0.1
   port: 6379
   password: ''
   database: 0
+
+# MySQL connection used by network-wide persistent features (e.g. /setspawn, /setafk).
+database:
+  host: 127.0.0.1
+  port: 3306
+  name: ravencore
+  user: root
+  password: ''

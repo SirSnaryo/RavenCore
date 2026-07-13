@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.module;
 
+import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.yaml.snakeyaml.Yaml;
 
@@ -76,6 +77,10 @@ public abstract class VModule {
 
     public void registerListener(Object listener) {
         server.getEventManager().register(plugin, listener);
+    }
+
+    public void registerCommand(String name, Command command, String... aliases) {
+        server.getCommandManager().register(name, command, aliases);
     }
 
     // -- Config --

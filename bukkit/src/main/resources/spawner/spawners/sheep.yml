@@ -1,0 +1,72 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# RavenCore — Sheep Spawner
+# Everything for this spawner type lives in this one file: its item, drops,
+# and its own storage GUI. Nothing here is shared with other types.
+# ─────────────────────────────────────────────────────────────────────────────
+
+display-name: "&7Sheep Spawner"
+
+spawner-item:
+  material: SPAWNER
+  display-name: "&7Sheep Spawner"
+  lore:
+    - "&7Place this down for"
+    - "&7a Sheep spawner."
+
+gui-icon:
+  material: PLAYER_HEAD
+  texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODRlNWNkYjBlZGIzNjJjYjQ1NDU4NmQxZmQwZWJlOTcxNDIzZjAxNWIwYjFiZmM5NWY4ZDVhZjhhZmU3ZTgxMCJ9fX0="
+  display-name: "&7%amount% Sheep Spawner"
+  lore:
+    - "&#34ee80(%fill-percentage%% filled)"
+
+spawn-interval-seconds: 60
+xp-per-cycle: 10
+max-storage: 5760
+
+drops:
+  - material: MUTTON
+    amount-per-spawner: 1
+    sell-price: 0.5
+
+# ─── Storage GUI (opened on right-click) ──────────────────────────────────────
+storage-gui:
+  Title: "%amount% ѕʜᴇᴇᴘ ѕᴘᴀᴡɴᴇʀѕ"
+  Size: 54
+
+  Items:
+
+    Prev-Page:
+      material: ARROW
+      display-name: "&#34ee80ᴘʀᴇᴠɪᴏᴜs ᴘᴀɢᴇ"
+      lore:
+        - "&fClick to go to the previous page"
+      slot: 45
+
+    Next-Page:
+      material: ARROW
+      display-name: "&#34ee80ɴᴇxᴛ ᴘᴀɢᴇ"
+      lore:
+        - "&fClick to go to the next page"
+      slot: 53
+
+    Spawner-Icon:
+      material: SPAWNER
+      display-name: " "
+      slot: 49
+
+    Drop-All:
+      material: DROPPER
+      display-name: "&#34ee80ᴅʀᴏᴘ ᴀʟʟ ʟᴏᴏᴛ"
+      lore:
+        - "&fClick to drop all loot"
+        - "&7All items will be dropped at your location"
+      slot: 50
+
+    Sell-All:
+      material: GOLD_INGOT
+      display-name: "&#34ee80ѕᴇʟʟ ᴀʟʟ"
+      lore:
+        - "&fClick to sell all mob drops!"
+        - "&7Sells all items in storage"
+      slot: 48

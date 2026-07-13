@@ -70,7 +70,7 @@ public abstract class KCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public final List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 1) {
+        if (args.length == 1 && !subCommands.isEmpty()) {
             return subCommands.stream()
                     .map(KSubCommand::getName)
                     .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))

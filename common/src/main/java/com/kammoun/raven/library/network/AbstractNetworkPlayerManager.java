@@ -37,22 +37,24 @@ public abstract class AbstractNetworkPlayerManager {
 
         // Keep cache in sync with remote join/quit events
         eventBus.subscribe(NetworkPlayerJoinEvent.class, event -> {
+            if (event == null || event.getUuid() == null) return;
             if (!serverId.equals(event.getSourceServer())) {
                 nameCache.put(UUID.fromString(event.getUuid()), event.getPlayerName());
             }
         });
 
         eventBus.subscribe(NetworkPlayerQuitEvent.class, event -> {
+            if (event == null || event.getUuid() == null) return;
             if (!serverId.equals(event.getSourceServer())) {
                 nameCache.remove(UUID.fromString(event.getUuid()));
             }
         });
     }
 
-    protected void registerPlayer(UUID uuid, String playerName) {
+    protected void registerPlayer(UUID uuid, String playerName, String world) {
         nameCache.put(uuid, playerName);
 
-        NetworkPlayerInfo info = new NetworkPlayerInfo(uuid, playerName, serverId);
+        NetworkPlayerInfo info = new NetworkPlayerInfo(uuid, playerName, serverId, world);
         try (Jedis jedis = pool.getResource()) {
             jedis.hset(HASH_KEY, uuid.toString(), gson.toJson(info));
         }
@@ -61,6 +63,21 @@ public abstract class AbstractNetworkPlayerManager {
         event.setUuid(uuid.toString());
         event.setPlayerName(playerName);
         eventBus.publish(event);
+    }
+
+    /**
+     * Updates the world recorded for a player already registered on this server, e.g. after
+     * a PlayerChangedWorldEvent. Live per-location player counts read this straight from Redis,
+     * so no NetworkEventBus event is needed here — only the source server ever writes it.
+     */
+    protected void updatePlayerWorld(UUID uuid, String world) {
+        try (Jedis jedis = pool.getResource()) {
+            String json = jedis.hget(HASH_KEY, uuid.toString());
+            if (json == null) return;
+            NetworkPlayerInfo info = gson.fromJson(json, NetworkPlayerInfo.class);
+            NetworkPlayerInfo updated = new NetworkPlayerInfo(uuid, info.getPlayerName(), info.getServerId(), world);
+            jedis.hset(HASH_KEY, uuid.toString(), gson.toJson(updated));
+        }
     }
 
     protected void unregisterPlayer(UUID uuid) {
