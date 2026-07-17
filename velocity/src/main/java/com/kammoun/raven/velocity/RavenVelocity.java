@@ -6,7 +6,7 @@ import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.info.InfoModule;
-import com.kammoun.raven.velocity.lastserver.LastServerModule;
+import com.kammoun.raven.velocity.privatemessage.PrivateMessageModule;
 import com.kammoun.raven.velocity.proxycommandfilter.ProxyCommandFilterModule;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
@@ -47,9 +47,9 @@ public class RavenVelocity {
     private RedisMessenger redisMessenger;
     private NetworkEventBus networkEventBus;
     private VelocityNetworkPlayerManager networkPlayerManager;
-    private LastServerModule lastServerModule;
     private InfoModule infoModule;
     private ProxyCommandFilterModule proxyCommandFilterModule;
+    private PrivateMessageModule privateMessageModule;
 
     @Inject
     public RavenVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -83,28 +83,28 @@ public class RavenVelocity {
                 this, server, redisMessenger.getConnection().getPool(), serverId, networkEventBus
         );
 
-        lastServerModule = new LastServerModule(redisMessenger.getConnection().getPool());
-        lastServerModule.onEnable(this, server, dataDirectory);
-
         infoModule = new InfoModule();
         infoModule.onEnable(this, server, dataDirectory);
 
         proxyCommandFilterModule = new ProxyCommandFilterModule();
         proxyCommandFilterModule.onEnable(this, server, dataDirectory);
 
+        privateMessageModule = new PrivateMessageModule();
+        privateMessageModule.onEnable(this, server, dataDirectory);
+
         logger.info("RavenCore (Velocity) enabled — proxy id: " + serverId);
     }
 
     @Subscribe
     public void onProxyShutdown(ProxyShutdownEvent event) {
-        if (lastServerModule != null) {
-            lastServerModule.onDisable();
-        }
         if (infoModule != null) {
             infoModule.onDisable();
         }
         if (proxyCommandFilterModule != null) {
             proxyCommandFilterModule.onDisable();
+        }
+        if (privateMessageModule != null) {
+            privateMessageModule.onDisable();
         }
         if (redisMessenger != null) {
             redisMessenger.close();

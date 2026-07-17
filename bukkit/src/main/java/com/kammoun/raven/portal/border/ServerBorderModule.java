@@ -30,7 +30,8 @@ public class ServerBorderModule extends KModule<RavenCore> {
     private static final long TRANSFER_TIMEOUT_MILLIS = 5000L;
 
     private JedisPool jedisPool;
-    private List<ServerBorder> borders;
+    private List<ServerBorder> normalBorders;
+    private List<ServerBorder> netherBorders;
     private String thisServer;
 
     private PendingTransferTracker pendingTransfers;
@@ -55,17 +56,24 @@ public class ServerBorderModule extends KModule<RavenCore> {
         PortalMessages messages  = new PortalMessages(getConfig());
 
         List<OverworldRegion> regions = OverworldRegion.loadAll(getConfig());
-        borders = ServerBorder.deriveAll(regions).stream()
+        normalBorders = ServerBorder.deriveAll(regions).stream()
                 .filter(border -> border.involves(thisServer))
                 .toList();
 
-        if (borders.isEmpty()) {
+        // Each region's local Nether mirrors its Overworld footprint at Minecraft's normal 1:8
+        // ratio, so the same shared-edge derivation gives us the matching Nether borders too.
+        List<OverworldRegion> netherRegions = OverworldRegion.scaled(regions, 8.0);
+        netherBorders = ServerBorder.deriveAll(netherRegions).stream()
+                .filter(border -> border.involves(thisServer))
+                .toList();
+
+        if (normalBorders.isEmpty() && netherBorders.isEmpty()) {
             getLogger().info("[Border] No borders derived — module idle.");
             return;
         }
 
         pendingTransfers = new PendingTransferTracker(TRANSFER_TIMEOUT_MILLIS);
-        enforcer         = new BorderEnforcer(api, jedisPool, borders, thisServer, pendingTransfers, messages);
+        enforcer         = new BorderEnforcer(api, jedisPool, normalBorders, netherBorders, thisServer, pendingTransfers, messages);
         particleRenderer = new BorderParticleRenderer(detectionDistance, particleSpacing, wallHeight, particle);
 
         onEvent(PlayerQuitEvent.class, e -> pendingTransfers.clear(e.getPlayer().getUniqueId()));
@@ -88,7 +96,8 @@ public class ServerBorderModule extends KModule<RavenCore> {
         tickTask = api.getServer().getGlobalRegionScheduler()
                 .runAtFixedRate(api, task -> tick(), 10L, 10L);
 
-        getLogger().info("[Border] Enabled with " + borders.size() + " border(s).");
+        getLogger().info("[Border] Enabled with " + normalBorders.size() + " overworld border(s), "
+                + netherBorders.size() + " nether border(s).");
     }
 
     @Override
@@ -105,7 +114,10 @@ public class ServerBorderModule extends KModule<RavenCore> {
 
             Location loc = player.getLocation();
             World world  = loc.getWorld();
-            if (world == null || world.getEnvironment() != World.Environment.NORMAL) continue;
+            if (world == null) continue;
+
+            List<ServerBorder> borders = enforcer.bordersFor(world.getEnvironment());
+            if (borders.isEmpty()) continue;
 
             double px = loc.getX(), pz = loc.getZ();
 

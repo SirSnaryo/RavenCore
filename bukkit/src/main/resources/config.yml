@@ -11,11 +11,10 @@ network:
   expected-seed: ''
 
 # server-role options:
-#   overworld — normal survival world (default)
-#   nether    — dedicated Nether server; all non-NETHER worlds are unloaded
-#   end       — dedicated End server; all non-THE_END worlds are unloaded
-#   spawn     — lobby/spawn server; no gameplay modules loaded
-server-role: overworld
+#   survival — normal survival world plus its own local Nether (default)
+#   end      — dedicated End server; all non-THE_END worlds are unloaded
+#   spawn    — lobby/spawn server; no gameplay modules loaded
+server-role: survival
 
 redis:
   host: 127.0.0.1

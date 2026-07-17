@@ -7,33 +7,44 @@ import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.util.PlaceholderHelper;
 import com.kammoun.raven.rtp.RtpService;
-import com.kammoun.raven.rtp.config.RtpDestinations;
 import com.kammoun.raven.rtp.config.RtpDestinations.RegionDestination;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Collection;
 import java.util.List;
 
-/** One item per configured overworld region (e.g. NA/EU), shown when picking Overworld from {@link DimensionMenu}. */
+/**
+ * One item per configured region, shown when picking a dimension from {@link DimensionMenu} —
+ * used for both the Overworld's regions and, since each region also hosts its own local Nether,
+ * the Nether's regions too.
+ */
 public class RegionMenu extends KMenu {
 
     private final RtpService service;
-    private final RtpDestinations destinations;
+    private final Collection<RegionDestination> regions;
 
     private final List<Integer> itemSlots;
     private final MenuItem regionTemplate;
 
-    public RegionMenu(RavenCore api, RtpService service, RtpDestinations destinations, DimensionMenu dimensionMenu) {
-        super(api, "rtp/region-menu.yml");
+    private DimensionMenu backTarget;
+
+    public RegionMenu(RavenCore api, RtpService service, Collection<RegionDestination> regions, String menuFile) {
+        super(api, menuFile);
         this.service = service;
-        this.destinations = destinations;
+        this.regions = regions;
 
         this.itemSlots = config.getIntegerList("Item-Slots");
         this.regionTemplate = ItemReader.readMenuItem(config.getConfigurationSection("Items.Region"));
 
         if (getGoBack() != null) {
-            getGoBack().onClick(event -> dimensionMenu.open((Player) event.getWhoClicked()));
+            getGoBack().onClick(event -> backTarget.open((Player) event.getWhoClicked()));
         }
+    }
+
+    /** DimensionMenu and its region menus reference each other, so this is wired post-construction. */
+    public void setBackTarget(DimensionMenu backTarget) {
+        this.backTarget = backTarget;
     }
 
     @Override
@@ -41,7 +52,7 @@ public class RegionMenu extends KMenu {
         if (regionTemplate == null) return;
 
         int slotIndex = 0;
-        for (RegionDestination region : destinations.overworldWorlds()) {
+        for (RegionDestination region : regions) {
             if (slotIndex >= itemSlots.size()) break;
             int slot = itemSlots.get(slotIndex++);
 
@@ -50,7 +61,7 @@ public class RegionMenu extends KMenu {
 
             MenuItem item = MenuItem.of(new ItemBuilder(stack)).slot(slot);
             item.onClick(event -> service.requestTeleport(
-                    (Player) event.getWhoClicked(), region.server(), region.displayName()));
+                    (Player) event.getWhoClicked(), region.id(), region.server(), region.displayName()));
             setItem(item);
         }
     }

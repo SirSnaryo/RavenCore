@@ -125,6 +125,12 @@ public abstract class KModule<T extends JavaPlugin> implements Module {
                 return;
             }
 
+            File parentDir = configFile.getParentFile();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                getLogger().warning("Failed to create config directory: " + parentDir.getPath());
+                return;
+            }
+
             Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             getLogger().info("Created default config: " + configName);
         } catch (IOException e) {

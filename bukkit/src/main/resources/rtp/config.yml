@@ -1,6 +1,6 @@
 # RTP's own server list. Kept separate from the portal module's overworld-regions
 # on purpose, so RTP's world choices/labels can diverge from portal routing.
-# Each entry needs a matching server-role: overworld server running this same config.
+# Each entry needs a matching server-role: survival server running this same config.
 #
 # min-radius/max-radius/min-y/max-y are per-destination since NA/EU/Nether/End are
 # different worlds with different sane search bounds (e.g. the End is a small island
@@ -21,12 +21,23 @@ overworld-worlds:
     min-y: -64
     max-y: 320
 
-nether:
-  server: smp-nether
-  min-radius: 100
-  max-radius: 2500
-  min-y: 32
-  max-y: 120
+# The Nether is local to each survival server now, so it's split per-region just like the
+# Overworld above — each entry points at the *same* server as its Overworld counterpart.
+nether-worlds:
+  na:
+    server: smp-world-na
+    display-name: "NA"
+    min-radius: 100
+    max-radius: 2500
+    min-y: 32
+    max-y: 120
+  eu:
+    server: smp-world-eu
+    display-name: "EU"
+    min-radius: 100
+    max-radius: 2500
+    min-y: 32
+    max-y: 120
 
 end:
   server: smp-end

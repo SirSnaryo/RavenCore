@@ -1,0 +1,11 @@
+# Permission required to use /msg and /r.
+permission: "raven.msg"
+
+format:
+  sent: "&7[You -> &f%target%&7]: &f%message%"
+  received: "&7[&f%sender%&7 -> You]: &f%message%"
+
+player-not-found: "&cPlayer &f%player%&c is not online."
+cannot-message-self: "&cYou cannot message yourself."
+no-reply-target: "&cYou have no one to reply to."
+reply-target-offline: "&cThat player is no longer online."

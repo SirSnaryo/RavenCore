@@ -9,8 +9,9 @@ import com.kammoun.raven.rtp.config.RtpDestinations;
 import org.bukkit.entity.Player;
 
 /**
- * Top-level /rtp menu: Overworld opens {@link RegionMenu}, Nether/End teleport
- * immediately since each is a single dedicated server with no sub-choice.
+ * Top-level /rtp menu: Overworld and Nether each open their own {@link RegionMenu} — every
+ * survival region hosts its own local Nether, so the Nether is split per-region just like the
+ * Overworld. End teleports immediately since it's still a single dedicated server.
  */
 public class DimensionMenu extends KMenu {
 
@@ -18,9 +19,8 @@ public class DimensionMenu extends KMenu {
     private final MenuItem netherItem;
     private final MenuItem endItem;
 
-    private RegionMenu regionMenu;
-
-    public DimensionMenu(RavenCore api, RtpService service, RtpDestinations destinations) {
+    public DimensionMenu(RavenCore api, RtpService service, RtpDestinations destinations,
+                          RegionMenu overworldRegionMenu, RegionMenu netherRegionMenu) {
         super(api, "rtp/dimension-menu.yml");
 
         this.overworldItem = ItemReader.readMenuItem(config.getConfigurationSection("Items.Overworld"));
@@ -28,21 +28,15 @@ public class DimensionMenu extends KMenu {
         this.endItem       = ItemReader.readMenuItem(config.getConfigurationSection("Items.End"));
 
         if (overworldItem != null) {
-            overworldItem.onClick(event -> regionMenu.open((Player) event.getWhoClicked()));
+            overworldItem.onClick(event -> overworldRegionMenu.open((Player) event.getWhoClicked()));
         }
         if (netherItem != null) {
-            netherItem.onClick(event -> service.requestTeleport(
-                    (Player) event.getWhoClicked(), destinations.netherServer(), "Nether"));
+            netherItem.onClick(event -> netherRegionMenu.open((Player) event.getWhoClicked()));
         }
         if (endItem != null) {
-            endItem.onClick(event -> service.requestTeleport(
-                    (Player) event.getWhoClicked(), destinations.endServer(), "End"));
+            destinations.end().ifPresent(end -> endItem.onClick(event -> service.requestTeleport(
+                    (Player) event.getWhoClicked(), end.id(), end.server(), end.displayName())));
         }
-    }
-
-    /** RegionMenu needs a DimensionMenu reference to go back to, so this is wired post-construction. */
-    public void setRegionMenu(RegionMenu regionMenu) {
-        this.regionMenu = regionMenu;
     }
 
     @Override

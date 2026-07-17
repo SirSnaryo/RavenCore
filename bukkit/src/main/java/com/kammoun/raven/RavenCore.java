@@ -1,5 +1,6 @@
 package com.kammoun.raven;
 
+import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
@@ -51,6 +52,7 @@ public final class RavenCore extends JavaPlugin {
     private RtpModule rtpModule;
     private ShopModule shopModule;
     private SpawnerModule spawnerModule;
+    private ChatModule chatModule;
 
     @Override
     public void onEnable() {
@@ -63,11 +65,11 @@ public final class RavenCore extends JavaPlugin {
         serverId   = configuredId.isEmpty() ? getServer().getName() : configuredId;
         serverRole = ServerRole.parse(getConfig().getString("server-role", "overworld"));
 
-        if (serverRole == ServerRole.OVERWORLD) {
+        if (serverRole == ServerRole.SURVIVAL) {
             enforceWorldSeed();
         }
 
-        if (serverRole != ServerRole.OVERWORLD && serverRole != ServerRole.SPAWN) {
+        if (serverRole != ServerRole.SURVIVAL && serverRole != ServerRole.SPAWN) {
             enforceWorldRole();
         }
 
@@ -108,6 +110,9 @@ public final class RavenCore extends JavaPlugin {
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
 
+        chatModule = new ChatModule();
+        chatModule.onEnable(this);
+
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
 
@@ -122,7 +127,7 @@ public final class RavenCore extends JavaPlugin {
             rtpModule.onEnable(this);
         }
 
-        if (serverRole == ServerRole.OVERWORLD) {
+        if (serverRole == ServerRole.SURVIVAL) {
             serverBorderModule = new ServerBorderModule();
             serverBorderModule.onEnable(this);
         }
@@ -242,6 +247,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (clearInventoryModule != null) {
             clearInventoryModule.onDisable(this);
+        }
+        if (chatModule != null) {
+            chatModule.onDisable(this);
         }
         if (shopModule != null) {
             shopModule.onDisable(this);

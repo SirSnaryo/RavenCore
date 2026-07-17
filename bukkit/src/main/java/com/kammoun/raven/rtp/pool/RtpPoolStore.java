@@ -9,11 +9,13 @@ import redis.clients.jedis.JedisPool;
 import java.util.Optional;
 
 /**
- * Redis-backed queue of {@link PooledLocation}s per server id (key {@code raven:rtp:pool:<serverId>}).
- * A plain Redis LIST: RPUSH to add, LPOP to take — LPOP is atomic on the Redis server, so any
- * server on the network can safely take the next location for a target server's pool without
- * that target server's JVM being involved. All methods do blocking Jedis I/O; callers are
- * responsible for running them off the main thread.
+ * Redis-backed queue of {@link PooledLocation}s per RTP destination id (key
+ * {@code raven:rtp:pool:<destinationId>}). Keyed by destination rather than server id since one
+ * survival server now backs two destinations at once (its Overworld region and that region's
+ * local Nether). A plain Redis LIST: RPUSH to add, LPOP to take — LPOP is atomic on the Redis
+ * server, so any server on the network can safely take the next location for a destination's
+ * pool without that destination's JVM being involved. All methods do blocking Jedis I/O; callers
+ * are responsible for running them off the main thread.
  */
 public class RtpPoolStore {
 
@@ -28,30 +30,30 @@ public class RtpPoolStore {
         this.pool = pool;
     }
 
-    public void push(String serverId, PooledLocation location) {
+    public void push(String destinationId, PooledLocation location) {
         String json = GSON.toJson(location);
         try (Jedis jedis = pool.getResource()) {
-            jedis.rpush(KEY_PREFIX + serverId, json);
+            jedis.rpush(KEY_PREFIX + destinationId, json);
         } catch (Exception e) {
-            plugin.getLogger().warning("[Rtp] Failed to push pool location for " + serverId + ": " + e.getMessage());
+            plugin.getLogger().warning("[Rtp] Failed to push pool location for " + destinationId + ": " + e.getMessage());
         }
     }
 
-    public long size(String serverId) {
+    public long size(String destinationId) {
         try (Jedis jedis = pool.getResource()) {
-            return jedis.llen(KEY_PREFIX + serverId);
+            return jedis.llen(KEY_PREFIX + destinationId);
         } catch (Exception e) {
-            plugin.getLogger().warning("[Rtp] Failed to read pool size for " + serverId + ": " + e.getMessage());
+            plugin.getLogger().warning("[Rtp] Failed to read pool size for " + destinationId + ": " + e.getMessage());
             return 0;
         }
     }
 
-    public Optional<PooledLocation> pop(String serverId) {
+    public Optional<PooledLocation> pop(String destinationId) {
         String json;
         try (Jedis jedis = pool.getResource()) {
-            json = jedis.lpop(KEY_PREFIX + serverId);
+            json = jedis.lpop(KEY_PREFIX + destinationId);
         } catch (Exception e) {
-            plugin.getLogger().warning("[Rtp] Failed to pop pool location for " + serverId + ": " + e.getMessage());
+            plugin.getLogger().warning("[Rtp] Failed to pop pool location for " + destinationId + ": " + e.getMessage());
             return Optional.empty();
         }
         if (json == null) return Optional.empty();
@@ -59,7 +61,7 @@ public class RtpPoolStore {
         try {
             return Optional.of(GSON.fromJson(json, PooledLocation.class));
         } catch (JsonSyntaxException e) {
-            plugin.getLogger().warning("[Rtp] Malformed pool entry for " + serverId);
+            plugin.getLogger().warning("[Rtp] Malformed pool entry for " + destinationId);
             return Optional.empty();
         }
     }

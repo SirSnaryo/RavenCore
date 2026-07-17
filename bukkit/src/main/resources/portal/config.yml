@@ -1,12 +1,12 @@
 # Target server names as registered in your Velocity config.
+# The Nether has no entry here anymore — it's now local to each survival server
+# (Minecraft's normal 1:8 dimension ratio), not a separate dedicated server.
 servers:
-  nether: smp-nether
   end: smp-end
 
-# Each overworld server and the coordinate region it covers.
-# On Nether → Overworld, the converted coordinates are matched against these
-# regions to pick the correct server. The first region is used as fallback.
-# Adjacent regions sharing an edge will automatically have a virtual border between them.
+# Each survival server and the coordinate region it covers.
+# Adjacent regions sharing an edge will automatically have a virtual border between them —
+# both in the Overworld and, at 1/8 scale, in each region's local Nether.
 overworld-regions:
   smp-world-na:
     server: smp-world-na

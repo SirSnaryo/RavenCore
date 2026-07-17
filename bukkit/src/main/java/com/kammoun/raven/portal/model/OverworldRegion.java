@@ -28,6 +28,21 @@ public class OverworldRegion {
         return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
     }
 
+    /**
+     * Returns a copy of every region with all coordinates divided by {@code divisor} — used to
+     * derive each region's local-Nether footprint from its Overworld one (divisor 8, matching
+     * Minecraft's Overworld:Nether coordinate ratio).
+     */
+    public static List<OverworldRegion> scaled(List<OverworldRegion> regions, double divisor) {
+        List<OverworldRegion> result = new ArrayList<>(regions.size());
+        for (OverworldRegion region : regions) {
+            result.add(new OverworldRegion(region.server,
+                    region.minX / divisor, region.maxX / divisor,
+                    region.minZ / divisor, region.maxZ / divisor));
+        }
+        return result;
+    }
+
     /** Loads every region under the config's {@code overworld-regions} section. */
     public static List<OverworldRegion> loadAll(FileConfiguration config) {
         List<OverworldRegion> regions = new ArrayList<>();

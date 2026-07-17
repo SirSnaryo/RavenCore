@@ -1,0 +1,11 @@
+# Placeholders: %server% (server-tag below), %player%, %message%.
+# Any PlaceholderAPI placeholder (e.g. %luckperms_prefix%) is also resolved here,
+# using the sender's server, before the line is broadcast network-wide.
+format: "&8[&b%server%&8]&r %luckperms_prefix%&f%player%&8: &f%message%"
+
+# Tag shown as %server% in the format above. Leave blank to use this
+# server's configured network.server-id.
+server-tag: ""
+
+# Permission required to send network chat.
+permission: "raven.chat"

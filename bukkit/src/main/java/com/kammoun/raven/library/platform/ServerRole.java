@@ -4,8 +4,7 @@ import org.bukkit.World;
 
 public enum ServerRole {
 
-    OVERWORLD(null),
-    NETHER(World.Environment.NETHER),
+    SURVIVAL(null),
     END(World.Environment.THE_END),
     SPAWN(null);
 
@@ -24,7 +23,7 @@ public enum ServerRole {
         try {
             return valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return OVERWORLD;
+            return SURVIVAL;
         }
     }
 }

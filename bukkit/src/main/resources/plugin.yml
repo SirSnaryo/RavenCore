@@ -130,3 +130,6 @@ permissions:
   raven.spawner.silktouch:
     description: Bypass the Silk Touch requirement when breaking placed spawners
     default: op
+  raven.chat:
+    description: Send messages in network-wide chat
+    default: true

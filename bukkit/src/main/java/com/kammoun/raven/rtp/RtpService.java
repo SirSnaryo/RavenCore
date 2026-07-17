@@ -39,8 +39,12 @@ public class RtpService {
         this.cooldownSeconds = cooldownSeconds;
     }
 
-    /** {@code destinationLabel} is only used in the messages sent back to the player. */
-    public void requestTeleport(Player player, String targetServer, String destinationLabel) {
+    /**
+     * {@code poolId} identifies which pool to pop from (a destination id, since one server can
+     * back more than one pool); {@code targetServer} is where to actually send the player.
+     * {@code destinationLabel} is only used in the messages sent back to the player.
+     */
+    public void requestTeleport(Player player, String poolId, String targetServer, String destinationLabel) {
         if (cooldowns.isOnCooldown(player, COOLDOWN_KEY)) {
             player.sendMessage(messages.format("cooldown",
                     "seconds", String.valueOf(cooldowns.getRemainingSeconds(player, COOLDOWN_KEY))));
@@ -49,7 +53,7 @@ public class RtpService {
 
         player.closeInventory();
         Bukkit.getAsyncScheduler().runNow(api, task -> {
-            Optional<PooledLocation> destination = poolStore.pop(targetServer);
+            Optional<PooledLocation> destination = poolStore.pop(poolId);
             player.getScheduler().run(api,
                     t -> onDestinationResolved(player, targetServer, destinationLabel, destination), null);
         });

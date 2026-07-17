@@ -29,27 +29,38 @@ public class BorderEnforcer {
 
     private final JavaPlugin plugin;
     private final JedisPool jedisPool;
-    private final List<ServerBorder> borders;
+    private final List<ServerBorder> normalBorders;
+    private final List<ServerBorder> netherBorders;
     private final String thisServer;
     private final PendingTransferTracker pendingTransfers;
     private final PortalMessages messages;
 
-    public BorderEnforcer(JavaPlugin plugin, JedisPool jedisPool, List<ServerBorder> borders,
+    public BorderEnforcer(JavaPlugin plugin, JedisPool jedisPool,
+                           List<ServerBorder> normalBorders, List<ServerBorder> netherBorders,
                            String thisServer, PendingTransferTracker pendingTransfers, PortalMessages messages) {
         this.plugin = plugin;
         this.jedisPool = jedisPool;
-        this.borders = borders;
+        this.normalBorders = normalBorders;
+        this.netherBorders = netherBorders;
         this.thisServer = thisServer;
         this.pendingTransfers = pendingTransfers;
         this.messages = messages;
     }
 
+    /** The border set that applies to a world's dimension, or empty if that dimension isn't bordered. */
+    List<ServerBorder> bordersFor(World.Environment env) {
+        if (env == World.Environment.NORMAL) return normalBorders;
+        if (env == World.Environment.NETHER) return netherBorders;
+        return List.of();
+    }
+
     public void triggerTransfer(Player player, Location loc, String targetServer) {
         if (pendingTransfers.isPending(player.getUniqueId())) return;
         pendingTransfers.mark(player.getUniqueId());
-        // Border crossings only ever happen between overworld region servers.
+        // A crossing always lands the player in the same dimension on the neighbor server —
+        // Overworld region borders hand off to another Overworld, Nether ones to another Nether.
         PortalTransferHelper.transfer(plugin, jedisPool, player,
-                loc.getX(), loc.getY(), loc.getZ(), World.Environment.NORMAL, targetServer);
+                loc.getX(), loc.getY(), loc.getZ(), loc.getWorld().getEnvironment(), targetServer);
     }
 
     /**
@@ -70,7 +81,9 @@ public class BorderEnforcer {
 
     public boolean isBeyondOwnSide(Location loc) {
         World world = loc.getWorld();
-        if (world == null || world.getEnvironment() != World.Environment.NORMAL) return false;
+        if (world == null) return false;
+        List<ServerBorder> borders = bordersFor(world.getEnvironment());
+        if (borders.isEmpty()) return false;
 
         double x = loc.getX(), z = loc.getZ();
         for (ServerBorder border : borders) {
@@ -147,7 +160,9 @@ public class BorderEnforcer {
         if (pendingTransfers.isPending(player.getUniqueId())) return null;
 
         World world = to.getWorld();
-        if (world == null || world.getEnvironment() != World.Environment.NORMAL) return null;
+        if (world == null) return null;
+        List<ServerBorder> borders = bordersFor(world.getEnvironment());
+        if (borders.isEmpty()) return null;
 
         double x = to.getX(), z = to.getZ();
         Location corrected = null;

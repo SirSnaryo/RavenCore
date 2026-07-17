@@ -18,9 +18,10 @@ public final class PortalTransferHelper {
     /**
      * Stores the destination in Redis for the target server to pick up on join, then sends the
      * player across. {@code targetEnvironment} is delivered alongside the coordinates so the
-     * receiving server can land the player in the right world — dedicated Nether/End servers
-     * can't unload their default Overworld (Bukkit refuses to unload world index 0), so picking
-     * "the first loaded world" on arrival isn't reliable.
+     * receiving server can land the player in the right world — a survival server has both an
+     * Overworld and a local Nether loaded at once, and a dedicated End server can't unload its
+     * default Overworld either way (Bukkit refuses to unload world index 0), so picking "the
+     * first loaded world" on arrival isn't reliable without knowing which environment to match.
      */
     public static void transfer(JavaPlugin plugin, JedisPool pool, Player player,
                                 double x, double y, double z, World.Environment targetEnvironment,
