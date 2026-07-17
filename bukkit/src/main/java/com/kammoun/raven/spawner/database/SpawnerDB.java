@@ -11,6 +11,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,6 +24,19 @@ public class SpawnerDB {
     private final KModule<?> module;
     private final SpawnerRegistry registry;
     private final SpawnerStackManager stacks;
+
+    public record LoadedStack(
+            String world,
+            int x,
+            int y,
+            int z,
+            String typeId,
+            int stackAmount,
+            int storedXp,
+            String ownerUuid,
+            long lastSpawnTime,
+            Map<Material, Integer> storedItems
+    ) {}
 
     public SpawnerDB(KModule<?> module, SpawnerRegistry registry, SpawnerStackManager stacks) throws SQLException {
         this.module = module;
@@ -60,7 +76,8 @@ public class SpawnerDB {
 
     // ─── Load ────────────────────────────────────────────────────────────────
 
-    public void loadAll() {
+    public List<LoadedStack> readAll() {
+        List<LoadedStack> loaded = new ArrayList<>();
         try (Connection conn = db.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM spawner_stacks");
              ResultSet rs = ps.executeQuery()) {
@@ -75,22 +92,31 @@ public class SpawnerDB {
                 String ownerStr = rs.getString("owner_uuid");
                 int id = rs.getInt("id");
 
-                SpawnerType type = registry.get(typeId);
-                if (type == null || Bukkit.getWorld(world) == null) {
-                    module.getLogger().warning("[SpawnerDB] Skipping unknown type/world: " + typeId + " @ " + world);
-                    continue;
-                }
-
                 Map<Material, Integer> items = loadItems(conn, id);
-                Location loc = new Location(Bukkit.getWorld(world), x, y, z);
-                UUID owner = ownerStr != null ? safeUUID(ownerStr) : null;
-
-                SpawnerStack stack = new SpawnerStack(loc, type, stackAmt, items, xp, lastSpawn, owner);
-                stacks.put(stack);
+                loaded.add(new LoadedStack(world, x, y, z, typeId, stackAmt, xp, ownerStr, lastSpawn, items));
             }
         } catch (SQLException e) {
             module.getLogger().severe("[SpawnerDB] Failed to load spawners: " + e.getMessage());
         }
+        return loaded;
+    }
+
+    public int applyLoaded(List<LoadedStack> loaded) {
+        int applied = 0;
+        for (LoadedStack row : loaded) {
+            SpawnerType type = registry.get(row.typeId());
+            if (type == null || Bukkit.getWorld(row.world()) == null) {
+                module.getLogger().warning("[SpawnerDB] Skipping unknown type/world: " + row.typeId() + " @ " + row.world());
+                continue;
+            }
+
+            Location loc = new Location(Bukkit.getWorld(row.world()), row.x(), row.y(), row.z());
+            UUID owner = row.ownerUuid() != null ? safeUUID(row.ownerUuid()) : null;
+            SpawnerStack stack = new SpawnerStack(loc, type, row.stackAmount(), row.storedItems(), row.storedXp(), row.lastSpawnTime(), owner);
+            stacks.put(stack);
+            applied++;
+        }
+        return applied;
     }
 
     private Map<Material, Integer> loadItems(Connection conn, int stackId) throws SQLException {
@@ -112,23 +138,25 @@ public class SpawnerDB {
     // ─── Save ────────────────────────────────────────────────────────────────
 
     /** Saves only stacks that have been mutated since the last save. */
-    public void saveDirty() {
-        for (SpawnerStack stack : stacks.all()) {
+    public void saveDirty(Collection<SpawnerStack> sourceStacks) {
+        for (SpawnerStack stack : sourceStacks) {
             if (!stack.isDirty()) continue;
+            SpawnerStack.Snapshot snapshot = stack.snapshotAndClearDirty();
             try {
-                save(stack);
-                stack.clearDirty();
+                save(snapshot);
             } catch (SQLException e) {
+                stack.markDirty();
                 module.getLogger().warning("[SpawnerDB] Failed to save spawner: " + e.getMessage());
             }
         }
     }
 
     /** Saves all stacks unconditionally (used on shutdown). */
-    public void saveAll() {
-        for (SpawnerStack stack : stacks.all()) {
+    public void saveAll(Collection<SpawnerStack> sourceStacks) {
+        for (SpawnerStack stack : sourceStacks) {
+            SpawnerStack.Snapshot snapshot = stack.snapshot();
             try {
-                save(stack);
+                save(snapshot);
                 stack.clearDirty();
             } catch (SQLException e) {
                 module.getLogger().warning("[SpawnerDB] Failed to save spawner on shutdown: " + e.getMessage());
@@ -136,27 +164,32 @@ public class SpawnerDB {
         }
     }
 
-    private void save(SpawnerStack stack) throws SQLException {
+    public void save(SpawnerStack.Snapshot snapshot) throws SQLException {
         try (Connection conn = db.getConnection()) {
-            Location loc = stack.getLocation();
             try (PreparedStatement ps = conn.prepareStatement(
-                    "INSERT OR REPLACE INTO spawner_stacks " +
+                    "INSERT INTO spawner_stacks " +
                     "(world, x, y, z, type, stack_amount, stored_xp, owner_uuid, last_spawn) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                ps.setString(1, loc.getWorld().getName());
-                ps.setInt(2, loc.getBlockX());
-                ps.setInt(3, loc.getBlockY());
-                ps.setInt(4, loc.getBlockZ());
-                ps.setString(5, stack.getType().getId());
-                ps.setInt(6, stack.getStackAmount());
-                ps.setInt(7, stack.getStoredXp());
-                ps.setString(8, stack.getOwnerUUID() != null ? stack.getOwnerUUID().toString() : null);
-                ps.setLong(9, stack.getLastSpawnTime());
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                    "ON CONFLICT(world, x, y, z) DO UPDATE SET " +
+                    "type = excluded.type, " +
+                    "stack_amount = excluded.stack_amount, " +
+                    "stored_xp = excluded.stored_xp, " +
+                    "owner_uuid = excluded.owner_uuid, " +
+                    "last_spawn = excluded.last_spawn")) {
+                ps.setString(1, snapshot.world());
+                ps.setInt(2, snapshot.x());
+                ps.setInt(3, snapshot.y());
+                ps.setInt(4, snapshot.z());
+                ps.setString(5, snapshot.typeId());
+                ps.setInt(6, snapshot.stackAmount());
+                ps.setInt(7, snapshot.storedXp());
+                ps.setString(8, snapshot.ownerUuid());
+                ps.setLong(9, snapshot.lastSpawnTime());
                 ps.executeUpdate();
             }
 
-            int id = fetchId(conn, loc);
-            if (id != -1) saveItems(conn, id, stack.getStoredItems());
+            int id = fetchId(conn, snapshot.world(), snapshot.x(), snapshot.y(), snapshot.z());
+            if (id != -1) saveItems(conn, id, snapshot.storedItems());
         }
     }
 
@@ -181,8 +214,12 @@ public class SpawnerDB {
     // ─── Delete ──────────────────────────────────────────────────────────────
 
     public void delete(Location loc) {
+        delete(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+    }
+
+    public void delete(String world, int x, int y, int z) {
         try (Connection conn = db.getConnection()) {
-            int id = fetchId(conn, loc);
+            int id = fetchId(conn, world, x, y, z);
             if (id == -1) return;
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM spawner_stacks WHERE id = ?")) {
                 ps.setInt(1, id);
@@ -196,12 +233,16 @@ public class SpawnerDB {
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
     private int fetchId(Connection conn, Location loc) throws SQLException {
+        return fetchId(conn, loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+    }
+
+    private int fetchId(Connection conn, String world, int x, int y, int z) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
                 "SELECT id FROM spawner_stacks WHERE world = ? AND x = ? AND y = ? AND z = ?")) {
-            ps.setString(1, loc.getWorld().getName());
-            ps.setInt(2, loc.getBlockX());
-            ps.setInt(3, loc.getBlockY());
-            ps.setInt(4, loc.getBlockZ());
+            ps.setString(1, world);
+            ps.setInt(2, x);
+            ps.setInt(3, y);
+            ps.setInt(4, z);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getInt("id") : -1;
             }

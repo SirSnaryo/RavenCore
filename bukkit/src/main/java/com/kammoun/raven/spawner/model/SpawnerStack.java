@@ -33,13 +33,26 @@ public class SpawnerStack {
 
     private boolean dirty;
 
+    public record Snapshot(
+            String world,
+            int x,
+            int y,
+            int z,
+            String typeId,
+            int stackAmount,
+            int storedXp,
+            String ownerUuid,
+            long lastSpawnTime,
+            Map<Material, Integer> storedItems
+    ) {}
+
     public SpawnerStack(Location location, SpawnerType type, int stackAmount,
                         Map<Material, Integer> storedItems, int storedXp,
                         long lastSpawnTime, UUID ownerUUID) {
         this.location = location;
         this.type = type;
         this.stackAmount = stackAmount;
-        this.storedItems = storedItems;
+        this.storedItems = new HashMap<>(storedItems);
         this.storedXp = storedXp;
         this.lastSpawnTime = lastSpawnTime;
         this.ownerUUID = ownerUUID;
@@ -47,18 +60,20 @@ public class SpawnerStack {
     }
 
     public static SpawnerStack fresh(Location location, SpawnerType type, int stackAmount, UUID ownerUUID) {
-        return new SpawnerStack(location, type, stackAmount, new HashMap<>(), 0,
+        SpawnerStack stack = new SpawnerStack(location, type, stackAmount, new HashMap<>(), 0,
                 System.currentTimeMillis(), ownerUUID);
+        stack.markDirty();
+        return stack;
     }
 
     // ─── Storage mutations ───────────────────────────────────────────────────
 
-    public void addItems(Material material, int amount) {
+    public synchronized void addItems(Material material, int amount) {
         storedItems.merge(material, amount, Integer::sum);
         dirty = true;
     }
 
-    public void removeItems(Material material, int amount) {
+    public synchronized void removeItems(Material material, int amount) {
         int current = storedItems.getOrDefault(material, 0);
         int toRemove = Math.min(current, amount);
         if (toRemove <= 0) return;
@@ -68,28 +83,28 @@ public class SpawnerStack {
         dirty = true;
     }
 
-    public int getItemAmount(Material material) {
+    public synchronized int getItemAmount(Material material) {
         return storedItems.getOrDefault(material, 0);
     }
 
-    public int getTotalItems() {
+    public synchronized int getTotalItems() {
         return storedItems.values().stream().mapToInt(Integer::intValue).sum();
     }
 
-    public void clearStorage() {
+    public synchronized void clearStorage() {
         storedItems.clear();
         dirty = true;
     }
 
     // ─── XP ─────────────────────────────────────────────────────────────────
 
-    public void addXp(int amount) {
+    public synchronized void addXp(int amount) {
         if (amount <= 0) return;
         storedXp += amount;
         dirty = true;
     }
 
-    public void dropXp() {
+    public synchronized void dropXp() {
         if (storedXp <= 0) return;
         ExperienceOrb orb = location.getWorld().spawn(location, ExperienceOrb.class);
         orb.setExperience(storedXp);
@@ -97,7 +112,7 @@ public class SpawnerStack {
         dirty = true;
     }
 
-    public void giveXp(Player player) {
+    public synchronized void giveXp(Player player) {
         if (storedXp <= 0) return;
         player.giveExp(storedXp);
         storedXp = 0;
@@ -110,14 +125,14 @@ public class SpawnerStack {
      * Returns true if the storage has room for at least one more drop cycle.
      * The effective capacity scales with the stack count.
      */
-    public boolean canSpawn() {
+    public synchronized boolean canSpawn() {
         return getTotalItems() < (long) type.getMaxStorage() * stackAmount;
     }
 
     /**
      * Returns storage fill percentage (0–100).
      */
-    public int getStoragePercent() {
+    public synchronized int getStoragePercent() {
         long maxItems = (long) type.getMaxStorage() * stackAmount;
         if (maxItems <= 0) return 0;
         return (int) Math.min(100, (getTotalItems() * 100L) / maxItems);
@@ -137,11 +152,41 @@ public class SpawnerStack {
 
     // ─── Dirty tracking ──────────────────────────────────────────────────────
 
-    public void markDirty() {
+    public synchronized void markDirty() {
         dirty = true;
     }
 
-    public void clearDirty() {
+    public synchronized void clearDirty() {
         dirty = false;
+    }
+
+    public synchronized boolean isDirty() {
+        return dirty;
+    }
+
+    public synchronized Map<Material, Integer> getStoredItems() {
+        return new HashMap<>(storedItems);
+    }
+
+    public synchronized Snapshot snapshot() {
+        String worldName = location.getWorld() != null ? location.getWorld().getName() : "";
+        return new Snapshot(
+                worldName,
+                location.getBlockX(),
+                location.getBlockY(),
+                location.getBlockZ(),
+                type.getId(),
+                stackAmount,
+                storedXp,
+                ownerUUID != null ? ownerUUID.toString() : null,
+                lastSpawnTime,
+                new HashMap<>(storedItems)
+        );
+    }
+
+    public synchronized Snapshot snapshotAndClearDirty() {
+        Snapshot snapshot = snapshot();
+        dirty = false;
+        return snapshot;
     }
 }

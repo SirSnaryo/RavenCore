@@ -28,6 +28,8 @@ public class SpawnerModule extends KModule<RavenCore> {
     private SpawnerTickManager tickManager;
     private SpawnerStorageMenu storageMenu;
     private SpawnerSellMenu sellMenu;
+    private SchedulerUtil.Task saveTask;
+    private boolean runtimeStarted;
 
     // Default spawner types shipped with the plugin, each its own file under spawners/.
     private static final String[] DEFAULT_SPAWNER_TYPES = {
@@ -55,10 +57,9 @@ public class SpawnerModule extends KModule<RavenCore> {
         File spawnersDir = new File(getDataFolder(), "spawners");
         registry.load(spawnersDir, api);
 
-        // Connect database and load placed spawners (async — safe since tick starts with delay)
+        // Connect database first; runtime listeners/tick start only after persisted stacks load.
         try {
             this.database = new SpawnerDB(this, registry, stackManager);
-            SchedulerUtil.runAsync(() -> database.loadAll());
         } catch (SQLException e) {
             getLogger().severe("[SpawnerModule] Failed to initialise database: " + e.getMessage());
         }
@@ -67,25 +68,27 @@ public class SpawnerModule extends KModule<RavenCore> {
         this.storageMenu = new SpawnerStorageMenu();
         this.sellMenu    = new SpawnerSellMenu(this);
 
-        // Start tick loop after a 2-second delay so async DB load can finish first
-        this.tickManager = new SpawnerTickManager(spawnerConfig, stackManager);
-        SchedulerUtil.runLater(() -> tickManager.start(), 40L);
-
-        // Periodic dirty-save every 5 minutes
-        SchedulerUtil.runAsyncTimer(() -> {
-            if (database != null) database.saveDirty();
-        }, 6000L, 6000L);
-
-        registerEvent(new SpawnerListener(this));
-        registerCommand(new SpawnerCommand(this), "spawner");
+        if (database != null) {
+            SchedulerUtil.runAsync(() -> {
+                var loaded = database.readAll();
+                SchedulerUtil.run(() -> {
+                    int count = database.applyLoaded(loaded);
+                    getLogger().info("[SpawnerModule] Loaded " + count + " placed spawner stack(s).");
+                    startRuntime();
+                });
+            });
+        } else {
+            startRuntime();
+        }
     }
 
     @Override
     public void onModuleDisable() {
+        if (saveTask != null) saveTask.cancel();
         if (tickManager != null) tickManager.stop();
 
         if (database != null) {
-            database.saveAll();
+            database.saveAll(stackManager.all());
             database.close();
         }
 
@@ -104,5 +107,26 @@ public class SpawnerModule extends KModule<RavenCore> {
 
     public RavenEconomy getEconomy() {
         return api.getEconomyModule() != null ? api.getEconomyModule().getEconomy() : null;
+    }
+
+    public void saveDirtyNow() {
+        if (database != null) {
+            SchedulerUtil.runAsync(() -> database.saveDirty(stackManager.all()));
+        }
+    }
+
+    private void startRuntime() {
+        if (runtimeStarted) return;
+        runtimeStarted = true;
+
+        this.tickManager = new SpawnerTickManager(spawnerConfig, stackManager);
+        tickManager.start();
+
+        saveTask = SchedulerUtil.runAsyncTimer(() -> {
+            if (database != null) database.saveDirty(stackManager.all());
+        }, 600L, 600L);
+
+        registerEvent(new SpawnerListener(this));
+        registerCommand(new SpawnerCommand(this), "spawner");
     }
 }

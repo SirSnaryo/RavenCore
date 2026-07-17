@@ -118,6 +118,7 @@ public class SpawnerListener implements Listener {
                     "%total%", String.valueOf(existing != null ? existing.getStackAmount() : toAdd),
                     "%type%",  type.getDisplayName());
         }
+        module.saveDirtyNow();
     }
 
     // ─── Block break ─────────────────────────────────────────────────────────
@@ -187,10 +188,15 @@ public class SpawnerListener implements Listener {
         if (remaining > 0) {
             stack.setStackAmount(remaining);
             stack.markDirty();
+            module.saveDirtyNow();
             event.setCancelled(true);
         } else {
+            String world = block.getWorld().getName();
+            int x = block.getX();
+            int y = block.getY();
+            int z = block.getZ();
             stackManager.remove(block.getLocation());
-            SchedulerUtil.runAsync(() -> module.getDatabase().delete(block.getLocation()));
+            SchedulerUtil.runAsync(() -> module.getDatabase().delete(world, x, y, z));
         }
     }
 
@@ -226,6 +232,7 @@ public class SpawnerListener implements Listener {
                     config.sendActionBar(player, Msg.STACKED_BAR,
                             "%total%", String.valueOf(existing.getStackAmount()),
                             "%type%",  existing.getType().getDisplayName());
+                    module.saveDirtyNow();
                     return;
                 }
             }
@@ -395,6 +402,7 @@ public class SpawnerListener implements Listener {
         if (actuallyGiven > 0) {
             stack.removeItems(mat, actuallyGiven);
             config.playSound(player, Sfx.CLICK);
+            module.saveDirtyNow();
             storageMenu.open(player, stack, page);
         }
         if (!leftover.isEmpty()) {
@@ -418,6 +426,7 @@ public class SpawnerListener implements Listener {
                 remaining -= drop;
             }
         }
+        module.saveDirtyNow();
     }
 
     private double calculateValue(SpawnerStack stack) {
@@ -435,6 +444,7 @@ public class SpawnerListener implements Listener {
 
         stack.giveXp(player);
         stack.clearStorage();
+        module.saveDirtyNow();
 
         RavenEconomy economy = module.getEconomy();
         if (economy != null) {

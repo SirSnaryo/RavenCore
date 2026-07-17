@@ -23,6 +23,13 @@ dependencies {
     implementation('com.mysql:mysql-connector-j:8.3.0') {
         exclude group: 'com.google.protobuf'
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 shadowJar {
