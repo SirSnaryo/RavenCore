@@ -31,6 +31,7 @@ shadowJar {
     relocate 'redis.clients',              'com.kammoun.raven.libs.jedis'
     relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
+    relocate 'de.tr7zw.changeme.nbtapi',   'com.kammoun.raven.libs.nbtapi'
 }
 
 def deployDirs = [

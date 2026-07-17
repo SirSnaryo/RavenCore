@@ -1,6 +1,7 @@
 package com.kammoun.raven.library.tasks;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -46,6 +47,18 @@ public final class SchedulerUtil {
             Bukkit.getGlobalRegionScheduler().execute(plugin, runnable);
         else
             Bukkit.getScheduler().runTask(plugin, runnable);
+    }
+
+    /**
+     * Runs a task on the region thread that owns the given location.
+     * Required on Folia before touching entities/world state tied to a specific
+     * location — the global region scheduler thread isn't bound to any region.
+     */
+    public static void execute(Location location, Runnable runnable) {
+        if (isFolia)
+            Bukkit.getRegionScheduler().execute(plugin, location, runnable);
+        else
+            runnable.run();
     }
 
     /** Runs a task asynchronously. */

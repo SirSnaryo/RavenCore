@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.util;
 
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -15,7 +16,7 @@ public final class CommandHelper {
             final String processed = command
                     .replace("%player%", player.getName())
                     .replace("%player_uuid%", player.getUniqueId().toString());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed);
+            SchedulerUtil.run(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed));
         }
     }
 
