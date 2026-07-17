@@ -16,7 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class PayCommand extends KCommand {
 
@@ -105,12 +104,8 @@ public class PayCommand extends KCommand {
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            String prefix = args[0].toLowerCase();
             String senderName = sender instanceof Player p ? p.getName() : null;
-            return networkPlayerManager.getNetworkPlayerNames().stream()
-                    .filter(n -> !n.equals(senderName))
-                    .filter(n -> n.toLowerCase().startsWith(prefix))
-                    .collect(Collectors.toList());
+            return networkPlayerManager.completePlayerNames(args[0], senderName);
         }
         return List.of();
     }

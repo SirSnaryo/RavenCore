@@ -9,8 +9,10 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -134,5 +136,17 @@ public abstract class AbstractNetworkPlayerManager {
      */
     public Collection<String> getNetworkPlayerNames() {
         return Collections.unmodifiableCollection(nameCache.values());
+    }
+
+    public List<String> completePlayerNames(String prefix) {
+        return NetworkPlayerNameMatcher.complete(nameCache.values(), prefix, Set.of());
+    }
+
+    public List<String> completePlayerNames(String prefix, String excludedName) {
+        return NetworkPlayerNameMatcher.complete(
+                nameCache.values(),
+                prefix,
+                excludedName == null ? Set.of() : Set.of(excludedName)
+        );
     }
 }

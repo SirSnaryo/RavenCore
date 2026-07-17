@@ -12,7 +12,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EcoCommand extends KCommand {
 
@@ -50,9 +49,7 @@ public class EcoCommand extends KCommand {
     }
 
     private List<String> tabPlayerNames(String prefix) {
-        return networkPlayerManager.getNetworkPlayerNames().stream()
-                .filter(n -> n.toLowerCase().startsWith(prefix.toLowerCase()))
-                .collect(Collectors.toList());
+        return networkPlayerManager.completePlayerNames(prefix);
     }
 
     private KSubCommand makeAmountSub(String action) {

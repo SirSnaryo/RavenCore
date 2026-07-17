@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class ClearInventoryCommand extends KCommand {
 
@@ -83,10 +82,7 @@ public class ClearInventoryCommand extends KCommand {
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1 && sender.hasPermission("raven.clearinventory.others")) {
-            String prefix = args[0].toLowerCase();
-            return networkPlayerManager.getNetworkPlayerNames().stream()
-                    .filter(n -> n.toLowerCase().startsWith(prefix))
-                    .collect(Collectors.toList());
+            return networkPlayerManager.completePlayerNames(args[0]);
         }
         return List.of();
     }

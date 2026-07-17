@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class BalanceCommand extends KCommand {
 
@@ -62,10 +61,7 @@ public class BalanceCommand extends KCommand {
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1 && sender.hasPermission("raven.economy.balance.others")) {
-            String prefix = args[0].toLowerCase();
-            return networkPlayerManager.getNetworkPlayerNames().stream()
-                    .filter(n -> n.toLowerCase().startsWith(prefix))
-                    .collect(Collectors.toList());
+            return networkPlayerManager.completePlayerNames(args[0]);
         }
         return List.of();
     }

@@ -12,8 +12,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.server.TabCompleteEvent;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Relays chat network-wide: the sending server resolves the format (including any
@@ -62,6 +64,17 @@ public class ChatModule extends KModule<RavenCore> {
                 Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(event.getFormattedMessage()))
         );
 
+        onEvent(TabCompleteEvent.class, event -> {
+            if (event.isCommand() || !(event.getSender() instanceof Player sender)) return;
+
+            String token = lastToken(event.getBuffer());
+            List<String> completions = api.getNetworkPlayerManager()
+                    .completePlayerNames(token, sender.getName());
+            if (!completions.isEmpty()) {
+                event.setCompletions(completions);
+            }
+        });
+
         getLogger().info("[Chat] Enabled — server tag: " + serverTag);
     }
 
@@ -78,6 +91,12 @@ public class ChatModule extends KModule<RavenCore> {
         }
         resolved = resolved.replace("%player%", player.getName()).replace("%message%", message);
         return ChatFormatter.color(resolved);
+    }
+
+    private String lastToken(String buffer) {
+        if (buffer == null || buffer.isBlank()) return "";
+        int lastSpace = buffer.lastIndexOf(' ');
+        return lastSpace == -1 ? buffer : buffer.substring(lastSpace + 1);
     }
 
     private FileConfiguration loadMessages() {

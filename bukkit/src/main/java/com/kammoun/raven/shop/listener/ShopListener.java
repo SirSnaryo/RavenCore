@@ -35,7 +35,6 @@ public class ShopListener implements Listener {
 
         if (holder instanceof MainShopHolder || holder instanceof ShopCategoryHolder || holder instanceof PurchaseHolder) {
             if (event.getClickedInventory() != event.getView().getTopInventory()) {
-                event.setCancelled(true);
                 return;
             }
         }
