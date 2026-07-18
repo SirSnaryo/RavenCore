@@ -15,6 +15,7 @@ dependencies {
 shadowJar {
     archiveClassifier.set('')
     archiveBaseName.set('RavenCore-Velocity')
+    archiveVersion.set('')
     relocate 'redis.clients',              'com.kammoun.raven.libs.jedis'
     relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'

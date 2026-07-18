@@ -7,12 +7,14 @@ import com.kammoun.raven.portal.model.ServerBorder;
 import com.kammoun.raven.portal.model.ServerBorder.Axis;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
@@ -142,6 +144,17 @@ public class BorderEnforcer {
 
     public void onBucketFill(PlayerBucketFillEvent e) {
         denyIfBeyondOwnSide(e.getBlock().getLocation(), e.getPlayer(), () -> e.setCancelled(true));
+    }
+
+    /**
+     * Blocks right/left-clicking a block past the border (opening chests, flipping levers, using
+     * doors, etc.) — a player standing on their own side can still reach a few blocks across the line.
+     * Interactions with no target block (clicking air) are left alone.
+     */
+    public void onInteract(PlayerInteractEvent e) {
+        Block block = e.getClickedBlock();
+        if (block == null) return;
+        denyIfBeyondOwnSide(block.getLocation(), e.getPlayer(), () -> e.setCancelled(true));
     }
 
     private void denyIfBeyondOwnSide(Location loc, Player player, Runnable cancel) {

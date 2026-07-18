@@ -55,10 +55,11 @@ public class RtpModule extends KModule<RavenCore> {
         RtpService service = new RtpService(api, poolStore, messages, getBungeeHelper(), cooldownSeconds);
 
         RegionMenu overworldRegionMenu = new RegionMenu(api, service, destinations.overworldWorlds(), "rtp/region-menu.yml");
-        RegionMenu netherRegionMenu = new RegionMenu(api, service, destinations.netherWorlds(), "rtp/nether-region-menu.yml");
-        DimensionMenu dimensionMenu = new DimensionMenu(api, service, destinations, overworldRegionMenu, netherRegionMenu);
+        // The Nether is server-blind: clicking it teleports to a random Nether server rather than
+        // opening a region picker, so it needs a generic label (not a per-region NA/EU name).
+        String netherLabel = getConfig().getString("nether-display-name", "the Nether");
+        DimensionMenu dimensionMenu = new DimensionMenu(api, service, destinations, overworldRegionMenu, netherLabel);
         overworldRegionMenu.setBackTarget(dimensionMenu);
-        netherRegionMenu.setBackTarget(dimensionMenu);
 
         registerCommand(new RtpCommand(dimensionMenu), "rtp");
 
@@ -95,6 +96,18 @@ public class RtpModule extends KModule<RavenCore> {
      */
     private void startPoolMaintenance(RegionDestination destination) {
         OverworldRegion region = regionFor(destination);
+
+        // Picks are always bounded by this world's world border (see SafeLocationFinder), so an
+        // unmatched portal region no longer risks dropping players across a server border — it just
+        // means the world border alone defines the search box. Warn so the config mismatch still
+        // gets fixed and the precise region clamp is restored, but keep the pool running.
+        if (region == null && destination.environment() != World.Environment.THE_END) {
+            getLogger().warning("[Rtp] No portal overworld-region matches server '" + destination.server()
+                    + "' for destination '" + destination.id() + "' — bounding RTP picks by this world's"
+                    + " world border only. Ensure the world border covers just this server's territory, or"
+                    + " reconcile the 'server' ids in rtp/config.yml and portal/config.yml.");
+        }
+
         World world = resolveLocalWorld(destination.environment());
         if (world != null) {
             beginRefillTimer(world, destination, region);
@@ -130,21 +143,18 @@ public class RtpModule extends KModule<RavenCore> {
 
     /**
      * The portal region box this destination must stay within, so RTP never hands out a
-     * spot in a neighbouring server's half of the shared overworld/nether coordinate space.
-     * The End (and anything without a matching region) samples by radius instead — see
-     * {@link SafeLocationFinder}.
+     * spot in a neighbouring server's half of the shared overworld/nether coordinate space,
+     * or {@code null} if none matches. For overworld/nether destinations a {@code null} here
+     * is a fatal misconfig — {@link #startPoolMaintenance} disables the pool rather than let
+     * {@link SafeLocationFinder} radius-sample across the border. Only the End legitimately has
+     * no region and samples by radius.
      */
     private OverworldRegion regionFor(RegionDestination destination) {
-        OverworldRegion region = switch (destination.environment()) {
+        return switch (destination.environment()) {
             case NORMAL -> overworldRegionsByServer.get(destination.server());
             case NETHER -> netherRegionsByServer.get(destination.server());
             default -> null;
         };
-        if (region == null && destination.environment() != World.Environment.THE_END) {
-            getLogger().warning("[Rtp] No portal overworld-region for server '" + destination.server()
-                    + "' — RTP for '" + destination.id() + "' will sample by radius and may cross a server border.");
-        }
-        return region;
     }
 
     /**

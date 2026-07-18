@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -91,6 +92,7 @@ public class ServerBorderModule extends KModule<RavenCore> {
         onEvent(BlockPlaceEvent.class, enforcer::onBlockPlace);
         onEvent(PlayerBucketEmptyEvent.class, enforcer::onBucketEmpty);
         onEvent(PlayerBucketFillEvent.class, enforcer::onBucketFill);
+        onEvent(PlayerInteractEvent.class, enforcer::onInteract);
 
         // Run every 10 ticks (0.5 s) on the global region scheduler (Folia-safe)
         tickTask = api.getServer().getGlobalRegionScheduler()

@@ -27,6 +27,11 @@ overworld-worlds:
 
 # The Nether is local to each survival server now, so it's split per-region just like the
 # Overworld above — each entry points at the *same* server as its Overworld counterpart.
+#
+# Players do NOT pick a Nether region: clicking Nether in /rtp drops them on a random one of
+# the servers listed below. This label is what the teleport messages show instead of a region
+# name (the per-entry display-name values here are unused for that random pick).
+nether-display-name: "the Nether"
 nether-worlds:
   na:
     server: smp-world-na

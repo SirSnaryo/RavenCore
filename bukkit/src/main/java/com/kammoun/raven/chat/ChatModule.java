@@ -17,13 +17,6 @@ import org.bukkit.event.server.TabCompleteEvent;
 import java.io.File;
 import java.util.List;
 
-/**
- * Relays chat network-wide: the sending server resolves the format (including any
- * PlaceholderAPI placeholders, e.g. LuckPerms rank prefixes) into a plain colored line,
- * then broadcasts it over Redis so every server — including this one — prints the same
- * line locally. Resolving placeholders on the sender's server means backend servers
- * without PlaceholderAPI installed still display the rank prefix correctly.
- */
 public class ChatModule extends KModule<RavenCore> {
 
     private String format;
@@ -40,17 +33,12 @@ public class ChatModule extends KModule<RavenCore> {
         format = getConfig().getString("format", "&8[&b%server%&8]&r %luckperms_prefix%&f%player%&8: &f%message%");
         String configuredTag = getConfig().getString("server-tag", "");
         serverTag = configuredTag.isEmpty() ? api.getServerId() : configuredTag;
-        permission = getConfig().getString("permission", "raven.chat");
         messages = new ChatMessages(loadMessages());
 
         onEvent(AsyncPlayerChatEvent.class, EventPriority.HIGH, event -> {
             Player player = event.getPlayer();
             event.setCancelled(true);
 
-            if (!player.hasPermission(permission)) {
-                messages.send(player, "no-permission");
-                return;
-            }
 
             String line = renderLine(player, event.getMessage());
 

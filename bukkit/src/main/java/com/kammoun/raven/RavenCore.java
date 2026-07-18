@@ -12,6 +12,7 @@ import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.spawner.SpawnerModule;
 import com.kammoun.raven.teleport.TeleportModule;
+import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
@@ -54,6 +55,7 @@ public final class RavenCore extends JavaPlugin {
     private ClearInventoryModule clearInventoryModule;
     private DimensionPortalModule dimensionPortalModule;
     private ServerBorderModule serverBorderModule;
+    private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
     private RtpModule rtpModule;
@@ -169,6 +171,10 @@ public final class RavenCore extends JavaPlugin {
             serverBorderModule = new ServerBorderModule();
             serverBorderModule.onEnable(this);
             enabledModules.add("ServerBorder");
+
+            timeSyncModule = new TimeSyncModule();
+            timeSyncModule.onEnable(this);
+            enabledModules.add("TimeSync");
         }
 
         printReady(System.currentTimeMillis() - startedAt);
@@ -314,6 +320,9 @@ public final class RavenCore extends JavaPlugin {
         if (spawnModule != null) spawnModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);
+        if (timeSyncModule != null) {
+            timeSyncModule.onDisable(this);
+        }
         if (serverBorderModule != null) {
             serverBorderModule.onDisable(this);
         }

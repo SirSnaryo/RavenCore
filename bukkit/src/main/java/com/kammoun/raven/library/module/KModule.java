@@ -121,7 +121,9 @@ public abstract class KModule<T extends JavaPlugin> implements Module {
         String resourcePath = moduleName + "/" + configName;
         try (InputStream in = api.getResource(resourcePath)) {
             if (in == null) {
-                getLogger().warning("Could not find default config: " + resourcePath);
+                // Not every module ships a bundled config (e.g. teleport is config-less) — this is a
+                // valid case, not a problem, so keep it out of the console at the default log level.
+                getLogger().fine("No bundled default config for " + resourcePath + " (module has none).");
                 return;
             }
 
