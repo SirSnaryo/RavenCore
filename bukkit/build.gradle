@@ -19,7 +19,6 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
     implementation 'de.tr7zw:item-nbt-api:2.15.5'
-    implementation 'fr.mrmicky:fastboard:2.2.0'
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation('com.mysql:mysql-connector-j:8.3.0') {
         exclude group: 'com.google.protobuf'
@@ -40,7 +39,6 @@ shadowJar {
     relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
     relocate 'de.tr7zw.changeme.nbtapi',   'com.kammoun.raven.libs.nbtapi'
-    relocate 'fr.mrmicky.fastboard',       'com.kammoun.raven.libs.fastboard'
 }
 
 def deployDirs = [

@@ -1,8 +1,7 @@
 # Raven scoreboard module.
 #
-# The module is powered by FastBoard packets, so it does not fight with Bukkit
-# scoreboard teams from other plugins. On modern versions (1.20.3+) FastBoard
-# hides sidebar score numbers by default.
+# The module uses Paper's native scoreboard API and hides sidebar score numbers
+# with NumberFormat.blank() on modern versions.
 
 # Master switch. Set false to fully disable this module without removing files.
 enabled: true
