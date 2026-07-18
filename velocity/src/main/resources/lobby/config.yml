@@ -1,0 +1,12 @@
+# /lobby and /hub transfer players to the main proxy.
+# This is a cross-proxy Velocity Transfer (the client reconnects to the address
+# below), not a server switch within this proxy.
+target:
+  host: "193.34.77.42"
+  port: 25565
+
+messages:
+  players-only: "&cOnly players can use this command."
+  # Shown just before the transfer is sent. Leave blank to disable.
+  transferring: "&7Sending you to the lobby..."
+  transfer-failed: "&cTransfer failed — please try again."

@@ -6,6 +6,7 @@ import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.info.InfoModule;
+import com.kammoun.raven.velocity.lobby.LobbyModule;
 import com.kammoun.raven.velocity.privatemessage.PrivateMessageModule;
 import com.kammoun.raven.velocity.proxycommandfilter.ProxyCommandFilterModule;
 import com.velocitypowered.api.event.Subscribe;
@@ -50,6 +51,7 @@ public class RavenVelocity {
     private InfoModule infoModule;
     private ProxyCommandFilterModule proxyCommandFilterModule;
     private PrivateMessageModule privateMessageModule;
+    private LobbyModule lobbyModule;
 
     @Inject
     public RavenVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -92,6 +94,9 @@ public class RavenVelocity {
         privateMessageModule = new PrivateMessageModule();
         privateMessageModule.onEnable(this, server, dataDirectory);
 
+        lobbyModule = new LobbyModule();
+        lobbyModule.onEnable(this, server, dataDirectory);
+
         logger.info("RavenCore (Velocity) enabled — proxy id: " + serverId);
     }
 
@@ -105,6 +110,9 @@ public class RavenVelocity {
         }
         if (privateMessageModule != null) {
             privateMessageModule.onDisable();
+        }
+        if (lobbyModule != null) {
+            lobbyModule.onDisable();
         }
         if (redisMessenger != null) {
             redisMessenger.close();

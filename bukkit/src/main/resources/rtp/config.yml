@@ -2,9 +2,13 @@
 # on purpose, so RTP's world choices/labels can diverge from portal routing.
 # Each entry needs a matching server-role: survival server running this same config.
 #
-# min-radius/max-radius/min-y/max-y are per-destination since NA/EU/Nether/End are
-# different worlds with different sane search bounds (e.g. the End is a small island
-# around 0,0; the Nether has a much lower build height than the Overworld).
+# X/Z SEARCH AREA: for the split overworld/nether regions the search box is taken from
+# the portal module's overworld-regions (scaled 1:8 for the Nether), NOT from min/max-radius
+# below — this guarantees RTP never drops a player in a neighbouring server's half of the
+# shared coordinate space (which the border enforcer would then bounce them across). So
+# min-radius/max-radius are IGNORED for na/eu here and only apply to the End, which is a
+# single dedicated server with no border split (a small island around 0,0). min-y/max-y
+# still apply everywhere (e.g. the Nether has a much lower safe build height).
 overworld-worlds:
   na:
     server: smp-world-na

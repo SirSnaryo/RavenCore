@@ -278,8 +278,7 @@ public final class RavenCore extends JavaPlugin {
         // Unload any already-loaded worlds that don't match the role
         for (World world : Bukkit.getWorlds()) {
             if (!serverRole.allows(world.getEnvironment())) {
-                Bukkit.unloadWorld(world, false);
-                getLogger().info("[Role] Unloaded world '" + world.getName() + "' (not needed for role " + serverRole + ")");
+                unloadForRole(world, "Unloaded world '" + world.getName() + "' (not needed for role " + serverRole + ")");
             }
         }
         // Block any future world loads that don't match
@@ -288,11 +287,26 @@ public final class RavenCore extends JavaPlugin {
                 (l, e) -> {
                     World w = ((WorldLoadEvent) e).getWorld();
                     if (!serverRole.allows(w.getEnvironment())) {
-                        Bukkit.unloadWorld(w, false);
-                        getLogger().info("[Role] Blocked load of world '" + w.getName() + "'");
+                        unloadForRole(w, "Blocked load of world '" + w.getName() + "'");
                     }
                 }, this
         );
+    }
+
+    /**
+     * Unloading can't happen while a world is still being initialised — during the server's
+     * initial world load (or from inside WorldLoadEvent) {@link Bukkit#unloadWorld} throws
+     * UnsupportedOperationException on Folia/Canvas. Defer it to the global region scheduler so
+     * the unload runs once the world has finished loading and the server is ticking.
+     */
+    private void unloadForRole(World world, String logMessage) {
+        Bukkit.getGlobalRegionScheduler().run(this, task -> {
+            if (Bukkit.unloadWorld(world, false)) {
+                getLogger().info("[Role] " + logMessage);
+            } else {
+                getLogger().warning("[Role] Failed to unload world '" + world.getName() + "' for role " + serverRole);
+            }
+        });
     }
 
     @Override

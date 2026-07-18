@@ -10,6 +10,7 @@ import com.kammoun.raven.rtp.config.RtpMessages;
 import com.kammoun.raven.rtp.config.RtpPoolConfig;
 import com.kammoun.raven.rtp.menu.DimensionMenu;
 import com.kammoun.raven.rtp.menu.RegionMenu;
+import com.kammoun.raven.portal.model.OverworldRegion;
 import com.kammoun.raven.rtp.pool.RtpPoolStore;
 import com.kammoun.raven.rtp.pool.SafeLocationFinder;
 import com.kammoun.raven.rtp.service.RtpService;
@@ -23,7 +24,9 @@ import org.bukkit.event.world.WorldLoadEvent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RtpModule extends KModule<RavenCore> {
@@ -31,6 +34,10 @@ public class RtpModule extends KModule<RavenCore> {
     private RtpPoolConfig poolConfig;
     private RtpPoolStore poolStore;
     private final List<SchedulerUtil.Task> refillTasks = new ArrayList<>();
+
+    /** Region boxes from the portal module, keyed by server — the source of truth RTP samples within. */
+    private Map<String, OverworldRegion> overworldRegionsByServer = new HashMap<>();
+    private Map<String, OverworldRegion> netherRegionsByServer = new HashMap<>();
 
     public RtpModule() {
         super("rtp");
@@ -40,6 +47,7 @@ public class RtpModule extends KModule<RavenCore> {
     public void onModuleEnable() {
         RtpDestinations destinations = RtpDestinations.load(getConfig());
         poolConfig = RtpPoolConfig.load(getConfig());
+        loadPortalRegions();
         int cooldownSeconds = getConfig().getInt("cooldown-seconds", 5);
 
         poolStore = new RtpPoolStore(api, api.getRedisMessenger().getConnection().getPool());
@@ -86,9 +94,10 @@ public class RtpModule extends KModule<RavenCore> {
      * one for that region's local Nether.
      */
     private void startPoolMaintenance(RegionDestination destination) {
+        OverworldRegion region = regionFor(destination);
         World world = resolveLocalWorld(destination.environment());
         if (world != null) {
-            beginRefillTimer(world, destination);
+            beginRefillTimer(world, destination, region);
             return;
         }
 
@@ -96,26 +105,68 @@ public class RtpModule extends KModule<RavenCore> {
         onEvent(WorldLoadEvent.class, event -> {
             if (started.get() || event.getWorld().getEnvironment() != destination.environment()) return;
             started.set(true);
-            beginRefillTimer(event.getWorld(), destination);
+            beginRefillTimer(event.getWorld(), destination, region);
         });
     }
 
-    private void beginRefillTimer(World world, RegionDestination destination) {
+    private void beginRefillTimer(World world, RegionDestination destination, OverworldRegion region) {
         long intervalTicks = Math.max(1, poolConfig.refillIntervalSeconds()) * 20L;
-        refillTasks.add(SchedulerUtil.runAsyncTimer(() -> ensureFilled(world, destination), 0L, intervalTicks));
+        refillTasks.add(SchedulerUtil.runAsyncTimer(() -> ensureFilled(world, destination, region), 0L, intervalTicks));
     }
 
     /** Tops the pool back up to target-size whenever it drops to/below the refill threshold. */
-    private void ensureFilled(World world, RegionDestination destination) {
+    private void ensureFilled(World world, RegionDestination destination, OverworldRegion region) {
         long current = poolStore.size(destination.id());
         if (current > poolConfig.refillThreshold()) return;
 
         long deficit = poolConfig.targetSize() - current;
         for (long i = 0; i < deficit; i++) {
-            SafeLocationFinder.find(world, destination, poolConfig).thenAccept(found -> {
+            SafeLocationFinder.find(world, destination, poolConfig, region).thenAccept(found -> {
                 if (found.isEmpty()) return;
                 Bukkit.getAsyncScheduler().runNow(api, task -> poolStore.push(destination.id(), found.get()));
             });
+        }
+    }
+
+    /**
+     * The portal region box this destination must stay within, so RTP never hands out a
+     * spot in a neighbouring server's half of the shared overworld/nether coordinate space.
+     * The End (and anything without a matching region) samples by radius instead — see
+     * {@link SafeLocationFinder}.
+     */
+    private OverworldRegion regionFor(RegionDestination destination) {
+        OverworldRegion region = switch (destination.environment()) {
+            case NORMAL -> overworldRegionsByServer.get(destination.server());
+            case NETHER -> netherRegionsByServer.get(destination.server());
+            default -> null;
+        };
+        if (region == null && destination.environment() != World.Environment.THE_END) {
+            getLogger().warning("[Rtp] No portal overworld-region for server '" + destination.server()
+                    + "' — RTP for '" + destination.id() + "' will sample by radius and may cross a server border.");
+        }
+        return region;
+    }
+
+    /**
+     * Reads the portal module's overworld-regions (shared coordinate boxes) as RTP's source of truth.
+     * Relies on RavenCore enabling DimensionPortalModule (which writes portal/config.yml) before RTP —
+     * true on every gameplay server. On a lobby the portal module is skipped, but a lobby backs no RTP
+     * pools of its own, so an absent file there just leaves these maps empty and is harmless.
+     */
+    private void loadPortalRegions() {
+        File portalConfig = new File(getDataFolder().getParentFile(), "portal/config.yml");
+        FileConfiguration cfg = YamlConfiguration.loadConfiguration(portalConfig);
+        List<OverworldRegion> regions = OverworldRegion.loadAll(cfg);
+
+        overworldRegionsByServer = new HashMap<>();
+        netherRegionsByServer = new HashMap<>();
+        for (OverworldRegion region : regions) {
+            overworldRegionsByServer.put(region.getServer(), region);
+        }
+        // Each region's local Nether is its Overworld footprint at Minecraft's 1:8 ratio — matches
+        // ServerBorderModule, so RTP and border enforcement agree on where the Nether split sits.
+        for (OverworldRegion region : OverworldRegion.scaled(regions, 8.0)) {
+            netherRegionsByServer.put(region.getServer(), region);
         }
     }
 
