@@ -14,7 +14,9 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -35,6 +37,9 @@ public class ShopListener implements Listener {
 
         if (holder instanceof MainShopHolder || holder instanceof ShopCategoryHolder || holder instanceof PurchaseHolder) {
             if (event.getClickedInventory() != event.getView().getTopInventory()) {
+                if (canMoveIntoShop(event.getAction())) {
+                    event.setCancelled(true);
+                }
                 return;
             }
         }
@@ -58,6 +63,26 @@ public class ShopListener implements Listener {
             click(player);
             handlePurchase(player, event.getSlot(), clicked, purchaseHolder, event.getClickedInventory());
         }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        InventoryHolder holder = event.getView().getTopInventory().getHolder();
+        if (!(holder instanceof MainShopHolder || holder instanceof ShopCategoryHolder || holder instanceof PurchaseHolder)) {
+            return;
+        }
+
+        int topSize = event.getView().getTopInventory().getSize();
+        boolean touchesShop = event.getRawSlots().stream().anyMatch(slot -> slot < topSize);
+        if (touchesShop) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean canMoveIntoShop(InventoryAction action) {
+        return action == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                || action == InventoryAction.COLLECT_TO_CURSOR
+                || action == InventoryAction.UNKNOWN;
     }
 
     private void handleMain(Player player, ItemStack clicked) {
