@@ -1,6 +1,7 @@
 package com.kammoun.raven.library.tasks;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -57,6 +58,14 @@ public final class SchedulerUtil {
     public static void execute(Location location, Runnable runnable) {
         if (isFolia)
             Bukkit.getRegionScheduler().execute(plugin, location, runnable);
+        else
+            runnable.run();
+    }
+
+    /** Runs a task on the tick thread that owns the given entity. */
+    public static void execute(Entity entity, Runnable runnable) {
+        if (isFolia)
+            entity.getScheduler().run(plugin, task -> runnable.run(), null);
         else
             runnable.run();
     }

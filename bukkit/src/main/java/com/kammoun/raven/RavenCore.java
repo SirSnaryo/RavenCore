@@ -9,6 +9,7 @@ import com.kammoun.raven.portal.DimensionPortalModule;
 import com.kammoun.raven.portal.border.ServerBorderModule;
 import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.shop.ShopModule;
+import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.spawner.SpawnerModule;
 import com.kammoun.raven.teleport.TeleportModule;
 import com.kammoun.raven.spawn.SpawnModule;
@@ -53,6 +54,7 @@ public final class RavenCore extends JavaPlugin {
     private ShopModule shopModule;
     private SpawnerModule spawnerModule;
     private ChatModule chatModule;
+    private ScoreboardModule scoreboardModule;
 
     @Override
     public void onEnable() {
@@ -112,6 +114,9 @@ public final class RavenCore extends JavaPlugin {
 
         chatModule = new ChatModule();
         chatModule.onEnable(this);
+
+        scoreboardModule = new ScoreboardModule();
+        scoreboardModule.onEnable(this);
 
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
@@ -250,6 +255,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (chatModule != null) {
             chatModule.onDisable(this);
+        }
+        if (scoreboardModule != null) {
+            scoreboardModule.onDisable(this);
         }
         if (shopModule != null) {
             shopModule.onDisable(this);

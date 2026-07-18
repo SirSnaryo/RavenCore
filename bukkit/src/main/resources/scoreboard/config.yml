@@ -1,0 +1,40 @@
+enabled: true
+update-interval-ticks: 20
+condition-check-ticks: 40
+disabled-worlds: []
+
+scoreboards:
+  default:
+    priority: 0
+    title: "&c&lRavenMC"
+    requirements: []
+    lines:
+      - text: ""
+      - text: "&fPlayer: &c%player_name%"
+        update: 40
+      - text: "&fBalance: &e%raven_balance%"
+        update: event:balance
+      - text: "&fOnline: &a%raven_network_online%"
+        update: 60
+      - text: "&fServer: &c%raven_server%"
+        update: static
+      - text: ""
+      - text: "&7play.ravenmc.net"
+
+  admin:
+    priority: 100
+    title: "&4&lRaven Admin"
+    requirements:
+      - type: permission
+        value: "raven.scoreboard.admin"
+    lines:
+      - text: "&cStaff View"
+        update: static
+      - text: "&fServer: &c%raven_server%"
+        update: static
+      - text: "&fRole: &c%raven_role%"
+        update: static
+      - text: "&fWorld: &c%raven_world%"
+        update: 20
+      - text: "&fNetwork: &a%raven_network_online%"
+        update: 60

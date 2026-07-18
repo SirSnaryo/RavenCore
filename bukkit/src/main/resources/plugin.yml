@@ -80,6 +80,12 @@ commands:
     usage: /spawner <give|list|reload>
     permission: raven.spawner.admin
     permission-message: §cYou don't have permission to use this command.
+  scoreboard:
+    description: Toggle or reload the Raven scoreboard
+    usage: /scoreboard [toggle|reload]
+    aliases: [sb]
+    permission: raven.scoreboard
+    permission-message: §cYou don't have permission to use this command.
 
 permissions:
   raven.teleport:
@@ -133,3 +139,9 @@ permissions:
   raven.chat:
     description: Send messages in network-wide chat
     default: true
+  raven.scoreboard:
+    description: Toggle your scoreboard
+    default: true
+  raven.scoreboard.admin:
+    description: Reload scoreboard configuration and view admin boards
+    default: op
