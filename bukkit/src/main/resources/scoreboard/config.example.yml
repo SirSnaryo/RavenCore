@@ -1,7 +1,7 @@
 # Raven scoreboard module.
 #
 # The module is powered by FastBoard packets, and each line can refresh on its
-# own interval or event. Score numbers are replaced with a fixed blank text.
+# own interval or event. FastBoard hides sidebar score numbers on modern clients.
 
 # Master switch. Set false to fully disable this module without removing files.
 enabled: true

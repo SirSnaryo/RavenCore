@@ -5,17 +5,18 @@ import com.kammoun.raven.scoreboard.model.LineUpdateMode;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
-import fr.mrmicky.fastboard.FastBoard;
+import fr.mrmicky.fastboard.adventure.FastBoard;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 public class RavenBoard {
 
-    private static final String HIDDEN_SCORE = " ";
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private final FastBoard board;
     private final Player player;
@@ -69,7 +70,7 @@ public class RavenBoard {
         for (ScoreboardLine line : definition.lines()) {
             addRenderedLine(line.text());
         }
-        board.updateLines(renderedLines, hiddenScores(renderedLines.size()));
+        board.updateLines(components(renderedLines));
     }
 
     public void delete() {
@@ -80,7 +81,7 @@ public class RavenBoard {
         String title = render(definition.title());
         if (!Objects.equals(title, renderedTitle)) {
             renderedTitle = title;
-            board.updateTitle(title);
+            board.updateTitle(component(title));
         }
     }
 
@@ -125,10 +126,14 @@ public class RavenBoard {
         }
 
         renderedLines.set(renderedIndex, value);
-        board.updateLine(renderedIndex, value, HIDDEN_SCORE);
+        board.updateLine(renderedIndex, component(value));
     }
 
-    private List<String> hiddenScores(int size) {
-        return Collections.nCopies(size, HIDDEN_SCORE);
+    private List<Component> components(List<String> lines) {
+        return lines.stream().map(this::component).toList();
+    }
+
+    private Component component(String text) {
+        return LEGACY.deserialize(text == null ? "" : text);
     }
 }

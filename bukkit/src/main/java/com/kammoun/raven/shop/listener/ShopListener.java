@@ -14,7 +14,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
@@ -33,44 +32,42 @@ public class ShopListener implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        InventoryHolder holder = event.getView().getTopInventory().getHolder();
+        Inventory topInventory = event.getView().getTopInventory();
+        InventoryHolder holder = topInventory.getHolder();
+        if (!isShopHolder(holder)) return;
 
-        if (holder instanceof MainShopHolder || holder instanceof ShopCategoryHolder || holder instanceof PurchaseHolder) {
-            if (event.getClickedInventory() != event.getView().getTopInventory()) {
-                if (canMoveIntoShop(event.getAction())) {
-                    event.setCancelled(true);
-                }
-                return;
+        if (event.getClickedInventory() != topInventory) {
+            if (event.isShiftClick()) {
+                event.setCancelled(true);
             }
+            return;
         }
 
-        if (event.getClickedInventory() == null
-                || event.getClickedInventory() != event.getView().getTopInventory()) return;
+        event.setCancelled(true);
+        if (isHoldingItem(event) || event.getHotbarButton() >= 0
+                || event.getClick().isKeyboardClick() || event.getClick().isCreativeAction()) {
+            return;
+        }
 
         ItemStack clicked = event.getCurrentItem();
-        if (clicked == null) return;
+        if (clicked == null || clicked.getType().isAir()) return;
 
         if (holder instanceof MainShopHolder) {
-            event.setCancelled(true);
             click(player);
             handleMain(player, clicked);
         } else if (holder instanceof ShopCategoryHolder catHolder) {
-            event.setCancelled(true);
             click(player);
             handleCategory(player, clicked, catHolder.getCategory());
         } else if (holder instanceof PurchaseHolder purchaseHolder) {
-            event.setCancelled(true);
             click(player);
-            handlePurchase(player, event.getSlot(), clicked, purchaseHolder, event.getClickedInventory());
+            handlePurchase(player, event.getSlot(), clicked, purchaseHolder, topInventory);
         }
     }
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         InventoryHolder holder = event.getView().getTopInventory().getHolder();
-        if (!(holder instanceof MainShopHolder || holder instanceof ShopCategoryHolder || holder instanceof PurchaseHolder)) {
-            return;
-        }
+        if (!isShopHolder(holder)) return;
 
         int topSize = event.getView().getTopInventory().getSize();
         boolean touchesShop = event.getRawSlots().stream().anyMatch(slot -> slot < topSize);
@@ -79,10 +76,15 @@ public class ShopListener implements Listener {
         }
     }
 
-    private boolean canMoveIntoShop(InventoryAction action) {
-        return action == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                || action == InventoryAction.COLLECT_TO_CURSOR
-                || action == InventoryAction.UNKNOWN;
+    private boolean isShopHolder(InventoryHolder holder) {
+        return holder instanceof MainShopHolder
+                || holder instanceof ShopCategoryHolder
+                || holder instanceof PurchaseHolder;
+    }
+
+    private boolean isHoldingItem(InventoryClickEvent event) {
+        ItemStack cursor = event.getCursor();
+        return cursor != null && !cursor.getType().isAir();
     }
 
     private void handleMain(Player player, ItemStack clicked) {
