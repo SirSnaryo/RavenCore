@@ -12,6 +12,7 @@ import com.kammoun.raven.rtp.menu.DimensionMenu;
 import com.kammoun.raven.rtp.menu.RegionMenu;
 import com.kammoun.raven.rtp.pool.RtpPoolStore;
 import com.kammoun.raven.rtp.pool.SafeLocationFinder;
+import com.kammoun.raven.rtp.service.RtpService;
 import com.kammoun.raven.rtp.transfer.RtpTransferHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.World;

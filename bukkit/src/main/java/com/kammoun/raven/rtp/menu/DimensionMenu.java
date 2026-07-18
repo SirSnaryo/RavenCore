@@ -4,7 +4,7 @@ import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
-import com.kammoun.raven.rtp.RtpService;
+import com.kammoun.raven.rtp.service.RtpService;
 import com.kammoun.raven.rtp.config.RtpDestinations;
 import org.bukkit.entity.Player;
 

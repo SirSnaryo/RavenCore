@@ -19,6 +19,7 @@ import com.kammoun.raven.library.platform.ServerRole;
 import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -30,11 +31,16 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 public final class RavenCore extends JavaPlugin {
 
     @Getter
     private static RavenCore instance;
+
+    private final List<String> enabledModules = new ArrayList<>();
 
     private String serverId;
     private ServerRole serverRole;
@@ -58,6 +64,7 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        long startedAt = System.currentTimeMillis();
         instance = this;
         saveDefaultConfig();
         SchedulerUtil.init(this);
@@ -66,6 +73,8 @@ public final class RavenCore extends JavaPlugin {
         String configuredId = getConfig().getString("network.server-id", "").trim();
         serverId   = configuredId.isEmpty() ? getServer().getName() : configuredId;
         serverRole = ServerRole.parse(getConfig().getString("server-role", "overworld"));
+
+        printBanner();
 
         if (serverRole == ServerRole.SURVIVAL) {
             enforceWorldSeed();
@@ -88,54 +97,101 @@ public final class RavenCore extends JavaPlugin {
 
         redisMessenger = new RedisMessenger(getLogger());
         redisMessenger.connect(redisCredentials);
+        if (redisMessenger.isConnected()) {
+            getLogger().info("Redis connected (" + redisCredentials.getHost() + ":" + redisCredentials.getPort() + ").");
+        } else {
+            getLogger().warning("Redis connection failed (" + redisCredentials.getHost() + ":" + redisCredentials.getPort()
+                    + "). Network features will be degraded.");
+        }
 
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, SchedulerUtil::run);
         networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(), serverId, networkEventBus);
 
         mySqlManager = new MySQLDBManager(getConfig());
         mySqlManager.connect();
+        if (mySqlManager.isConnected()) {
+            getLogger().info("MySQL connection pool ready.");
+        } else {
+            getLogger().warning("MySQL connection failed. Persistent data will not be saved.");
+        }
 
         if (serverRole != ServerRole.SPAWN) {
             lastLocationModule = new LastLocationModule();
             lastLocationModule.onEnable(this);
+            enabledModules.add("LastLocation");
         }
 
         economyModule = new EconomyModule();
         economyModule.onEnable(this);
+        enabledModules.add("Economy");
 
         shopModule = new ShopModule();
         shopModule.onEnable(this);
+        enabledModules.add("Shop");
 
         spawnerModule = new SpawnerModule();
         spawnerModule.onEnable(this);
+        enabledModules.add("Spawner");
 
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
+        enabledModules.add("ClearInventory");
 
         chatModule = new ChatModule();
         chatModule.onEnable(this);
+        enabledModules.add("Chat");
 
         scoreboardModule = new ScoreboardModule();
         scoreboardModule.onEnable(this);
+        enabledModules.add("Scoreboard");
 
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
+        enabledModules.add("Teleport");
 
         spawnModule = new SpawnModule();
         spawnModule.onEnable(this);
+        enabledModules.add("Spawn");
 
         if (serverRole != ServerRole.SPAWN) {
             dimensionPortalModule = new DimensionPortalModule();
             dimensionPortalModule.onEnable(this);
-
-            rtpModule = new RtpModule();
-            rtpModule.onEnable(this);
+            enabledModules.add("DimensionPortal");
         }
+
+        // RTP is available on every server role: on a lobby it hands the player off to a
+        // gameplay server, on a gameplay server it teleports locally — so it always enables.
+        rtpModule = new RtpModule();
+        rtpModule.onEnable(this);
+        enabledModules.add("RTP");
 
         if (serverRole == ServerRole.SURVIVAL) {
             serverBorderModule = new ServerBorderModule();
             serverBorderModule.onEnable(this);
+            enabledModules.add("ServerBorder");
         }
+
+        printReady(System.currentTimeMillis() - startedAt);
+    }
+
+    /** Console banner shown at the very start of enable, before modules load. */
+    private void printBanner() {
+        var console = Bukkit.getConsoleSender();
+        console.sendMessage(ChatFormatter.color("&8&m                                        "));
+        console.sendMessage(ChatFormatter.color("&5&lRaven&d&lCore &7v" + getDescription().getVersion()));
+        console.sendMessage(ChatFormatter.color("&7Server ID: &f" + serverId + " &8| &7Role: &f" + serverRole));
+        console.sendMessage(ChatFormatter.color("&7Starting up..."));
+        console.sendMessage(ChatFormatter.color("&8&m                                        "));
+    }
+
+    /** Console summary shown once every module has finished loading. */
+    private void printReady(long elapsedMs) {
+        var console = Bukkit.getConsoleSender();
+        console.sendMessage(ChatFormatter.color("&8&m                                        "));
+        console.sendMessage(ChatFormatter.color("&a&lRavenCore enabled &7in &f" + elapsedMs + "ms"));
+        console.sendMessage(ChatFormatter.color("&7Modules (&f" + enabledModules.size() + "&7): &f"
+                + String.join("&7, &f", enabledModules)));
+        console.sendMessage(ChatFormatter.color("&8&m                                        "));
     }
 
     /**

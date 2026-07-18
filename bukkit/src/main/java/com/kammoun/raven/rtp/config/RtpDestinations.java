@@ -37,20 +37,29 @@ public final class RtpDestinations {
     }
 
     public static RtpDestinations load(FileConfiguration config) {
-        Map<String, RegionDestination> overworld = loadRegionMap(config, "overworld-worlds", World.Environment.NORMAL);
-        Map<String, RegionDestination> nether = loadRegionMap(config, "nether-worlds", World.Environment.NETHER);
+        Map<String, RegionDestination> overworld = loadRegionMap(config, "overworld-worlds", World.Environment.NORMAL, "");
+        Map<String, RegionDestination> nether = loadRegionMap(config, "nether-worlds", World.Environment.NETHER, "nether_");
         RegionDestination end = readDestination(config.getConfigurationSection("end"), "end", "End", World.Environment.THE_END);
 
         return new RtpDestinations(overworld, nether, end);
     }
 
-    private static Map<String, RegionDestination> loadRegionMap(FileConfiguration config, String path, World.Environment environment) {
+    /**
+     * The Overworld and Nether region sections naturally reuse the same keys ({@code na}, {@code eu}),
+     * and now that a region's Nether lives on the same server as its Overworld, an un-namespaced id
+     * would make both share one Redis pool ({@code raven:rtp:pool:na}) — so a Nether request could
+     * hand out an Overworld location and vice versa. {@code idPrefix} keeps each dimension's pool
+     * distinct while the display name still comes from the bare config key.
+     */
+    private static Map<String, RegionDestination> loadRegionMap(FileConfiguration config, String path,
+                                                                World.Environment environment, String idPrefix) {
         Map<String, RegionDestination> regions = new LinkedHashMap<>();
         ConfigurationSection section = config.getConfigurationSection(path);
         if (section == null) return regions;
 
-        for (String id : section.getKeys(false)) {
-            RegionDestination dest = readDestination(section.getConfigurationSection(id), id, id.toUpperCase(), environment);
+        for (String key : section.getKeys(false)) {
+            String id = idPrefix + key;
+            RegionDestination dest = readDestination(section.getConfigurationSection(key), id, key.toUpperCase(), environment);
             if (dest != null) regions.put(id, dest);
         }
         return regions;

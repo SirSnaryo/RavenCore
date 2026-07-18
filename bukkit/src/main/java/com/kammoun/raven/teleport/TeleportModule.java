@@ -95,7 +95,7 @@ public class TeleportModule extends KModule<RavenCore> {
         // Small delay to let the joining player fully load in before teleporting.
         // Uses the player's entity scheduler (not the legacy Bukkit scheduler) so this works on Folia too.
         event.getPlayer().getScheduler().runDelayed(api,
-                task -> event.getPlayer().teleportAsync(destination.getLocation()), null, 5L);
+                task -> event.getPlayer().teleportAsync(destination.getLocation()), null, 20L);
     }
 
     List<String> tabPlayers(String prefix) {

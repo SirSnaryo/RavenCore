@@ -6,7 +6,7 @@ import com.kammoun.raven.library.item.ItemBuilder;
 import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.util.PlaceholderHelper;
-import com.kammoun.raven.rtp.RtpService;
+import com.kammoun.raven.rtp.service.RtpService;
 import com.kammoun.raven.rtp.config.RtpDestinations.RegionDestination;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;

@@ -1,4 +1,4 @@
-package com.kammoun.raven.rtp;
+package com.kammoun.raven.rtp.service;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.platform.bungee.BungeeHelper;
@@ -14,11 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Optional;
 
-/**
- * The actual "give this player a destination" logic, shared by every RTP menu/command
- * entry point: enforces the cooldown, pops a location from the target server's pool,
- * and either teleports locally or hands the player off cross-server.
- */
+
 public class RtpService {
 
     private static final String COOLDOWN_KEY = "rtp";

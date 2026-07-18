@@ -26,8 +26,13 @@ public final class PortalTransferHelper {
     public static void transfer(JavaPlugin plugin, JedisPool pool, Player player,
                                 double x, double y, double z, World.Environment targetEnvironment,
                                 String targetServer) {
+        // Carry the player's current facing across so they arrive looking the same way they left —
+        // captured here on the calling thread, not inside the async task below.
+        float yaw   = player.getLocation().getYaw();
+        float pitch = player.getLocation().getPitch();
+
         String key   = KEY_PREFIX + player.getUniqueId();
-        String value = x + ":" + y + ":" + z + ":" + targetEnvironment.name();
+        String value = x + ":" + y + ":" + z + ":" + targetEnvironment.name() + ":" + yaw + ":" + pitch;
         Bukkit.getAsyncScheduler().runNow(plugin, task -> {
             try (Jedis jedis = pool.getResource()) {
                 jedis.setex(key, 30, value);
@@ -68,13 +73,16 @@ public final class PortalTransferHelper {
             if (value == null) return;
 
             String[] parts = value.split(":");
-            if (parts.length != 4) return;
+            // 6 parts once facing is included; tolerate the legacy 4-part form during a rolling restart.
+            if (parts.length != 4 && parts.length != 6) return;
 
             try {
                 double x = Double.parseDouble(parts[0]);
                 double y = Double.parseDouble(parts[1]);
                 double z = Double.parseDouble(parts[2]);
                 World.Environment environment = World.Environment.valueOf(parts[3]);
+                float yaw   = parts.length == 6 ? Float.parseFloat(parts[4]) : 0f;
+                float pitch = parts.length == 6 ? Float.parseFloat(parts[5]) : 0f;
 
                 World world = resolveWorld(environment);
                 if (world == null) {
@@ -83,7 +91,7 @@ public final class PortalTransferHelper {
                     return;
                 }
 
-                Location dest = new Location(world, x, y, z);
+                Location dest = new Location(world, x, y, z, yaw, pitch);
                 player.getScheduler().run(plugin, t -> player.teleportAsync(dest), null);
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().warning("[Portal] Malformed destination for " + player.getName() + ": " + value);
