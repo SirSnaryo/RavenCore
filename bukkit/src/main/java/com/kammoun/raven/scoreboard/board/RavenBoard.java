@@ -5,9 +5,7 @@ import com.kammoun.raven.scoreboard.model.LineUpdateMode;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
-import fr.mrmicky.fastboard.adventure.FastBoard;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import fr.mrmicky.fastboard.FastBoard;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -15,8 +13,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class RavenBoard {
-
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private final FastBoard board;
     private final Player player;
@@ -80,7 +76,7 @@ public class RavenBoard {
         String title = render(definition.title());
         if (!Objects.equals(title, renderedTitle)) {
             renderedTitle = title;
-            board.updateTitle(component(title));
+            board.updateTitle(title);
         }
     }
 
@@ -99,11 +95,7 @@ public class RavenBoard {
         }
     }
 
-    private List<Component> toComponents(List<String> lines) {
-        return lines.stream().map(this::component).toList();
-    }
-
-    private Component component(String text) {
-        return LEGACY.deserialize(text == null ? "" : text);
+    private List<String> toComponents(List<String> lines) {
+        return lines;
     }
 }

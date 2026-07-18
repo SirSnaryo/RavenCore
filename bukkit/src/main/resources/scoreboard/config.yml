@@ -1,13 +1,64 @@
+# Raven scoreboard module.
+#
+# The module is powered by FastBoard packets, so it does not fight with Bukkit
+# scoreboard teams from other plugins. On modern versions (1.20.3+) FastBoard
+# hides sidebar score numbers by default.
+
+# Master switch. Set false to fully disable this module without removing files.
 enabled: true
+
+# Main refresh loop, in ticks. 20 ticks = 1 second.
+# Lines with numeric update values are refreshed on this loop only when due.
 update-interval-ticks: 20
+
+# How often Raven re-checks requirements and moves a player to a higher priority
+# scoreboard if their permission/world/server state changed.
 condition-check-ticks: 40
+
+# Worlds where no Raven scoreboard should be shown.
 disabled-worlds: []
 
 scoreboards:
+  # Board id. Use this name only for organization; priority decides who sees it.
   default:
+    # Higher priority wins when multiple boards match the same player.
     priority: 0
+
+    # Supports & color codes, &#RRGGBB hex colors, PlaceholderAPI placeholders,
+    # and Raven internal placeholders listed below.
     title: "&c&lRavenMC"
+
+    # Requirements must all pass. Empty list means everyone can use this board.
+    #
+    # Supported types:
+    # - permission: player must have the value permission.
+    # - world: player must be in the value world.
+    # - server: current Raven server-id must equal value.
+    # - server-role: current Raven server-role must equal value.
+    # - placeholder-equals: parsed placeholder must equal expected.
+    # - placeholder-contains: parsed placeholder must contain expected.
     requirements: []
+
+    # Lines render top to bottom. Maximum visible lines is 15.
+    #
+    # update modes:
+    # - static: render on create/reload/board switch only.
+    # - number: refresh every N ticks, for example update: 40.
+    # - event:name: refresh when Raven fires that event name.
+    #
+    # Built-in event names:
+    # - balance: fired when Raven economy receives a BalanceUpdateEvent.
+    #
+    # Built-in Raven placeholders:
+    # - %raven_server%
+    # - %raven_role%
+    # - %raven_world%
+    # - %raven_online%
+    # - %raven_network_online%
+    # - %raven_balance%
+    #
+    # You can also use PlaceholderAPI placeholders like %player_name%.
+    # Use \n inside text if you want one configured line to become multiple lines.
     lines:
       - text: ""
       - text: "&fPlayer: &c%player_name%"
@@ -22,6 +73,7 @@ scoreboards:
       - text: "&7play.ravenmc.net"
 
   admin:
+    # Admin board wins over default for players with raven.scoreboard.admin.
     priority: 100
     title: "&4&lRaven Admin"
     requirements:
