@@ -23,9 +23,10 @@ scoreboards:
     # Higher priority wins when multiple boards match the same player.
     priority: 0
 
-    # Supports & color codes, &#RRGGBB hex colors, PlaceholderAPI placeholders,
-    # and Raven internal placeholders listed below.
-    title: "&c&lRavenMC"
+    # Supports MiniMessage tags, & color codes, &#RRGGBB hex colors,
+    # PlaceholderAPI placeholders, and Raven internal placeholders listed below.
+    # For strongest black text shadow, wrap text with <shadow:#000000FF>...</shadow>.
+    title: "<shadow:#000000FF><#00A2FF><bold>Raven SMP</bold></shadow>"
 
     # Requirements must all pass. Empty list means everyone can use this board.
     #
@@ -55,37 +56,54 @@ scoreboards:
     # - %raven_online%
     # - %raven_network_online%
     # - %raven_balance%
+    # - %raven_money%
+    # - %raven_ravs%
+    # - %raven_kills%
+    # - %raven_deaths%
+    # - %raven_playtime%
+    # - %raven_ping%
     #
     # You can also use PlaceholderAPI placeholders like %player_name%.
     # Use \n inside text if you want one configured line to become multiple lines.
     lines:
-      - text: ""
-      - text: "&fPlayer: &c%player_name%"
+      - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
         update: 40
-      - text: "&fBalance: &e%raven_balance%"
+      - text: "<shadow:#000000FF><#FF4FD8>✦ <#FFFFFF>Ravs <#FF4FD8>%raven_ravs%</shadow>"
         update: event:balance
-      - text: "&fOnline: &a%raven_network_online%"
+      - text: "<shadow:#000000FF><#FF5555>⚔ <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
+        update: 40
+      - text: "<shadow:#000000FF><#FF9F1C>☠ <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
+        update: 40
+      - text: "<shadow:#000000FF><#00D5FF>⌾ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
         update: 60
-      - text: "&fServer: &c%raven_server%"
+      - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
+        update: 120
+      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Server <#3A86FF>%raven_server%</shadow>"
         update: static
-      - text: ""
-      - text: "&7play.ravenmc.net"
+      - text: "<shadow:#000000FF><#7A7A7A>NA East <#4CC9F0>(%raven_ping%)</shadow>"
+        update: 40
 
   admin:
     # Admin board wins over default for players with raven.scoreboard.admin.
     priority: 100
-    title: "&4&lRaven Admin"
+    title: "<shadow:#000000FF><#00A2FF><bold>Raven SMP</bold></shadow>"
     requirements:
       - type: permission
         value: "raven.scoreboard.admin"
     lines:
-      - text: "&cStaff View"
-        update: static
-      - text: "&fServer: &c%raven_server%"
-        update: static
-      - text: "&fRole: &c%raven_role%"
-        update: static
-      - text: "&fWorld: &c%raven_world%"
-        update: 20
-      - text: "&fNetwork: &a%raven_network_online%"
+      - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
+        update: 40
+      - text: "<shadow:#000000FF><#FF4FD8>✦ <#FFFFFF>Ravs <#FF4FD8>%raven_ravs%</shadow>"
+        update: event:balance
+      - text: "<shadow:#000000FF><#FF5555>⚔ <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
+        update: 40
+      - text: "<shadow:#000000FF><#FF9F1C>☠ <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
+        update: 40
+      - text: "<shadow:#000000FF><#00D5FF>⌾ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
         update: 60
+      - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
+        update: 120
+      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Server <#3A86FF>%raven_server%</shadow>"
+        update: static
+      - text: "<shadow:#000000FF><#7A7A7A>NA East <#4CC9F0>(%raven_ping%)</shadow>"
+        update: 40

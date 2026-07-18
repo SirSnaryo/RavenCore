@@ -7,6 +7,7 @@ import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
 import fr.mrmicky.fastboard.adventure.FastBoard;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
@@ -17,6 +18,7 @@ import java.util.Objects;
 public class RavenBoard {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private final FastBoard board;
     private final Player player;
@@ -86,7 +88,7 @@ public class RavenBoard {
     }
 
     private String render(String text) {
-        return ChatFormatter.color(placeholders.apply(player, text));
+        return placeholders.apply(player, text);
     }
 
     private void addRenderedLine(String text) {
@@ -134,6 +136,19 @@ public class RavenBoard {
     }
 
     private Component component(String text) {
-        return LEGACY.deserialize(text == null ? "" : text);
+        String safe = text == null ? "" : text;
+        if (looksLikeMiniMessage(safe)) {
+            try {
+                return MINI_MESSAGE.deserialize(safe);
+            } catch (RuntimeException ignored) {
+                // Fall back to legacy parsing so one bad tag cannot break the board.
+            }
+        }
+        return LEGACY.deserialize(ChatFormatter.color(safe));
+    }
+
+    private boolean looksLikeMiniMessage(String text) {
+        int open = text.indexOf('<');
+        return open >= 0 && text.indexOf('>', open + 1) > open;
     }
 }
