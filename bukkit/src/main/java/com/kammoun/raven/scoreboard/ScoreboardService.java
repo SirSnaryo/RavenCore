@@ -20,14 +20,17 @@ public class ScoreboardService {
 
     private final RavenCore plugin;
     private final ScoreboardPlaceholders placeholders;
+    private final ScoreboardToggleStorage toggleStorage;
     private final Map<UUID, RavenBoard> boards = new ConcurrentHashMap<>();
     private final Set<UUID> disabled = ConcurrentHashMap.newKeySet();
     private ScoreboardConfig config;
 
-    public ScoreboardService(RavenCore plugin, ScoreboardConfig config) {
+    public ScoreboardService(RavenCore plugin, ScoreboardConfig config, ScoreboardToggleStorage toggleStorage) {
         this.plugin = plugin;
         this.config = config;
+        this.toggleStorage = toggleStorage;
         this.placeholders = new ScoreboardPlaceholders(plugin);
+        this.disabled.addAll(toggleStorage.loadDisabled());
     }
 
     public void reload(ScoreboardConfig config) {
@@ -59,7 +62,6 @@ public class ScoreboardService {
 
         RavenBoard current = boards.get(player.getUniqueId());
         if (current != null && current.getDefinition().name().equalsIgnoreCase(definition.get().name())) {
-            current.updateAll();
             return;
         }
 
@@ -79,13 +81,19 @@ public class ScoreboardService {
     public boolean toggle(Player player) {
         UUID uuid = player.getUniqueId();
         if (disabled.remove(uuid)) {
+            saveDisabled();
             showIfAllowed(player);
             return true;
         }
 
         disabled.add(uuid);
+        saveDisabled();
         remove(player);
         return false;
+    }
+
+    public void saveState() {
+        saveDisabled();
     }
 
     public void tick(int elapsedTicks) {
@@ -135,5 +143,9 @@ public class ScoreboardService {
         return config.getScoreboards().stream()
                 .filter(definition -> definition.matches(player, placeholders))
                 .findFirst();
+    }
+
+    private void saveDisabled() {
+        toggleStorage.saveDisabled(disabled);
     }
 }

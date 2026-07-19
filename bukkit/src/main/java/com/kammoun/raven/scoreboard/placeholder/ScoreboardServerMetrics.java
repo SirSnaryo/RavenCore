@@ -11,16 +11,63 @@ import java.util.Locale;
 
 class ScoreboardServerMetrics {
 
+    private static final long GLOBAL_CACHE_MILLIS = 1_000L;
+    private static final Method BUKKIT_GET_TPS = method(Bukkit.class, "getTPS");
+    private static final Method BUKKIT_GET_AVERAGE_TICK_TIME = method(Bukkit.class, "getAverageTickTime");
+    private static final Method BUKKIT_GET_REGION_TPS = method(Bukkit.class, "getRegionTPS", Location.class);
+
+    private long globalCacheUntilMillis;
+    private String cachedTps = "N/A";
+    private String cachedMspt = "N/A";
+    private String cachedCpu = "N/A";
+    private Method serverGetRegionTps;
+    private Method serverGetTickTimes;
+
     String tps() {
-        double[] values = tpsArray(invokeStatic(Bukkit.class, "getTPS"));
+        refreshGlobalCache();
+        return cachedTps;
+    }
+
+    String mspt() {
+        refreshGlobalCache();
+        return cachedMspt;
+    }
+
+    String cpu() {
+        refreshGlobalCache();
+        return cachedCpu;
+    }
+
+    String regionTps(Player player, int index) {
+        double[] values = regionTpsArray(player);
+        if (values.length <= index) {
+            return "N/A";
+        }
+        return formatTps(values[index]);
+    }
+
+    private void refreshGlobalCache() {
+        long now = System.currentTimeMillis();
+        if (now < globalCacheUntilMillis) {
+            return;
+        }
+
+        cachedTps = readTps();
+        cachedMspt = readMspt();
+        cachedCpu = readCpu();
+        globalCacheUntilMillis = now + GLOBAL_CACHE_MILLIS;
+    }
+
+    private String readTps() {
+        double[] values = tpsArray(invoke(BUKKIT_GET_TPS, null));
         if (values.length == 0) {
             return "N/A";
         }
         return formatTps(values[0]);
     }
 
-    String mspt() {
-        Object value = invokeStatic(Bukkit.class, "getAverageTickTime");
+    private String readMspt() {
+        Object value = invoke(BUKKIT_GET_AVERAGE_TICK_TIME, null);
         if (value instanceof Number number) {
             return formatMspt(number.doubleValue());
         }
@@ -37,7 +84,7 @@ class ScoreboardServerMetrics {
         return formatMspt((totalNanos / (double) tickTimes.length) / 1_000_000D);
     }
 
-    String cpu() {
+    private String readCpu() {
         java.lang.management.OperatingSystemMXBean baseBean = ManagementFactory.getOperatingSystemMXBean();
         if (baseBean instanceof com.sun.management.OperatingSystemMXBean systemBean) {
             double load = systemBean.getProcessCpuLoad();
@@ -48,26 +95,17 @@ class ScoreboardServerMetrics {
         return "N/A";
     }
 
-    String regionTps(Player player, int index) {
-        double[] values = regionTpsArray(player);
-        if (values.length <= index) {
-            return "N/A";
-        }
-        return formatTps(values[index]);
-    }
-
     private double[] regionTpsArray(Player player) {
         Location location = player.getLocation();
-        Object value = invokeStatic(Bukkit.class, "getRegionTPS", Location.class, location);
+        Object value = invoke(BUKKIT_GET_REGION_TPS, null, location);
         if (value == null) {
-            Server server = Bukkit.getServer();
-            value = invoke(server, "getRegionTPS", Location.class, location);
+            value = invoke(serverGetRegionTps(), Bukkit.getServer(), location);
         }
         return tpsArray(value);
     }
 
     private long[] tickTimes() {
-        Object value = invoke(Bukkit.getServer(), "getTickTimes");
+        Object value = invoke(serverGetTickTimes(), Bukkit.getServer());
         if (value instanceof long[] tickTimes) {
             return tickTimes;
         }
@@ -89,37 +127,34 @@ class ScoreboardServerMetrics {
         return String.format(Locale.US, "%.1fms", Math.max(0D, value));
     }
 
-    private static Object invokeStatic(Class<?> owner, String name, Class<?> parameterType, Object parameter) {
+    private Method serverGetRegionTps() {
+        if (serverGetRegionTps == null) {
+            serverGetRegionTps = method(Bukkit.getServer().getClass(), "getRegionTPS", Location.class);
+        }
+        return serverGetRegionTps;
+    }
+
+    private Method serverGetTickTimes() {
+        if (serverGetTickTimes == null) {
+            serverGetTickTimes = method(Bukkit.getServer().getClass(), "getTickTimes");
+        }
+        return serverGetTickTimes;
+    }
+
+    private static Method method(Class<?> owner, String name, Class<?>... parameterTypes) {
         try {
-            Method method = owner.getMethod(name, parameterType);
-            return method.invoke(null, parameter);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return owner.getMethod(name, parameterTypes);
+        } catch (NoSuchMethodException | RuntimeException ignored) {
             return null;
         }
     }
 
-    private static Object invokeStatic(Class<?> owner, String name) {
-        try {
-            Method method = owner.getMethod(name);
-            return method.invoke(null);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
+    private static Object invoke(Method method, Object target, Object... parameters) {
+        if (method == null) {
             return null;
         }
-    }
-
-    private static Object invoke(Object target, String name, Class<?> parameterType, Object parameter) {
         try {
-            Method method = target.getClass().getMethod(name, parameterType);
-            return method.invoke(target, parameter);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return null;
-        }
-    }
-
-    private static Object invoke(Object target, String name) {
-        try {
-            Method method = target.getClass().getMethod(name);
-            return method.invoke(target);
+            return method.invoke(target, parameters);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             return null;
         }

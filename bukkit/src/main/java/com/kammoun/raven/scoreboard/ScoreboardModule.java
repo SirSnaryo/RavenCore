@@ -36,7 +36,7 @@ public class ScoreboardModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         saveDefaultConfig("config.example.yml");
-        service = new ScoreboardService(api, new ScoreboardConfig(getConfig()));
+        service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()));
         registerCommand(new ScoreboardCommand(this), "scoreboard");
         registerListeners();
         startTasks();
@@ -52,6 +52,7 @@ public class ScoreboardModule extends KModule<RavenCore> {
     public void onModuleDisable() {
         stopTasks();
         if (service != null) {
+            service.saveState();
             service.clear();
         }
         api.getNetworkEventBus().unsubscribe(BalanceUpdateEvent.class);
