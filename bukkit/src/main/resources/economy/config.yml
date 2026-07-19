@@ -1,6 +1,6 @@
 starting-balance: 0.0
 
 currency:
-  singular: "Rav"
-  plural: "Ravs"
+  singular: "Coin"
+  plural: "Coins"
   fractional-digits: 2

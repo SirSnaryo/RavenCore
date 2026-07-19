@@ -7,10 +7,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
+import java.util.Locale;
+import java.util.function.Supplier;
+
 @Getter
 public class ScoreboardPlaceholders {
 
     private final RavenCore plugin;
+    private final ScoreboardServerMetrics metrics = new ScoreboardServerMetrics();
 
     public ScoreboardPlaceholders(RavenCore plugin) {
         this.plugin = plugin;
@@ -25,15 +29,21 @@ public class ScoreboardPlaceholders {
                 .replace("%raven_world%", player.getWorld().getName())
                 .replace("%raven_server%", plugin.getServerId())
                 .replace("%raven_role%", plugin.getServerRole().name().toLowerCase())
-                .replace("%raven_online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
-                .replace("%raven_network_online%", String.valueOf(plugin.getNetworkPlayerManager().getNetworkPlayerNames().size()))
-                .replace("%raven_balance%", balance(player))
-                .replace("%raven_money%", balance(player))
-                .replace("%raven_ravs%", balance(player))
-                .replace("%raven_kills%", String.valueOf(player.getStatistic(Statistic.PLAYER_KILLS)))
-                .replace("%raven_deaths%", String.valueOf(player.getStatistic(Statistic.DEATHS)))
-                .replace("%raven_playtime%", formatPlaytime(player.getStatistic(Statistic.PLAY_ONE_MINUTE)))
-                .replace("%raven_ping%", formatPing(player.getPing()));
+                .replace("%raven_online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+
+        resolved = replace(resolved, "%raven_network_online%", () -> String.valueOf(plugin.getNetworkPlayerManager().getNetworkPlayerNames().size()));
+        resolved = replace(resolved, "%raven_balance%", () -> balance(player));
+        resolved = replace(resolved, "%raven_money%", () -> compactMoney(player));
+        resolved = replace(resolved, "%raven_ravs%", () -> "0");
+        resolved = replace(resolved, "%raven_kills%", () -> String.valueOf(player.getStatistic(Statistic.PLAYER_KILLS)));
+        resolved = replace(resolved, "%raven_deaths%", () -> String.valueOf(player.getStatistic(Statistic.DEATHS)));
+        resolved = replace(resolved, "%raven_playtime%", () -> formatPlaytime(player.getStatistic(Statistic.PLAY_ONE_MINUTE)));
+        resolved = replace(resolved, "%raven_ping%", () -> formatPing(player.getPing()));
+        resolved = replace(resolved, "%raven_tps%", metrics::tps);
+        resolved = replace(resolved, "%raven_mspt%", metrics::mspt);
+        resolved = replace(resolved, "%raven_cpu%", metrics::cpu);
+        resolved = replace(resolved, "%raven_low_tps_region%", () -> metrics.regionTps(player, 0));
+        resolved = replace(resolved, "%raven_mid_tps_region%", () -> metrics.regionTps(player, 1));
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             resolved = PlaceholderAPI.setPlaceholders(player, resolved);
@@ -42,12 +52,54 @@ public class ScoreboardPlaceholders {
         return resolved;
     }
 
+    private static String replace(String input, String placeholder, Supplier<String> value) {
+        if (!input.contains(placeholder)) {
+            return input;
+        }
+        return input.replace(placeholder, value.get());
+    }
+
     private String balance(Player player) {
         if (plugin.getEconomyModule() == null || plugin.getEconomyModule().getEconomy() == null) {
             return "0";
         }
         double balance = plugin.getEconomyModule().getEconomyService().getBalance(player.getUniqueId());
         return plugin.getEconomyModule().getEconomy().format(balance);
+    }
+
+    private String compactMoney(Player player) {
+        if (plugin.getEconomyModule() == null || plugin.getEconomyModule().getEconomyService() == null) {
+            return "0$";
+        }
+        double balance = plugin.getEconomyModule().getEconomyService().getBalance(player.getUniqueId());
+        return formatCompactMoney(balance);
+    }
+
+    static String formatCompactMoney(double amount) {
+        double absolute = Math.abs(amount);
+        String sign = amount < 0 ? "-" : "";
+
+        if (absolute < 1_000D) {
+            return sign + trimOneDecimal(absolute) + "$";
+        }
+        if (absolute < 1_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000D) + "k";
+        }
+        if (absolute < 1_000_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000_000D) + "m";
+        }
+        if (absolute < 1_000_000_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000_000_000D) + "b";
+        }
+        return sign + trimOneDecimal(absolute / 1_000_000_000_000D) + "t";
+    }
+
+    private static String trimOneDecimal(double value) {
+        double rounded = Math.round(value * 10D) / 10D;
+        if (rounded == Math.rint(rounded)) {
+            return String.format(Locale.US, "%.0f", rounded);
+        }
+        return String.format(Locale.US, "%.1f", rounded);
     }
 
     static String formatPlaytime(long ticks) {

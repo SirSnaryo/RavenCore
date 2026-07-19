@@ -119,7 +119,7 @@ subprojects {
     apply plugin: 'java'
 
     group = 'com.kammoun'
-    version = '1.0.7'
+    version = '1.0.8'
 
     repositories {
         mavenCentral()

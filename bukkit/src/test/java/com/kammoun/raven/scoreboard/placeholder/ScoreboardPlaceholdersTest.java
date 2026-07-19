@@ -19,4 +19,16 @@ class ScoreboardPlaceholdersTest {
     void formatsPingWithMillisecondsSuffix() {
         assertEquals("45ms", ScoreboardPlaceholders.formatPing(45));
     }
+
+    @Test
+    void formatsMoneyWithoutCurrencyName() {
+        assertEquals("1$", ScoreboardPlaceholders.formatCompactMoney(1));
+        assertEquals("999$", ScoreboardPlaceholders.formatCompactMoney(999));
+        assertEquals("1k", ScoreboardPlaceholders.formatCompactMoney(1_000));
+        assertEquals("1.1k", ScoreboardPlaceholders.formatCompactMoney(1_100));
+        assertEquals("1.9k", ScoreboardPlaceholders.formatCompactMoney(1_900));
+        assertEquals("10k", ScoreboardPlaceholders.formatCompactMoney(10_000));
+        assertEquals("1m", ScoreboardPlaceholders.formatCompactMoney(1_000_000));
+        assertEquals("1.1m", ScoreboardPlaceholders.formatCompactMoney(1_100_000));
+    }
 }
