@@ -2,8 +2,10 @@ package com.kammoun.raven;
 
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
+import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
+import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.portal.DimensionPortalModule;
 import com.kammoun.raven.portal.border.ServerBorderModule;
@@ -33,7 +35,9 @@ import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 public final class RavenCore extends JavaPlugin {
@@ -177,7 +181,93 @@ public final class RavenCore extends JavaPlugin {
             enabledModules.add("TimeSync");
         }
 
+        if (getCommand("ravencore") != null) {
+            RavenCoreCommand command = new RavenCoreCommand(this);
+            getCommand("ravencore").setExecutor(command);
+            getCommand("ravencore").setTabCompleter(command);
+        }
         printReady(System.currentTimeMillis() - startedAt);
+    }
+
+    public List<String> reloadableModuleNames() {
+        return new ArrayList<>(reloadableModules().keySet());
+    }
+
+    public boolean reloadModuleSafely(String name) {
+        KModule<?> module = reloadableModules().get(name.toLowerCase());
+        if (module == null) {
+            return false;
+        }
+
+        SchedulerUtil.run(() -> {
+            try {
+                module.reload();
+                getLogger().info("[RavenCore] Reloaded module: " + name);
+            } catch (Exception e) {
+                getLogger().log(java.util.logging.Level.SEVERE, "[RavenCore] Failed to reload module: " + name, e);
+            }
+        });
+        return true;
+    }
+
+    public void reloadAllModulesSafely() {
+        List<String> names = reloadableModuleNames();
+        reloadAllModulesSafely(names, 0);
+    }
+
+    private void reloadAllModulesSafely(List<String> names, int index) {
+        if (index >= names.size()) {
+            return;
+        }
+
+        reloadModuleSafely(names.get(index));
+        SchedulerUtil.runLater(() -> reloadAllModulesSafely(names, index + 1), 5L);
+    }
+
+    private Map<String, KModule<?>> reloadableModules() {
+        Map<String, KModule<?>> modules = new LinkedHashMap<>();
+        putModule(modules, "core", null);
+        putModule(modules, "economy", economyModule);
+        putModule(modules, "shop", shopModule);
+        putModule(modules, "spawner", spawnerModule);
+        putModule(modules, "clearinventory", clearInventoryModule);
+        putModule(modules, "chat", chatModule);
+        putModule(modules, "scoreboard", scoreboardModule);
+        putModule(modules, "teleport", teleportModule);
+        putModule(modules, "spawn", spawnModule);
+        putModule(modules, "rtp", rtpModule);
+        putModule(modules, "lastlocation", lastLocationModule);
+        putModule(modules, "dimensionportal", dimensionPortalModule);
+        putModule(modules, "serverborder", serverBorderModule);
+        putModule(modules, "timesync", timeSyncModule);
+        return modules;
+    }
+
+    private void putModule(Map<String, KModule<?>> modules, String name, KModule<?> module) {
+        if (module != null) {
+            modules.put(name, module);
+            return;
+        }
+        if (name.equals("core")) {
+            modules.put(name, new CoreConfigModule());
+        }
+    }
+
+    private final class CoreConfigModule extends KModule<RavenCore> {
+        private CoreConfigModule() {
+            super("core");
+        }
+
+        @Override
+        public void onModuleEnable() {}
+
+        @Override
+        public void onModuleDisable() {}
+
+        @Override
+        public void reload() {
+            RavenCore.this.reloadConfig();
+        }
     }
 
     /** Console banner shown at the very start of enable, before modules load. */

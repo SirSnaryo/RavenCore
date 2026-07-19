@@ -55,6 +55,13 @@ public class ProxyCommandFilterModule extends VModule {
         blockedCommands = Set.of();
     }
 
+    public void reload() {
+        reloadConfig();
+        bypassPermission = getString("bypass-permission", "raven.proxycommandfilter.bypass");
+        denyMessage = getString("deny-message", "&cYou do not have permission to use this command.");
+        blockedCommands = normalizeCommands(getStringList("blocked-commands"));
+    }
+
     @Subscribe
     public void onPlayerAvailableCommands(PlayerAvailableCommandsEvent event) {
         if (canBypass(event.getPlayer())) {

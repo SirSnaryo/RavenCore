@@ -5,6 +5,7 @@ import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
+import com.kammoun.raven.velocity.command.RavenCoreVelocityCommand;
 import com.kammoun.raven.velocity.info.InfoModule;
 import com.kammoun.raven.velocity.lobby.LobbyModule;
 import com.kammoun.raven.velocity.privatemessage.PrivateMessageModule;
@@ -22,14 +23,17 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "1.0.10",
+        version = "1.0.11",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )
@@ -96,6 +100,7 @@ public class RavenVelocity {
 
         lobbyModule = new LobbyModule();
         lobbyModule.onEnable(this, server, dataDirectory);
+        registerCoreCommand();
 
         logger.info("RavenCore (Velocity) enabled — proxy id: " + serverId);
     }
@@ -117,6 +122,62 @@ public class RavenVelocity {
         if (redisMessenger != null) {
             redisMessenger.close();
         }
+    }
+
+    public String getVersion() {
+        Plugin plugin = getClass().getAnnotation(Plugin.class);
+        return plugin == null ? "unknown" : plugin.version();
+    }
+
+    public List<String> reloadableModuleNames() {
+        return new ArrayList<>(reloadableModules().keySet());
+    }
+
+    public boolean reloadModuleSafely(String name) {
+        Runnable reload = reloadableModules().get(name.toLowerCase());
+        if (reload == null) {
+            return false;
+        }
+
+        server.getScheduler().buildTask(this, () -> {
+            try {
+                reload.run();
+                logger.info("[RavenCoreVelocity] Reloaded module: " + name);
+            } catch (Exception e) {
+                logger.log(java.util.logging.Level.SEVERE, "[RavenCoreVelocity] Failed to reload module: " + name, e);
+            }
+        }).schedule();
+        return true;
+    }
+
+    public void reloadAllModulesSafely() {
+        reloadableModuleNames().forEach(this::reloadModuleSafely);
+    }
+
+    private Map<String, Runnable> reloadableModules() {
+        Map<String, Runnable> modules = new LinkedHashMap<>();
+        modules.put("core", this::reloadRootConfig);
+        if (infoModule != null) modules.put("info", infoModule::reload);
+        if (proxyCommandFilterModule != null) modules.put("proxycommandfilter", proxyCommandFilterModule::reload);
+        if (privateMessageModule != null) modules.put("privatemessage", privateMessageModule::reload);
+        if (lobbyModule != null) modules.put("lobby", lobbyModule::reload);
+        return modules;
+    }
+
+    private void registerCoreCommand() {
+        var manager = server.getCommandManager();
+        manager.register(
+                manager.metaBuilder("ravencorevelo")
+                        .aliases("rcvelo")
+                        .plugin(this)
+                        .build(),
+                new RavenCoreVelocityCommand(this)
+        );
+    }
+
+    private void reloadRootConfig() {
+        saveDefaultConfig();
+        loadConfig();
     }
 
     // -- Config helpers --

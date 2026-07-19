@@ -1,10 +1,10 @@
 package com.kammoun.raven.scoreboard.placeholder;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
 import java.util.Locale;
@@ -15,9 +15,11 @@ public class ScoreboardPlaceholders {
 
     private final RavenCore plugin;
     private final ScoreboardServerMetrics metrics = new ScoreboardServerMetrics();
+    private final ScoreboardStatsService stats;
 
-    public ScoreboardPlaceholders(RavenCore plugin) {
+    public ScoreboardPlaceholders(RavenCore plugin, ScoreboardStatsService stats) {
         this.plugin = plugin;
+        this.stats = stats;
     }
 
     public String apply(Player player, String input) {
@@ -35,9 +37,9 @@ public class ScoreboardPlaceholders {
         resolved = replace(resolved, "%raven_balance%", () -> balance(player));
         resolved = replace(resolved, "%raven_money%", () -> compactMoney(player));
         resolved = replace(resolved, "%raven_ravs%", () -> "0");
-        resolved = replace(resolved, "%raven_kills%", () -> String.valueOf(player.getStatistic(Statistic.PLAYER_KILLS)));
-        resolved = replace(resolved, "%raven_deaths%", () -> String.valueOf(player.getStatistic(Statistic.DEATHS)));
-        resolved = replace(resolved, "%raven_playtime%", () -> formatPlaytime(player.getStatistic(Statistic.PLAY_ONE_MINUTE)));
+        resolved = replace(resolved, "%raven_kills%", () -> String.valueOf(stats.kills(player)));
+        resolved = replace(resolved, "%raven_deaths%", () -> String.valueOf(stats.deaths(player)));
+        resolved = replace(resolved, "%raven_playtime%", () -> formatPlaytimeSeconds(stats.playtimeSeconds(player)));
         resolved = replace(resolved, "%raven_ping%", () -> formatPing(player.getPing()));
         resolved = replace(resolved, "%raven_tps%", metrics::tps);
         resolved = replace(resolved, "%raven_mspt%", metrics::mspt);
@@ -103,7 +105,11 @@ public class ScoreboardPlaceholders {
     }
 
     static String formatPlaytime(long ticks) {
-        long totalSeconds = Math.max(0L, ticks) / 20L;
+        return formatPlaytimeSeconds(Math.max(0L, ticks) / 20L);
+    }
+
+    static String formatPlaytimeSeconds(long totalSeconds) {
+        totalSeconds = Math.max(0L, totalSeconds);
         long days = totalSeconds / 86_400L;
         long hours = (totalSeconds % 86_400L) / 3_600L;
         long minutes = (totalSeconds % 3_600L) / 60L;

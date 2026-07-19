@@ -44,6 +44,12 @@ public class PrivateMessageModule extends VModule {
         lastPartner.clear();
     }
 
+    public void reload() {
+        reloadConfig();
+        messages = new PrivateMessages(this);
+        permission = getString("permission", "raven.msg");
+    }
+
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();

@@ -81,10 +81,16 @@ commands:
     permission: raven.spawner.admin
     permission-message: §cYou don't have permission to use this command.
   scoreboard:
-    description: Toggle or reload the Raven scoreboard
-    usage: /scoreboard [toggle|reload]
+    description: Manage the Raven scoreboard
+    usage: /scoreboard [toggle|on|off|list|current|select|reset|set|clear|reload]
     aliases: [sb]
     permission: raven.scoreboard
+    permission-message: §cYou don't have permission to use this command.
+
+  ravencore:
+    description: RavenCore version and safe module reload
+    usage: /ravencore <version|modules|reload>
+    aliases: [rcore]
     permission-message: §cYou don't have permission to use this command.
 
 permissions:
@@ -140,8 +146,11 @@ permissions:
     description: Send messages in network-wide chat
     default: true
   raven.scoreboard:
-    description: Toggle your scoreboard
+    description: Use personal scoreboard commands
     default: true
   raven.scoreboard.admin:
-    description: Reload scoreboard configuration and view admin boards
+    description: Manage scoreboard configuration and player board selection
+    default: op
+  raven.core.admin:
+    description: Reload RavenCore modules
     default: op

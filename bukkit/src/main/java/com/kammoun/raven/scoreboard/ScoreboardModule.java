@@ -6,12 +6,15 @@ import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.scoreboard.command.ScoreboardCommand;
 import com.kammoun.raven.scoreboard.config.ScoreboardConfig;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.scoreboard.stats.ScoreboardStatsRepository;
+import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -25,8 +28,11 @@ public class ScoreboardModule extends KModule<RavenCore> {
 
     @Getter
     private ScoreboardService service;
+    @Getter
+    private ScoreboardStatsService statsService;
     private SchedulerUtil.Task updateTask;
     private SchedulerUtil.Task conditionTask;
+    private SchedulerUtil.Task statsTask;
     private final Set<String> registeredBukkitEvents = new HashSet<>();
 
     public ScoreboardModule() {
@@ -36,7 +42,9 @@ public class ScoreboardModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         saveDefaultConfig("config.example.yml");
-        service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()));
+        statsService = createStatsService();
+        statsService.init();
+        service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()), statsService);
         registerCommand(new ScoreboardCommand(this), "scoreboard");
         registerListeners();
         startTasks();
@@ -55,6 +63,9 @@ public class ScoreboardModule extends KModule<RavenCore> {
             service.saveState();
             service.clear();
         }
+        if (statsService != null) {
+            statsService.shutdown();
+        }
         api.getNetworkEventBus().unsubscribe(BalanceUpdateEvent.class);
         getLogger().info("[Scoreboard] Disabled.");
     }
@@ -69,10 +80,22 @@ public class ScoreboardModule extends KModule<RavenCore> {
     }
 
     private void registerListeners() {
-        onEvent(PlayerJoinEvent.class, event ->
-                SchedulerUtil.runLater(() -> service.showIfAllowed(event.getPlayer()), 10L));
-        onEvent(PlayerQuitEvent.class, event -> service.remove(event.getPlayer()));
+        onEvent(PlayerJoinEvent.class, event -> {
+            statsService.load(event.getPlayer());
+            SchedulerUtil.runLater(() -> service.showIfAllowed(event.getPlayer()), 10L);
+        });
+        onEvent(PlayerQuitEvent.class, event -> {
+            service.remove(event.getPlayer());
+            statsService.unload(event.getPlayer());
+        });
         onEvent(PlayerChangedWorldEvent.class, event -> service.showIfAllowed(event.getPlayer()));
+        onEvent(PlayerDeathEvent.class, EventPriority.MONITOR, event -> {
+            statsService.recordDeath(event.getEntity());
+            Player killer = event.getEntity().getKiller();
+            if (killer != null) {
+                statsService.recordKill(killer);
+            }
+        });
 
         api.getNetworkEventBus().subscribe(BalanceUpdateEvent.class, event -> {
             if (event.getUuid() == null) return;
@@ -96,6 +119,11 @@ public class ScoreboardModule extends KModule<RavenCore> {
                 config.getConditionCheckTicks(),
                 config.getConditionCheckTicks()
         );
+        statsTask = SchedulerUtil.runTimer(
+                statsService::flushOnline,
+                1_200L,
+                1_200L
+        );
     }
 
     private void stopTasks() {
@@ -107,6 +135,20 @@ public class ScoreboardModule extends KModule<RavenCore> {
             conditionTask.cancel();
             conditionTask = null;
         }
+        if (statsTask != null) {
+            statsTask.cancel();
+            statsTask = null;
+        }
+    }
+
+    private ScoreboardStatsService createStatsService() {
+        ScoreboardStatsRepository repository = null;
+        if (api.getMySqlManager() != null && api.getMySqlManager().isConnected()) {
+            repository = new ScoreboardStatsRepository(api.getMySqlManager());
+        } else {
+            getLogger().warning("[Scoreboard] MySQL unavailable; scoreboard stats will only live in memory.");
+        }
+        return new ScoreboardStatsService(repository, getLogger());
     }
 
     private void registerConfiguredBukkitEvents() {

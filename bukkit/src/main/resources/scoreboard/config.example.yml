@@ -76,7 +76,7 @@ scoreboards:
         update: 40
       - text: "<shadow:#000000FF><#D90429>✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>"
         update: event:balance
-      - text: "<shadow:#000000FF><#FF5555>🗡️ <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
+      - text: "<shadow:#000000FF><#FF5555>🗡 <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
         update: 40
       - text: "<shadow:#000000FF><#FF9F1C>☠ <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
         update: 40

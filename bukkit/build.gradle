@@ -36,11 +36,16 @@ test {
 shadowJar {
     archiveClassifier.set('')
     archiveBaseName.set('RavenCore-Bukkit')
+    archiveVersion.set('')
     relocate 'redis.clients',              'com.kammoun.raven.libs.jedis'
     relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
     relocate 'de.tr7zw.changeme.nbtapi',   'com.kammoun.raven.libs.nbtapi'
     relocate 'fr.mrmicky.fastboard',       'com.kammoun.raven.libs.fastboard'
+}
+
+tasks.named('jar') {
+    archiveVersion.set('')
 }
 
 def deployDirs = [

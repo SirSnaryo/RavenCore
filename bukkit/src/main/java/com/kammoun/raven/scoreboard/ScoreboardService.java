@@ -6,10 +6,13 @@ import com.kammoun.raven.scoreboard.board.RavenBoard;
 import com.kammoun.raven.scoreboard.config.ScoreboardConfig;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
+import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -18,32 +21,40 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ScoreboardService {
 
+    private static final int RELOAD_BATCH_SIZE = 100;
+
     private final RavenCore plugin;
     private final ScoreboardPlaceholders placeholders;
     private final ScoreboardToggleStorage toggleStorage;
     private final Map<UUID, RavenBoard> boards = new ConcurrentHashMap<>();
     private final Set<UUID> disabled = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, String> forcedBoards = new ConcurrentHashMap<>();
     private ScoreboardConfig config;
 
-    public ScoreboardService(RavenCore plugin, ScoreboardConfig config, ScoreboardToggleStorage toggleStorage) {
+    public ScoreboardService(RavenCore plugin, ScoreboardConfig config, ScoreboardToggleStorage toggleStorage,
+                             ScoreboardStatsService stats) {
         this.plugin = plugin;
         this.config = config;
         this.toggleStorage = toggleStorage;
-        this.placeholders = new ScoreboardPlaceholders(plugin);
+        this.placeholders = new ScoreboardPlaceholders(plugin, stats);
         this.disabled.addAll(toggleStorage.loadDisabled());
+        this.forcedBoards.putAll(toggleStorage.loadBoards());
     }
 
     public void reload(ScoreboardConfig config) {
         clear();
         this.config = config;
         if (config.isEnabled()) {
-            Bukkit.getOnlinePlayers().forEach(this::showIfAllowed);
+            showOnlineBatched(Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getUniqueId)
+                    .toList(), 0);
         }
     }
 
     public void clear() {
-        boards.values().forEach(RavenBoard::delete);
+        List<Map.Entry<UUID, RavenBoard>> snapshot = new ArrayList<>(boards.entrySet());
         boards.clear();
+        deleteBatched(snapshot, 0);
     }
 
     public void showIfAllowed(Player player) {
@@ -79,8 +90,13 @@ public class ScoreboardService {
     }
 
     public boolean toggle(Player player) {
+        return setEnabled(player, disabled.contains(player.getUniqueId()));
+    }
+
+    public boolean setEnabled(Player player, boolean enabled) {
         UUID uuid = player.getUniqueId();
-        if (disabled.remove(uuid)) {
+        if (enabled) {
+            disabled.remove(uuid);
             saveDisabled();
             showIfAllowed(player);
             return true;
@@ -90,6 +106,51 @@ public class ScoreboardService {
         saveDisabled();
         remove(player);
         return false;
+    }
+
+    public boolean setBoard(Player player, String boardName) {
+        if (!hasBoard(boardName)) {
+            return false;
+        }
+
+        forcedBoards.put(player.getUniqueId(), boardName);
+        saveDisabled();
+        showIfAllowed(player);
+        return true;
+    }
+
+    public void clearBoard(Player player) {
+        forcedBoards.remove(player.getUniqueId());
+        saveDisabled();
+        showIfAllowed(player);
+    }
+
+    public Optional<String> currentBoard(Player player) {
+        RavenBoard board = boards.get(player.getUniqueId());
+        return board == null ? Optional.empty() : Optional.of(board.getDefinition().name());
+    }
+
+    public Optional<String> forcedBoard(Player player) {
+        return Optional.ofNullable(forcedBoards.get(player.getUniqueId()));
+    }
+
+    public boolean hasBoard(String boardName) {
+        return config.getScoreboards().stream()
+                .anyMatch(definition -> definition.name().equalsIgnoreCase(boardName));
+    }
+
+    public boolean canUseBoard(Player player, String boardName) {
+        return config.getScoreboards().stream()
+                .filter(definition -> definition.name().equalsIgnoreCase(boardName))
+                .anyMatch(definition -> definition.matches(player, placeholders));
+    }
+
+    public Set<String> boardNames() {
+        Set<String> names = new HashSet<>();
+        for (ScoreboardDefinition definition : config.getScoreboards()) {
+            names.add(definition.name());
+        }
+        return names;
     }
 
     public void saveState() {
@@ -140,12 +201,55 @@ public class ScoreboardService {
     }
 
     private Optional<ScoreboardDefinition> select(Player player) {
+        String forced = forcedBoards.get(player.getUniqueId());
+        if (forced != null) {
+            Optional<ScoreboardDefinition> selected = config.getScoreboards().stream()
+                    .filter(definition -> definition.name().equalsIgnoreCase(forced))
+                    .findFirst();
+            if (selected.isPresent()) {
+                return selected;
+            }
+            forcedBoards.remove(player.getUniqueId());
+            saveDisabled();
+        }
+
         return config.getScoreboards().stream()
                 .filter(definition -> definition.matches(player, placeholders))
                 .findFirst();
     }
 
     private void saveDisabled() {
-        toggleStorage.saveDisabled(disabled);
+        toggleStorage.saveState(disabled, forcedBoards);
+    }
+
+    private void showOnlineBatched(List<UUID> players, int start) {
+        int end = Math.min(players.size(), start + RELOAD_BATCH_SIZE);
+        for (int i = start; i < end; i++) {
+            Player player = Bukkit.getPlayer(players.get(i));
+            if (player != null) {
+                SchedulerUtil.execute(player, () -> showIfAllowed(player));
+            }
+        }
+
+        if (end < players.size()) {
+            SchedulerUtil.runLater(() -> showOnlineBatched(players, end), 1L);
+        }
+    }
+
+    private void deleteBatched(List<Map.Entry<UUID, RavenBoard>> entries, int start) {
+        int end = Math.min(entries.size(), start + RELOAD_BATCH_SIZE);
+        for (int i = start; i < end; i++) {
+            Map.Entry<UUID, RavenBoard> entry = entries.get(i);
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player != null) {
+                SchedulerUtil.execute(player, entry.getValue()::delete);
+                continue;
+            }
+            entry.getValue().delete();
+        }
+
+        if (end < entries.size()) {
+            SchedulerUtil.runLater(() -> deleteBatched(entries, end), 1L);
+        }
     }
 }

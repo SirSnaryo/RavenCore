@@ -21,6 +21,10 @@ shadowJar {
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
 }
 
+tasks.named('jar') {
+    archiveVersion.set('')
+}
+
 tasks.register('deploy') {
     dependsOn shadowJar
     doLast {
