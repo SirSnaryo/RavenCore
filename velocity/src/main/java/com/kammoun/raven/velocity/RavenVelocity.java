@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "1.0.9",
+        version = "1.0.10",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )
