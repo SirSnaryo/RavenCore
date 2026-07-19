@@ -94,6 +94,6 @@ main-inventory:
         - 'shard shop'
 
 messages:
-  not-enough-balance: '&cYou don''t have enough money.'
-  buying: '&aYou bought %amount% %item-name%'
-  not-enough-space: '&cYou do not have enough space in your inventory.'
+  not-enough-balance: '&#D90429You don''t have enough money.'
+  buying: '&#33FF66You bought &#FFFFFF%amount% %item-name%'
+  not-enough-space: '&#D90429You do not have enough space in your inventory.'

@@ -34,19 +34,19 @@ convert-natural: true
 # Supports & color codes and &#RRGGBB hex colors.
 # Placeholders vary per message (see keys below).
 messages:
-  no-silk:         "&cYou need Silk Touch to break this spawner!"
+  no-silk:         "&#D90429You need Silk Touch to break this spawner!"
   # %amount% = formatted sale value
-  sell-bar:        "&#38f616+$%amount%"
+  sell-bar:        "&#33FF66+$%amount%"
   sell-chat:       ""
   # %xp% = XP amount collected
-  xp-collected-bar: "&#80ee0b+%xp% XP collected"
+  xp-collected-bar: "&#FFD447+%xp% XP collected"
   # %total% = new stack count, %type% = spawner display name
-  stacked-bar:     "&#ee340bStack is now x%total% (%type%)"
-  inventory-full:  "&cYour inventory is full!"
-  not-owner:       "&cYou don't own this spawner!"
-  storage-in-use:  "&cSomeone else is already accessing this spawner."
+  stacked-bar:     "&#4CC9F0Stack is now x%total% (%type%)"
+  inventory-full:  "&#D90429Your inventory is full!"
+  not-owner:       "&#D90429You don't own this spawner!"
+  storage-in-use:  "&#D90429Someone else is already accessing this spawner."
   # %max% = max-stack value
-  stack-limit:     "&cStack limit reached (&f%max%&c)."
+  stack-limit:     "&#D90429Stack limit reached (&#FFFFFF%max%&#D90429)."
 
 # ─── Sounds ───────────────────────────────────────────────────────────────────
 # Use Bukkit Sound enum names (e.g. ENTITY_VILLAGER_NO).

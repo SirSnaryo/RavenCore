@@ -3,7 +3,7 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, WorldGuard]
 depend: [Vault]
 load: STARTUP
 commands:
@@ -87,6 +87,18 @@ commands:
     permission: raven.scoreboard
     permission-message: §cYou don't have permission to use this command.
 
+  billford:
+    description: Open the Billford trade menu
+    usage: /billford
+    permission: raven.billford
+    permission-message: §cYou don't have permission to use this command.
+  billfordpreset:
+    description: Manage Billford trade presets
+    usage: /billfordpreset <create|edit|delete|switch|list|info|reload> [name]
+    aliases: [bfpreset]
+    permission: raven.billford.admin
+    permission-message: §cYou don't have permission to use this command.
+
   ravencore:
     description: RavenCore version and safe module reload
     usage: /ravencore <version|modules|reload>
@@ -153,4 +165,10 @@ permissions:
     default: op
   raven.core.admin:
     description: Reload RavenCore modules
+    default: op
+  raven.billford:
+    description: Open the Billford trade menu
+    default: true
+  raven.billford.admin:
+    description: Manage Billford trade presets
     default: op

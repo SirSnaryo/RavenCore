@@ -13,6 +13,7 @@ import com.kammoun.raven.spawner.listener.SpawnerListener;
 import com.kammoun.raven.spawner.manager.SpawnerRegistry;
 import com.kammoun.raven.spawner.manager.SpawnerStackManager;
 import com.kammoun.raven.spawner.manager.SpawnerTickManager;
+import com.kammoun.raven.spawner.model.SpawnerStack;
 import lombok.Getter;
 
 import java.io.File;
@@ -43,6 +44,11 @@ public class SpawnerModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
+        // Pre-load the Snapshot record now: it's only instantiated when a stack is
+        // saved, and if none is dirty before shutdown its first use lands on Folia's
+        // region shutdown thread, which can't load new plugin classes (NoClassDefFoundError).
+        SpawnerStack.Snapshot.class.getName();
+
         // Ensure default configs are on disk
         for (String type : DEFAULT_SPAWNER_TYPES) {
             saveDefaultConfig("spawners/" + type + ".yml");

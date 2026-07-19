@@ -1,4 +1,4 @@
-cooldown: "&cYou can use /rtp again in {seconds}s."
-pool-empty: "&cNo random locations are ready for {destination} yet — try again shortly."
-teleporting: "&aTeleporting you to &e{destination}&a..."
-world-missing: "&cSomething went wrong loading your destination. Please try again."
+cooldown: "&#D90429You can use /rtp again in &#FFFFFF{seconds}s&#D90429."
+pool-empty: "&#D90429No random locations are ready for &#FFFFFF{destination} &#D90429yet — try again shortly."
+teleporting: "&#33FF66Teleporting you to &#FFFFFF{destination}&#33FF66..."
+world-missing: "&#D90429Something went wrong loading your destination. Please try again."

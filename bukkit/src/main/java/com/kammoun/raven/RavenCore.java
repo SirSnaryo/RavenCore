@@ -1,5 +1,6 @@
 package com.kammoun.raven;
 
+import com.kammoun.raven.billford.BillfordModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
@@ -10,6 +11,7 @@ import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.portal.DimensionPortalModule;
 import com.kammoun.raven.portal.border.ServerBorderModule;
 import com.kammoun.raven.rtp.RtpModule;
+import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.spawner.SpawnerModule;
@@ -63,10 +65,12 @@ public final class RavenCore extends JavaPlugin {
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
     private RtpModule rtpModule;
+    private RtpZoneModule rtpZoneModule;
     private ShopModule shopModule;
     private SpawnerModule spawnerModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
+    private BillfordModule billfordModule;
 
     @Override
     public void onEnable() {
@@ -139,6 +143,10 @@ public final class RavenCore extends JavaPlugin {
         spawnerModule.onEnable(this);
         enabledModules.add("Spawner");
 
+        billfordModule = new BillfordModule();
+        billfordModule.onEnable(this);
+        enabledModules.add("Billford");
+
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
         enabledModules.add("ClearInventory");
@@ -170,6 +178,14 @@ public final class RavenCore extends JavaPlugin {
         rtpModule = new RtpModule();
         rtpModule.onEnable(this);
         enabledModules.add("RTP");
+
+        // The RTP zone (WorldGuard region -> countdown -> random overworld teleport) lives on the
+        // spawn/hub server, so it only enables there. It reuses RTP's shared pools for destinations.
+        if (serverRole == ServerRole.SPAWN) {
+            rtpZoneModule = new RtpZoneModule();
+            rtpZoneModule.onEnable(this);
+            enabledModules.add("RtpZone");
+        }
 
         if (serverRole == ServerRole.SURVIVAL) {
             serverBorderModule = new ServerBorderModule();
@@ -230,12 +246,14 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "economy", economyModule);
         putModule(modules, "shop", shopModule);
         putModule(modules, "spawner", spawnerModule);
+        putModule(modules, "billford", billfordModule);
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
         putModule(modules, "rtp", rtpModule);
+        putModule(modules, "rtpzone", rtpZoneModule);
         putModule(modules, "lastlocation", lastLocationModule);
         putModule(modules, "dimensionportal", dimensionPortalModule);
         putModule(modules, "serverborder", serverBorderModule);
@@ -408,6 +426,7 @@ public final class RavenCore extends JavaPlugin {
     @Override
     public void onDisable() {
         if (spawnModule != null) spawnModule.onDisable(this);
+        if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);
         if (timeSyncModule != null) {
@@ -430,6 +449,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (shopModule != null) {
             shopModule.onDisable(this);
+        }
+        if (billfordModule != null) {
+            billfordModule.onDisable(this);
         }
         if (spawnerModule != null) {
             spawnerModule.onDisable(this);

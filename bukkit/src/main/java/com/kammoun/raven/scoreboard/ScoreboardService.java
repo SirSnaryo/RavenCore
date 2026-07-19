@@ -237,6 +237,15 @@ public class ScoreboardService {
     }
 
     private void deleteBatched(List<Map.Entry<UUID, RavenBoard>> entries, int start) {
+        // On disable/shutdown the scheduler rejects new tasks (Folia throws), and we're
+        // already on the region thread — delete every remaining board synchronously.
+        if (!plugin.isEnabled()) {
+            for (Map.Entry<UUID, RavenBoard> entry : entries.subList(start, entries.size())) {
+                entry.getValue().delete();
+            }
+            return;
+        }
+
         int end = Math.min(entries.size(), start + RELOAD_BATCH_SIZE);
         for (int i = start; i < end; i++) {
             Map.Entry<UUID, RavenBoard> entry = entries.get(i);

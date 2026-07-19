@@ -1,0 +1,88 @@
+# ─── Billford (network-wide rotating trade) ──────────────────────────────────
+# Presets and the active-preset rotation are stored in the shared MySQL database,
+# so every server shows the same trade at the same time. This file only controls
+# the rotation interval and the look of the menus on THIS server.
+
+# How often the active preset rotates. Format: 30s, 5m, 2h, 1d. The rotation is
+# coordinated across all servers, so this should match on every server.
+preset-change-interval: "2m"
+
+# ─── Trade menu (/billford) ──────────────────────────────────────────────────
+gui:
+  title: "&#FFD447ʙɪʟʟꜰᴏʀᴅ"
+  size: 54
+  # Slots the preset's required items are laid out into, in order.
+  required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
+  # Slot that shows the reward (trade) item.
+  trade-slot: 25
+
+  confirm-item:
+    slot: 40
+    material: LIME_CONCRETE
+    name: "&#33FF66&lConfirm Trade"
+    lore:
+      - "&#7A7A7AClick to hand in the required"
+      - "&#7A7A7Aitems and receive your reward."
+    glow: true
+
+  info-item:
+    slot: 4
+    material: BOOK
+    name: "&#4CC9F0&lTrade Info"
+    lore:
+      - "&#FFFFFFYou give:"
+      - "%required_item%"
+      - " "
+      - "&#FFFFFFYou receive:"
+      - "&#7A7A7A• &#FFFFFF%item%"
+
+  # Fills every empty slot. Remove this section to leave gaps.
+  filler:
+    item:
+      material: BLACK_STAINED_GLASS_PANE
+      name: " "
+
+# ─── Preset editor (/billfordpreset create|edit) ─────────────────────────────
+editor:
+  title: "&#FFD447ᴇᴅɪᴛɪɴɢ: &#FFFFFF%preset%"
+  size: 54
+  required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
+  trade-slot: 25
+  save-slot: 49
+  info-slot: 4
+
+  info-item:
+    material: BOOK
+    name: "&#FFD447&lPreset Editor"
+    lore:
+      - "&#7A7A7APlace the &#FFFFFFrequired items"
+      - "&#7A7A7Ain the left section."
+      - " "
+      - "&#7A7A7APlace the &#FFFFFFreward item"
+      - "&#7A7A7Ain the right slot."
+      - " "
+      - "&#7A7A7AClick &#33FF66SAVE &#7A7A7Awhen done."
+
+  save-item:
+    material: LIME_CONCRETE
+    name: "&#33FF66&lSAVE PRESET"
+    lore:
+      - "&#7A7A7AClick to save this preset"
+      - "&#7A7A7Anetwork-wide."
+    glow: true
+
+  required-placeholder:
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    name: "&#7A7A7ARequired Item Slot"
+    lore:
+      - "&#7A7A7APlace an item here."
+
+  reward-placeholder:
+    material: YELLOW_STAINED_GLASS_PANE
+    name: "&#FFD447Reward Item Slot"
+    lore:
+      - "&#7A7A7APlace the reward item here."
+
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "
