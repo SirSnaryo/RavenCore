@@ -23,46 +23,46 @@ public class RavenCoreCommand extends KCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length == 0 || args[0].equalsIgnoreCase("version")) {
-            send(sender, "&5RavenCore &7version &f" + plugin.getDescription().getVersion()
-                    + " &8| &7server &f" + plugin.getServerId()
-                    + " &8| &7role &f" + plugin.getServerRole());
+            send(sender, "&#FF2B2BRavenCore &#7A7A7Aversion &#FFFFFF" + plugin.getDescription().getVersion()
+                    + " &#7A7A7A| server &#FFFFFF" + plugin.getServerId()
+                    + " &#7A7A7A| role &#FFFFFF" + plugin.getServerRole());
             return;
         }
 
         if (args[0].equalsIgnoreCase("modules")) {
-            send(sender, "&eModules: &f" + String.join("&7, &f", plugin.reloadableModuleNames()));
+            send(sender, "&#FFD447Modules: &#FFFFFF" + String.join("&#7A7A7A, &#FFFFFF", plugin.reloadableModuleNames()));
             return;
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("raven.core.admin")) {
-                send(sender, "&cYou don't have permission to reload RavenCore modules.");
+                send(sender, "&#D90429You don't have permission to reload RavenCore modules.");
                 return;
             }
             if (args.length < 2) {
-                send(sender, "&cUsage: /ravencore reload <module|all>");
+                send(sender, "&#D90429Usage: /ravencore reload <module|all>");
                 return;
             }
 
             String module = args[1].toLowerCase(Locale.ROOT);
             if (module.equals("all")) {
                 plugin.reloadAllModulesSafely();
-                send(sender, "&aSafe reload scheduled for all RavenCore modules.");
+                send(sender, "&#33FF66Safe reload scheduled for all RavenCore modules.");
                 return;
             }
 
             if (!plugin.reloadModuleSafely(module)) {
-                send(sender, "&cUnknown module. Use /ravencore modules.");
+                send(sender, "&#D90429Unknown module. Use /ravencore modules.");
                 return;
             }
 
-            send(sender, "&aSafe reload scheduled for module &f" + module + "&a.");
+            send(sender, "&#33FF66Safe reload scheduled for module &#FFFFFF" + module + "&#33FF66.");
             return;
         }
 
-        send(sender, "&e/ravencore version &7- Show plugin version");
-        send(sender, "&e/ravencore modules &7- List reloadable modules");
-        send(sender, "&e/ravencore reload <module|all> &7- Safe reload");
+        send(sender, "&#FFD447/ravencore version &#7A7A7A- Show plugin version");
+        send(sender, "&#FFD447/ravencore modules &#7A7A7A- List reloadable modules");
+        send(sender, "&#FFD447/ravencore reload <module|all> &#7A7A7A- Safe reload");
     }
 
     @Override

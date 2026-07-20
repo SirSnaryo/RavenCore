@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.platform.location;
 
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -43,7 +44,7 @@ public class KLocation {
     @Nullable
     public Location getLocation(){
         if(Bukkit.getWorld(worldName) == null){
-            Bukkit.getConsoleSender().sendMessage("§cWorld with the name "+ worldName + "not found");
+            Bukkit.getConsoleSender().sendMessage(ChatFormatter.color("&#D90429World with the name &#FFFFFF" + worldName + " &#D90429not found"));
             return null;
         }
         Location loc = new Location(Bukkit.getWorld(worldName),vector.getX(),vector.getY(),vector.getZ());

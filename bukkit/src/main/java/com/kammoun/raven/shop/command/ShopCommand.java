@@ -20,7 +20,7 @@ public class ShopCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players can use /shop.");
+            sender.sendMessage(ChatFormatter.color("&#D90429Only players can use /shop."));
             return true;
         }
 
@@ -31,7 +31,7 @@ public class ShopCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("reload") && player.hasPermission("raven.shop.admin")) {
             module.reload();
-            player.sendMessage(ChatFormatter.color("&aShop reloaded!"));
+            player.sendMessage(ChatFormatter.color("&#33FF66Shop reloaded!"));
             return true;
         }
 
@@ -51,9 +51,9 @@ public class ShopCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(ChatFormatter.color("&cUnknown category: &f" + input));
+        player.sendMessage(ChatFormatter.color("&#D90429Unknown category: &#FFFFFF" + input));
         module.getCategoryManager().getCategories().keySet()
-                .forEach(k -> player.sendMessage(ChatFormatter.color("&7- &f" + k)));
+                .forEach(k -> player.sendMessage(ChatFormatter.color("&#7A7A7A- &#FFFFFF" + k)));
         return true;
     }
 }

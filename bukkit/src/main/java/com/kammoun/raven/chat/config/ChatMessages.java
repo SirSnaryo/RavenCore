@@ -1,6 +1,6 @@
 package com.kammoun.raven.chat.config;
 
-import org.bukkit.ChatColor;
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -13,8 +13,8 @@ public class ChatMessages {
     }
 
     public String get(String key) {
-        String raw = config.getString(key, "&c[Missing message: " + key + "]");
-        return ChatColor.translateAlternateColorCodes('&', raw);
+        String raw = config.getString(key, "&#D90429[Missing message: " + key + "]");
+        return ChatFormatter.color(raw);
     }
 
     public void send(Player player, String key) {

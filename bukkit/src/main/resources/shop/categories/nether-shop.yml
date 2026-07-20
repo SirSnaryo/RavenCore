@@ -3,64 +3,64 @@ Size: 27
 
 items:
   back-page:
-    name: '&#e00202 ʙᴀᴄᴋ'
+    name: '&#7A7A7ABack'
     material: RED_STAINED_GLASS_PANE
     slot: 18
     lore:
-      - '&fClick to return'
+      - '&#7A7A7Aʙᴀᴄᴋ'
   blaze-rod:
     slot: 9
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ʙʟᴀᴢᴇ ʀᴏᴅ'
-    displayName: '&fBlaze Rod'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ʙʟᴀᴢᴇ ʀᴏᴅ'
+    displayName: '&#FFFFFFBlaze Rod'
     material: BLAZE_ROD
     price: 150
     max-stack: 64
   glowstone-dust:
     slot: 10
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ɢʟᴏᴡsᴛᴏɴᴇ ᴅᴜsᴛ'
-    displayName: '&fGlowstone Dust'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɢʟᴏᴡsᴛᴏɴᴇ ᴅᴜsᴛ'
+    displayName: '&#FFFFFFGlowstone Dust'
     material: GLOWSTONE_DUST
     price: 15
     max-stack: 64
   magma-cream:
     slot: 11
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴍᴀɢᴍᴀ ᴄʀᴇᴀᴍ'
-    displayName: '&fMagma Cream'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴍᴀɢᴍᴀ ᴄʀᴇᴀᴍ'
+    displayName: '&#FFFFFFMagma Cream'
     material: MAGMA_CREAM
     price: 15
     max-stack: 64
   ghast-tear:
     slot: 12
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ɢʜᴀsᴛ ᴛᴇᴀʀ'
-    displayName: '&fGhast Tear'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɢʜᴀsᴛ ᴛᴇᴀʀ'
+    displayName: '&#FFFFFFGhast Tear'
     material: GHAST_TEAR
     price: 350
     max-stack: 64
   nether-quartz:
     slot: 13
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ɴᴇᴛʜᴇʀ ǫᴜᴀʀᴛᴢ'
-    displayName: '&fNether Quartz'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɴᴇᴛʜᴇʀ ǫᴜᴀʀᴛᴢ'
+    displayName: '&#FFFFFFNether Quartz'
     material: NETHER_QUARTZ_ORE
     price: 15
     max-stack: 64
   soul-sand:
     slot: 14
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ sᴏᴜʟ sᴀɴᴅ'
-    displayName: '&fSoul Sand'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ sᴏᴜʟ sᴀɴᴅ'
+    displayName: '&#FFFFFFSoul Sand'
     material: SOUL_SAND
     price: 15
     max-stack: 64
   magma-block:
     slot: 15
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴍᴀɢᴍᴀ ʙʟᴏᴄᴋ'
-    displayName: '&fMagma Block'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴍᴀɢᴍᴀ ʙʟᴏᴄᴋ'
+    displayName: '&#FFFFFFMagma Block'
     material: MAGMA_BLOCK
     price: 35
     max-stack: 64
   crying-obsidian:
     slot: 16
-    purchase-inventory-title: 'ʙᴜʏɪɴɢ ᴄʀʏɪɴɢ ᴏʙsɪᴅɪᴀɴ'
-    displayName: '&fCrying Obsidian'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴄʀʏɪɴɢ ᴏʙsɪᴅɪᴀɴ'
+    displayName: '&#FFFFFFCrying Obsidian'
     material: CRYING_OBSIDIAN
     price: 150
     max-stack: 64

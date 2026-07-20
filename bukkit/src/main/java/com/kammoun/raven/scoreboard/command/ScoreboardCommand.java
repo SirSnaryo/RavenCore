@@ -24,60 +24,60 @@ public class ScoreboardCommand extends KCommand {
     public void execute(CommandSender sender, String[] args) {
         if (args.length == 0 || args[0].equalsIgnoreCase("toggle")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players can toggle scoreboards."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players can toggle scoreboards."));
                 return;
             }
 
             boolean enabled = module.getService().toggle(player);
             player.sendMessage(ChatFormatter.color(enabled
-                    ? "&aScoreboard enabled."
-                    : "&cScoreboard disabled."));
+                    ? "&#33FF66Scoreboard enabled."
+                    : "&#D90429Scoreboard disabled."));
             return;
         }
 
         if (args[0].equalsIgnoreCase("on") || args[0].equalsIgnoreCase("enable")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players can toggle scoreboards."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players can toggle scoreboards."));
                 return;
             }
             module.getService().setEnabled(player, true);
-            player.sendMessage(ChatFormatter.color("&aScoreboard enabled."));
+            player.sendMessage(ChatFormatter.color("&#33FF66Scoreboard enabled."));
             return;
         }
 
         if (args[0].equalsIgnoreCase("off") || args[0].equalsIgnoreCase("disable")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players can toggle scoreboards."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players can toggle scoreboards."));
                 return;
             }
             module.getService().setEnabled(player, false);
-            player.sendMessage(ChatFormatter.color("&cScoreboard disabled."));
+            player.sendMessage(ChatFormatter.color("&#D90429Scoreboard disabled."));
             return;
         }
 
         if (args[0].equalsIgnoreCase("list")) {
-            sender.sendMessage(ChatFormatter.color("&eScoreboards: &f" + String.join("&7, &f", module.getService().boardNames())));
+            sender.sendMessage(ChatFormatter.color("&#FFD447Scoreboards: &#FFFFFF" + String.join("&#7A7A7A, &#FFFFFF", module.getService().boardNames())));
             return;
         }
 
         if (args[0].equalsIgnoreCase("current")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players have a current scoreboard."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players have a current scoreboard."));
                 return;
             }
             String current = module.getService().currentBoard(player).orElse("none");
             String forced = module.getService().forcedBoard(player).orElse("auto");
-            player.sendMessage(ChatFormatter.color("&eCurrent: &f" + current + " &8| &eMode: &f" + forced));
+            player.sendMessage(ChatFormatter.color("&#FFD447Current: &#FFFFFF" + current + " &#7A7A7A| &#FFD447Mode: &#FFFFFF" + forced));
             return;
         }
 
         if (args[0].equalsIgnoreCase("select")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players can select a scoreboard."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players can select a scoreboard."));
                 return;
             }
             if (args.length < 2) {
-                sender.sendMessage(ChatFormatter.color("&cUsage: /scoreboard select <board>"));
+                sender.sendMessage(ChatFormatter.color("&#D90429Usage: /scoreboard select <board>"));
                 return;
             }
             setBoard(sender, player, args[1]);
@@ -86,11 +86,11 @@ public class ScoreboardCommand extends KCommand {
 
         if (args[0].equalsIgnoreCase("reset")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatFormatter.color("&cOnly players can reset their scoreboard."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Only players can reset their scoreboard."));
                 return;
             }
             module.getService().clearBoard(player);
-            player.sendMessage(ChatFormatter.color("&aScoreboard selection reset to automatic."));
+            player.sendMessage(ChatFormatter.color("&#33FF66Scoreboard selection reset to automatic."));
             return;
         }
 
@@ -99,7 +99,7 @@ public class ScoreboardCommand extends KCommand {
                 return;
             }
             module.reload();
-            sender.sendMessage(ChatFormatter.color("&aScoreboard configuration reloaded."));
+            sender.sendMessage(ChatFormatter.color("&#33FF66Scoreboard configuration reloaded."));
             return;
         }
 
@@ -108,12 +108,12 @@ public class ScoreboardCommand extends KCommand {
                 return;
             }
             if (args.length < 3) {
-                sender.sendMessage(ChatFormatter.color("&cUsage: /scoreboard set <player> <board>"));
+                sender.sendMessage(ChatFormatter.color("&#D90429Usage: /scoreboard set <player> <board>"));
                 return;
             }
             Player target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
-                sender.sendMessage(ChatFormatter.color("&cPlayer is not online."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Player is not online."));
                 return;
             }
             setBoard(sender, target, args[2]);
@@ -125,46 +125,46 @@ public class ScoreboardCommand extends KCommand {
                 return;
             }
             if (args.length < 2) {
-                sender.sendMessage(ChatFormatter.color("&cUsage: /scoreboard clear <player>"));
+                sender.sendMessage(ChatFormatter.color("&#D90429Usage: /scoreboard clear <player>"));
                 return;
             }
             Player target = Bukkit.getPlayerExact(args[1]);
             if (target == null) {
-                sender.sendMessage(ChatFormatter.color("&cPlayer is not online."));
+                sender.sendMessage(ChatFormatter.color("&#D90429Player is not online."));
                 return;
             }
             module.getService().clearBoard(target);
-            sender.sendMessage(ChatFormatter.color("&aScoreboard selection reset for &f" + target.getName() + "&a."));
+            sender.sendMessage(ChatFormatter.color("&#33FF66Scoreboard selection reset for &#FFFFFF" + target.getName() + "&#33FF66."));
             return;
         }
 
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard toggle &7- Toggle your scoreboard"));
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard on|off &7- Enable or disable your scoreboard"));
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard list &7- List configured boards"));
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard current &7- Show your active board"));
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard select <board> &7- Pin a board to yourself"));
-        sender.sendMessage(ChatFormatter.color("&e/scoreboard reset &7- Return to automatic selection"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard toggle &#7A7A7A- Toggle your scoreboard"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard on|off &#7A7A7A- Enable or disable your scoreboard"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard list &#7A7A7A- List configured boards"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard current &#7A7A7A- Show your active board"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard select <board> &#7A7A7A- Pin a board to yourself"));
+        sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard reset &#7A7A7A- Return to automatic selection"));
         if (sender.hasPermission("raven.scoreboard.admin")) {
-            sender.sendMessage(ChatFormatter.color("&e/scoreboard reload &7- Reload scoreboard config"));
-            sender.sendMessage(ChatFormatter.color("&e/scoreboard set <player> <board> &7- Pin a board to a player"));
-            sender.sendMessage(ChatFormatter.color("&e/scoreboard clear <player> &7- Clear a player's pinned board"));
+            sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard reload &#7A7A7A- Reload scoreboard config"));
+            sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard set <player> <board> &#7A7A7A- Pin a board to a player"));
+            sender.sendMessage(ChatFormatter.color("&#FFD447/scoreboard clear <player> &#7A7A7A- Clear a player's pinned board"));
         }
     }
 
     private void setBoard(CommandSender sender, Player target, String board) {
         if (!sender.hasPermission("raven.scoreboard.admin") && !module.getService().canUseBoard(target, board)) {
-            sender.sendMessage(ChatFormatter.color("&cYou cannot use that scoreboard."));
+            sender.sendMessage(ChatFormatter.color("&#D90429You cannot use that scoreboard."));
             return;
         }
 
         if (!module.getService().setBoard(target, board)) {
-            sender.sendMessage(ChatFormatter.color("&cUnknown scoreboard. Use /scoreboard list."));
+            sender.sendMessage(ChatFormatter.color("&#D90429Unknown scoreboard. Use /scoreboard list."));
             return;
         }
 
-        sender.sendMessage(ChatFormatter.color("&aScoreboard set to &f" + board + "&a for &f" + target.getName() + "&a."));
+        sender.sendMessage(ChatFormatter.color("&#33FF66Scoreboard set to &#FFFFFF" + board + "&#33FF66 for &#FFFFFF" + target.getName() + "&#33FF66."));
         if (!sender.equals(target)) {
-            target.sendMessage(ChatFormatter.color("&aYour scoreboard was set to &f" + board + "&a."));
+            target.sendMessage(ChatFormatter.color("&#33FF66Your scoreboard was set to &#FFFFFF" + board + "&#33FF66."));
         }
     }
 

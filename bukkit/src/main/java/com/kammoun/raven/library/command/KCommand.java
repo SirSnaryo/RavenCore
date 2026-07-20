@@ -1,5 +1,6 @@
 package com.kammoun.raven.library.command;
 
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -47,7 +48,7 @@ public abstract class KCommand implements CommandExecutor, TabCompleter {
     @Override
     public final boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (playerOnly && !(sender instanceof Player)) {
-            sender.sendMessage("§cThis command can only be executed by a player.");
+            sender.sendMessage(ChatFormatter.color("&#D90429This command can only be executed by a player."));
             return true;
         }
 

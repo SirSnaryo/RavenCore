@@ -1,7 +1,7 @@
 # Placeholders: %server% (server-tag below), %player%, %message%.
 # Any PlaceholderAPI placeholder (e.g. %luckperms_prefix%) is also resolved here,
 # using the sender's server, before the line is broadcast network-wide.
-format: "%luckperms_prefix%&f%player%&8: &f%message%"
+format: "%luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
 
 # Tag shown as %server% in the format above. Leave blank to use this
 # server's configured network.server-id.

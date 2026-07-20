@@ -67,7 +67,7 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
     }
 
     public void open(Player player, int currentPage, int maxPage, String... placeholders) {
-        String formattedTitle = ChatFormatter.color(parsePlaceholders(title, placeholders));
+        String formattedTitle = ChatFormatter.menuTitle(parsePlaceholders(title, placeholders));
         inventory = Bukkit.createInventory(this, size, formattedTitle);
         menuItems.clear();
 

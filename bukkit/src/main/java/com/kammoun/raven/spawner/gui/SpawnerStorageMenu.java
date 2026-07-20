@@ -31,7 +31,7 @@ public class SpawnerStorageMenu {
 
         StorageHolder holder = new StorageHolder(stack, page, maxPages);
 
-        String title = ChatFormatter.color(PlaceholderHelper.parsePlaceholders(
+        String title = ChatFormatter.menuTitle(PlaceholderHelper.parsePlaceholders(
                 gui.getTitle(),
                 "%type%",     stack.getType().getDisplayName(),
                 "%amount%",   String.valueOf(stack.getStackAmount()),
@@ -94,10 +94,10 @@ public class SpawnerStorageMenu {
                 ItemStack item = new ItemStack(mat, amt);
                 var meta = item.getItemMeta();
                 if (meta != null) {
-                    meta.setDisplayName(ChatFormatter.color("&f" + formatMaterial(mat)));
+                    meta.setDisplayName(ChatFormatter.color("&#FFFFFF" + formatMaterial(mat)));
                     meta.setLore(List.of(
-                            ChatFormatter.color("&7Total stored: &f" + total),
-                            ChatFormatter.color("&7Click to collect this stack")));
+                            ChatFormatter.color("&#7A7A7ATotal stored: &#FFFFFF" + total),
+                            ChatFormatter.color("&#7A7A7AClick to collect this stack")));
                     item.setItemMeta(meta);
                 }
                 result.add(item);

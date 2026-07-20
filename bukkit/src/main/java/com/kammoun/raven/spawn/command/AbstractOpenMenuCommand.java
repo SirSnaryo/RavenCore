@@ -19,6 +19,7 @@ public abstract class AbstractOpenMenuCommand extends KCommand {
     private final LocationType type;
     private final LocationCache cache;
     private final SpawnMessages messages;
+    private final TeleportCountdown countdown;
     private final LocationMenu menu;
 
     protected AbstractOpenMenuCommand(String commandName, String permission, LocationType type,
@@ -29,6 +30,7 @@ public abstract class AbstractOpenMenuCommand extends KCommand {
         this.type = type;
         this.cache = cache;
         this.messages = messages;
+        this.countdown = countdown;
         this.menu = new LocationMenu(api, type, bungeeHelper, cache, networkPlayerManager, messages, countdown);
     }
 
@@ -36,10 +38,12 @@ public abstract class AbstractOpenMenuCommand extends KCommand {
     public void execute(CommandSender sender, String[] args) {
         Player player = (Player) sender; // playerOnly=true guarantees this
         if (!cache.isLoaded()) {
+            countdown.playDenied(player);
             player.sendMessage(messages.get("not-ready"));
             return;
         }
         if (cache.getAll(type).isEmpty()) {
+            countdown.playDenied(player);
             player.sendMessage(messages.format("none-available", "type", type.name()));
             return;
         }

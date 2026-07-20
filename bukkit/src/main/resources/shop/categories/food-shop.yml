@@ -3,71 +3,71 @@ Size: 27
 
 items:
   back-page:
-    name: '&#e00202 ʙᴀᴄᴋ'
+    name: '&#7A7A7ABack'
     material: RED_STAINED_GLASS_PANE
     slot: 18
     lore:
-      - '&fClick to return'
+      - '&#7A7A7Aʙᴀᴄᴋ'
   potato:
     slot: 9
-    purchase-inventory-title: 'ʙᴜʏɪNG ᴘᴏᴛᴀᴛᴏ'
-    displayName: '&fPotato'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴘᴏᴛᴀᴛᴏ'
+    displayName: '&#FFFFFFPotato'
     material: POTATO
     price: 25
     max-stack: 64
   sweet-berries:
     slot: 10
-    purchase-inventory-title: 'ʙᴜʏɪNG sᴡᴇᴇᴛ ʙᴀʀʀɪᴇs'
-    displayName: '&fSweet Berries'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ sᴡᴇᴇᴛ ʙᴇʀʀɪᴇs'
+    displayName: '&#FFFFFFSweet Berries'
     material: SWEET_BERRIES
     price: 15
     max-stack: 64
   melon-slice:
     slot: 11
-    purchase-inventory-title: 'ʙᴜʏɪNG ᴍᴇʟᴏɴ sʟɪᴄᴇ'
-    displayName: '&fMelon Slice'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴍᴇʟᴏɴ sʟɪᴄᴇ'
+    displayName: '&#FFFFFFMelon Slice'
     material: MELON_SLICE
     price: 10
     max-stack: 64
   carrot:
     slot: 12
-    purchase-inventory-title: 'ʙᴜʏɪNG ᴄᴀʀʀᴏᴛ'
-    displayName: '&fCarrot'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴄᴀʀʀᴏᴛ'
+    displayName: '&#FFFFFFCarrot'
     material: CARROT
     price: 25
     max-stack: 64
   apple:
     slot: 13
-    purchase-inventory-title: 'ʙᴜʏɪNG ᴀᴘᴘʟᴇ'
-    displayName: '&fApple'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴀᴘᴘʟᴇ'
+    displayName: '&#FFFFFFApple'
     material: APPLE
     price: 25
     max-stack: 64
   cooked-chicken:
     slot: 14
-    purchase-inventory-title: 'ʙᴜʏɪNG ᴄᴏᴏᴋᴇᴅ ᴄʜɪᴄᴋᴇɴ'
-    displayName: '&fCooked Chicken'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴄᴏᴏᴋᴇᴅ ᴄʜɪᴄᴋᴇɴ'
+    displayName: '&#FFFFFFCooked Chicken'
     material: COOKED_CHICKEN
     price: 30
     max-stack: 64
   steak:
     slot: 15
-    purchase-inventory-title: 'ʙᴜʏɪNG sᴛᴇᴀᴋ'
-    displayName: '&fSteak'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ sᴛᴇᴀᴋ'
+    displayName: '&#FFFFFFSteak'
     material: COOKED_BEEF
     price: 35
     max-stack: 64
   golden-carrot:
     slot: 16
-    purchase-inventory-title: 'ʙᴜʏɪNG ɢᴏʟᴅᴇɴ ᴄᴀʀʀᴏᴛ'
-    displayName: '&fGolden Carrot'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɢᴏʟᴅᴇɴ ᴄᴀʀʀᴏᴛ'
+    displayName: '&#FFFFFFGolden Carrot'
     material: GOLDEN_CARROT
     price: 50
     max-stack: 64
   golden-apple:
     slot: 17
-    purchase-inventory-title: 'ʙᴜʏɪNG ɢᴏʟᴅᴇɴ ᴀᴘᴘʟᴇ'
-    displayName: '&f&bGolden Apple'
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɢᴏʟᴅᴇɴ ᴀᴘᴘʟᴇ'
+    displayName: '&#FFFFFF&#4CC9F0Golden Apple'
     material: GOLDEN_APPLE
     price: 250
     max-stack: 64

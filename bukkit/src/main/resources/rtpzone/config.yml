@@ -45,9 +45,9 @@ sounds:
     pitch: 0.5
     volume: 1
   countdown:
-    sound: BLOCK_BEACON_AMBIENT
-    pitch: 0.5
-    volume: 1
+    sound: ENTITY_ENDERMAN_TELEPORT
+    pitch: 1.6
+    volume: 0.25
   exit:
     sound: BLOCK_BEACON_DEACTIVATE
     pitch: 0.5

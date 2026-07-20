@@ -1,6 +1,7 @@
 package com.kammoun.raven.spawn.countdown;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.platform.sound.KSound;
 import com.kammoun.raven.spawn.config.SpawnMessages;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -25,14 +26,19 @@ public class TeleportCountdown {
     private final RavenCore api;
     private final SpawnMessages messages;
     private final int seconds;
+    private final KSound tickSound;
+    private final KSound deniedSound;
 
     private final Map<UUID, State> active = new ConcurrentHashMap<>();
     private ScheduledTask tickTask;
 
-    public TeleportCountdown(RavenCore api, SpawnMessages messages, int seconds) {
+    public TeleportCountdown(RavenCore api, SpawnMessages messages, int seconds,
+                             KSound tickSound, KSound deniedSound) {
         this.api = api;
         this.messages = messages;
         this.seconds = seconds;
+        this.tickSound = tickSound;
+        this.deniedSound = deniedSound;
     }
 
     public void start() {
@@ -70,6 +76,7 @@ public class TeleportCountdown {
             return;
         }
         if (active.remove(event.getPlayer().getUniqueId()) != null) {
+            playDenied(event.getPlayer());
             event.getPlayer().sendMessage(messages.get("teleport.cancelled"));
         }
     }
@@ -100,7 +107,14 @@ public class TeleportCountdown {
     private void sendProgress(Player player, State state) {
         String text = messages.format("teleport.countdown",
                 "seconds", state.secondsLeft, "server", state.destinationLabel);
-        player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(text));
+        player.getScheduler().run(api, task -> {
+            player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(text));
+            tickSound.playSound(player);
+        }, null);
+    }
+
+    public void playDenied(Player player) {
+        player.getScheduler().run(api, task -> deniedSound.playSound(player), null);
     }
 
     private static class State {

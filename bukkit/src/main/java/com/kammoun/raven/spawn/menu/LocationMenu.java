@@ -90,6 +90,8 @@ public class LocationMenu extends KMenu {
 
             ItemStack stack = PlaceholderHelper.parsePlaceholders(template.getItemStack(),
                     "{server}", location.getServerName(),
+                    "{number}", String.valueOf(slotIndex),
+                    "{index}", String.valueOf(slotIndex),
                     "{count}", String.valueOf(count),
                     "{max}", String.valueOf(location.getMaxPlayers()));
 
@@ -98,8 +100,11 @@ public class LocationMenu extends KMenu {
 
             MenuItem item = MenuItem.of(builder).slot(slot);
             if (full) {
-                item.onClick(event -> ((Player) event.getWhoClicked())
-                        .sendMessage(messages.format("server-full", "server", location.getServerName())));
+                item.onClick(event -> {
+                    Player player = (Player) event.getWhoClicked();
+                    countdown.playDenied(player);
+                    player.sendMessage(messages.format("server-full", "server", location.getServerName()));
+                });
             } else {
                 item.onClick(event -> handleServerClick((Player) event.getWhoClicked(), location));
             }
@@ -122,6 +127,7 @@ public class LocationMenu extends KMenu {
         if (destination.getServerName().equals(api.getServerId())) {
             World world = Bukkit.getWorld(destination.getWorld());
             if (world == null) {
+                countdown.playDenied(player);
                 player.sendMessage(messages.get("world-missing"));
                 return;
             }

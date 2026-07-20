@@ -1,3 +1,10 @@
+# Raven GUI/message style:
+# - Menu titles are forced to &8 in code; keep config titles &8 too.
+# - Text supports & codes and &#RRGGBB hex colors.
+# - Main palette: #FF2B2B red, #33FF66 green, #FFD447 yellow,
+#   #FF9F1C orange, #4CC9F0 cyan, #7A7A7A gray, #FFFFFF white.
+# - Sounds use Bukkit Sound enum names with pitch/volume numbers.
+
 # Soft player-count cap applied to a server's SPAWN/AFK row, used for greying
 # out full servers in the /spawn and /afk GUI. Only applied when a server's row
 # is first created via /setspawn or /setafk — re-running either command later
@@ -13,3 +20,14 @@ default-max-players: 100
 # to teleport instantly.
 teleport-countdown:
   seconds: 5
+  sounds:
+    # Played once per countdown second.
+    tick:
+      sound: ENTITY_ENDERMAN_TELEPORT
+      pitch: 1.9
+      volume: 0.65
+    # Played when a teleport/menu action is denied or cancelled.
+    denied:
+      sound: ENTITY_VILLAGER_NO
+      pitch: 1.0
+      volume: 1.0

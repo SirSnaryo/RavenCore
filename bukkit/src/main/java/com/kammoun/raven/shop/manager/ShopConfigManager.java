@@ -41,7 +41,7 @@ public class ShopConfigManager {
         var config = module.getConfig();
 
         priceLore = config.getStringList("Price-Lore");
-        if (priceLore.isEmpty()) priceLore = List.of("&fBuy price: &a$%price%");
+        if (priceLore.isEmpty()) priceLore = List.of("&#7A7A7Aᴘʀɪᴄᴇ &#33FF66$%price%");
 
         ConfigurationSection main = config.getConfigurationSection("main-inventory");
         if (main == null) {
@@ -49,7 +49,7 @@ public class ShopConfigManager {
             return;
         }
 
-        mainTitle = ChatFormatter.color(main.getString("Title", "Shop"));
+        mainTitle = ChatFormatter.menuTitle(main.getString("Title", "Shop"));
         mainSize  = main.getInt("Size", 27);
 
         ConfigurationSection items = main.getConfigurationSection("items");
@@ -83,9 +83,9 @@ public class ShopConfigManager {
 
         ConfigurationSection msgs = config.getConfigurationSection("messages");
         if (msgs != null) {
-            msgNotEnoughBalance = msgs.getString("not-enough-balance", "&cYou don't have enough money.");
-            msgNotEnoughSpace   = msgs.getString("not-enough-space", "&cNot enough inventory space.");
-            msgBuying           = msgs.getString("buying", "&aYou bought %amount% %item-name%.");
+            msgNotEnoughBalance = msgs.getString("not-enough-balance", "&#D90429You don't have enough money.");
+            msgNotEnoughSpace   = msgs.getString("not-enough-space", "&#D90429Not enough inventory space.");
+            msgBuying           = msgs.getString("buying", "&#33FF66You bought &#FFFFFF%amount% %item-name%.");
         }
     }
 

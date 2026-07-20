@@ -19,7 +19,7 @@ public class PortalMessages {
      * Usage: messages.format("border.deny-message", "server", "smp-world-eu")
      */
     public String format(String key, Object... kvPairs) {
-        String raw = config.getString(key, "&c[Missing message: " + key + "]");
+        String raw = config.getString(key, "&#D90429[Missing message: " + key + "]");
         String msg = ChatFormatter.color(raw);
         for (int i = 0; i + 1 < kvPairs.length; i += 2) {
             msg = msg.replace("{" + kvPairs[i] + "}", String.valueOf(kvPairs[i + 1]));

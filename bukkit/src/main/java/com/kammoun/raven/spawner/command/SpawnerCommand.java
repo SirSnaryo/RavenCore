@@ -1,6 +1,7 @@
 package com.kammoun.raven.spawner.command;
 
 import com.kammoun.raven.library.command.KCommand;
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.spawner.SpawnerModule;
 import com.kammoun.raven.spawner.model.SpawnerType;
 import org.bukkit.Bukkit;
@@ -35,25 +36,25 @@ public class SpawnerCommand extends KCommand {
 
     private void handleGive(CommandSender sender, String[] args) {
         if (args.length < 4) {
-            sender.sendMessage("§cUsage: /spawner give <player> <type> <stack-size>");
+            send(sender, "&#D90429Usage: /spawner give <player> <type> <stack-size>");
             return;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) { sender.sendMessage("§cPlayer not found."); return; }
+        if (target == null) { send(sender, "&#D90429Player not found."); return; }
 
         SpawnerType type = module.getRegistry().get(args[2]);
         if (type == null) {
-            sender.sendMessage("§cUnknown spawner type '§f" + args[2] + "§c'. Use /spawner list.");
+            send(sender, "&#D90429Unknown spawner type '&#FFFFFF" + args[2] + "&#D90429'. Use /spawner list.");
             return;
         }
 
         int stackSize;
         try {
             stackSize = Integer.parseInt(args[3]);
-            if (stackSize <= 0) { sender.sendMessage("§cStack size must be positive."); return; }
+            if (stackSize <= 0) { send(sender, "&#D90429Stack size must be positive."); return; }
         } catch (NumberFormatException e) {
-            sender.sendMessage("§cInvalid number: §f" + args[3]);
+            send(sender, "&#D90429Invalid number: &#FFFFFF" + args[3]);
             return;
         }
 
@@ -63,27 +64,31 @@ public class SpawnerCommand extends KCommand {
         } else {
             target.getInventory().addItem(item);
         }
-        sender.sendMessage("§aGave §f" + target.getName() + " §ax1 §f" + type.getDisplayName()
-                + " §a(stack §f" + stackSize + "§a).");
+        send(sender, "&#33FF66Gave &#FFFFFF" + target.getName() + " &#33FF66x1 &#FFFFFF" + type.getDisplayName()
+                + " &#33FF66(stack &#FFFFFF" + stackSize + "&#33FF66).");
     }
 
     private void handleReload(CommandSender sender) {
         module.reload();
-        sender.sendMessage("§aSpawner configuration reloaded.");
+        send(sender, "&#33FF66Spawner configuration reloaded.");
     }
 
     private void handleList(CommandSender sender) {
-        sender.sendMessage("§e§lAvailable spawner types:");
+        send(sender, "&#FFD447&lAvailable spawner types:");
         for (SpawnerType type : module.getRegistry().all()) {
-            sender.sendMessage("  §7- §f" + type.getId() + " §7(§f" + type.getDisplayName() + "§7)");
+            send(sender, "  &#7A7A7A- &#FFFFFF" + type.getId() + " &#7A7A7A(&#FFFFFF" + type.getDisplayName() + "&#7A7A7A)");
         }
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§e§lSpawner Commands:");
-        sender.sendMessage("§7/spawner give <player> <type> <stack-size> §f- Give a spawner item");
-        sender.sendMessage("§7/spawner list §f- List all spawner types");
-        sender.sendMessage("§7/spawner reload §f- Reload configuration");
+        send(sender, "&#FFD447&lSpawner Commands:");
+        send(sender, "&#7A7A7A/spawner give <player> <type> <stack-size> &#FFFFFF- Give a spawner item");
+        send(sender, "&#7A7A7A/spawner list &#FFFFFF- List all spawner types");
+        send(sender, "&#7A7A7A/spawner reload &#FFFFFF- Reload configuration");
+    }
+
+    private void send(CommandSender sender, String message) {
+        sender.sendMessage(ChatFormatter.color(message));
     }
 
     @Override

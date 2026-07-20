@@ -1,95 +1,95 @@
 Price-Lore:
-  - "&fBuy price: &a$%price%"
+  - "&#7A7A7Aᴘʀɪᴄᴇ &#33FF66$%price%"
 
 purchase-inventory:
   buttons:
     minus-64:
-      name: '&#e00202 -64'
+      name: '&#D90429-64'
       material: RED_STAINED_GLASS_PANE
       slot: 9
     minus-16:
-      name: '&#e00202 -16'
+      name: '&#D90429-16'
       material: RED_STAINED_GLASS_PANE
       slot: 10
     minus-1:
-      name: '&#e00202 -1'
+      name: '&#D90429-1'
       material: RED_STAINED_GLASS_PANE
       slot: 11
     plus-1:
-      name: '&#02de4f +1'
+      name: '&#33FF66+1'
       material: LIME_STAINED_GLASS_PANE
       slot: 15
     plus-16:
-      name: '&#02de4f +16'
+      name: '&#33FF66+16'
       material: LIME_STAINED_GLASS_PANE
       slot: 16
     plus-64:
-      name: '&#02de4f +64'
+      name: '&#33FF66+64'
       material: LIME_STAINED_GLASS_PANE
       slot: 17
 
 main-inventory:
-  Title: 'sʜᴏᴘ'
+  Title: '&8sʜᴏᴘ'
   Size: 27
   items:
     back-page:
-      name: '&#e00202 ʙᴀᴄᴋ'
+      name: '&#7A7A7ABack'
       material: RED_STAINED_GLASS_PANE
       slot: 18
       lore:
-        - '&fClick to return'
+        - '&#7A7A7Aʙᴀᴄᴋ'
     decline:
-      name: '&#e00202 ᴄᴀɴᴄᴇʟ'
+      name: '&#D90429ᴄᴀɴᴄᴇʟ'
       material: RED_STAINED_GLASS_PANE
       slot: 21
       lore:
-        - '&fClick to cancel'
+        - '&#7A7A7Aᴄᴀɴᴄᴇʟ'
     accept:
-      name: '&#02de4f ᴄᴏɴꜰɪʀᴍ'
+      name: '&#33FF66ᴄᴏɴғɪʀᴍ'
       material: LIME_STAINED_GLASS_PANE
       slot: 23
       lore:
-        - '&fClick to buy'
+        - '&#7A7A7Aʙᴜʏ'
 
   categories:
     end-shop:
-      displayName: '&aᴇɴᴅ'
+      displayName: '&#FFD447ᴇɴᴅ'
       material: END_STONE
       slot: 11
       lore:
-        - '&fClick to view the end shop'
+        - '&#7A7A7Aᴇɴᴅ sʜᴏᴘ'
       category: 'end-shop.yml'
 
     nether:
-      displayName: '&aɴᴇᴛʜᴇʀ'
+      displayName: '&#FF2B2Bɴᴇᴛʜᴇʀ'
       material: NETHERRACK
       slot: 12
       lore:
-        - '&fClick to view the nether shop'
+        - '&#7A7A7Aɴᴇᴛʜᴇʀ sʜᴏᴘ'
       category: 'nether-shop.yml'
 
     gear:
-      displayName: '&aɢᴇᴀʀ'
+      displayName: '&#4CC9F0ɢᴇᴀʀ'
       material: TOTEM_OF_UNDYING
       slot: 13
       lore:
-        - '&fClick to view the gear shop'
+        - '&#7A7A7Aɢᴇᴀʀ sʜᴏᴘ'
       category: 'gear-shop.yml'
 
     food:
-      displayName: '&aғᴏᴏᴅ'
+      displayName: '&#33FF66ғᴏᴏᴅ'
       material: COOKED_BEEF
       slot: 14
       lore:
-        - '&fClick to view the food shop'
+        - '&#7A7A7Aғᴏᴏᴅ sʜᴏᴘ'
       category: 'food-shop.yml'
 
     shard:
-      displayName: '&dSʜᴀʀᴅ'
+      displayName: '&#D90429sʜᴀʀᴅ'
       material: AMETHYST_SHARD
       slot: 15
       lore:
-        - '&fClick to view the shard shop'
+        - '&#7A7A7Asʜᴀʀᴅ sʜᴏᴘ'
       commands:
         - 'shard shop'
 

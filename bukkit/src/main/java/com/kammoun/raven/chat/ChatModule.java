@@ -30,7 +30,7 @@ public class ChatModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
-        format = getConfig().getString("format", "&8[&b%server%&8]&r %luckperms_prefix%&f%player%&8: &f%message%");
+        format = getConfig().getString("format", "&#7A7A7A[&#4CC9F0%server%&#7A7A7A] %luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%");
         String configuredTag = getConfig().getString("server-tag", "");
         serverTag = configuredTag.isEmpty() ? api.getServerId() : configuredTag;
         messages = new ChatMessages(loadMessages());

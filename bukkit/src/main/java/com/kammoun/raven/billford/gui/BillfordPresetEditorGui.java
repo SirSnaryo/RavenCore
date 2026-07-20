@@ -67,7 +67,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
 
     public void open(Player player) {
         FileConfiguration cfg = config.getConfig();
-        String title = ChatFormatter.color(config.getEditorTitle().replace("%preset%", preset.getName()));
+        String title = ChatFormatter.menuTitle(config.getEditorTitle().replace("%preset%", preset.getName()));
         inventory = Bukkit.createInventory(this, size, title);
 
         ItemStack filler = read(cfg, "editor.filler", Material.BLACK_STAINED_GLASS_PANE);

@@ -153,7 +153,7 @@ public class ShopListener implements Listener {
 
         RavenEconomy economy = module.getEconomy();
         if (economy == null) {
-            player.sendMessage(ChatFormatter.color("&cEconomy is not available."));
+            player.sendMessage(ChatFormatter.color("&#D90429Economy is not available."));
             return;
         }
 

@@ -1,31 +1,31 @@
-Title: "ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ"
+Title: "&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ"
 Size: 27
 
 Items:
   Overworld:
     material: GRASS_BLOCK
     slot: 11
-    name: "&#55C13Cᴏᴠᴇʀᴡᴏʀʟᴅ"
+    name: "&#33FF66ᴏᴠᴇʀᴡᴏʀʟᴅ"
     lore:
-      - "&7Choose a region and get"
-      - "&7dropped somewhere random."
+      - "&#7A7A7Aᴏᴠᴇʀᴡᴏʀʟᴅ"
+      - "&#4CC9F0Choose a region."
   Nether:
     material: NETHERRACK
     slot: 13
-    name: "&#D3423Eɴᴇᴛʜᴇʀ"
+    name: "&#FF2B2Bɴᴇᴛʜᴇʀ"
     lore:
-      - "&7Click to get teleported"
-      - "&7somewhere random in the Nether."
+      - "&#7A7A7Aɴᴇᴛʜᴇʀ"
+      - "&#4CC9F0Click to teleport."
   End:
     material: END_STONE
     slot: 15
-    name: "&#C9A6EEᴛʜᴇ ᴇɴᴅ"
+    name: "&#FFD447ᴛʜᴇ ᴇɴᴅ"
     lore:
-      - "&7Click to get teleported"
-      - "&7somewhere random in the End."
+      - "&#7A7A7Aᴛʜᴇ ᴇɴᴅ"
+      - "&#4CC9F0Click to teleport."
 
 Navigation:
   Close-Page:
     material: BARRIER
     slot: 22
-    name: "&cClose"
+    name: "&#D90429Close"

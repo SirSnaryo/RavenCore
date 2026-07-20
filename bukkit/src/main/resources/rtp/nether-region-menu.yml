@@ -1,4 +1,4 @@
-Title: "ʀᴛᴘ ⁍ ɴᴇᴛʜᴇʀ"
+Title: "&8ʀᴛᴘ ⁍ ɴᴇᴛʜᴇʀ"
 Size: 27
 
 Item-Slots: [10,11,12,13,14,15,16]
@@ -6,17 +6,17 @@ Item-Slots: [10,11,12,13,14,15,16]
 Items:
   Region:
     material: NETHERRACK
-    name: "&#D3423E{region}"
+    name: "&#FF2B2B{region}"
     lore:
-      - "&7Click to get teleported"
-      - "&7somewhere random in {region}."
+      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF{region}"
+      - "&#4CC9F0Click to teleport."
 
 Navigation:
   Go-Back:
     material: ARROW
     slot: 18
-    name: "&7« Back"
+    name: "&#7A7A7ABack"
   Close-Page:
     material: BARRIER
     slot: 22
-    name: "&cClose"
+    name: "&#D90429Close"

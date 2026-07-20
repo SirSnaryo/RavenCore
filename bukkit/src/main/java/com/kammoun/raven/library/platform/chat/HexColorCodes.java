@@ -4,13 +4,11 @@ import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HexColorCodes {
-    private final Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
+    private static final Pattern HEX_PATTERN = Pattern.compile("[!&]#[0-9a-fA-F]{6}");
 
     public String FormatHex(String msg){
         return colorHex(msg);
@@ -20,30 +18,20 @@ public class HexColorCodes {
     }
     private static String colorHex(String s) {
         s = ChatColor.translateAlternateColorCodes(ChatColor.COLOR_CHAR, s);
-        s = findAndReplaceRegex("!#[0-9,a-f,A-F]{6}", s);
-        s = findAndReplaceRegex("&#[0-9,a-f,A-F]{6}", s);
+        s = findAndReplaceHex(s);
         s = ChatColor.translateAlternateColorCodes('&', s);
-        //System.out.println("String is: " + s);
         return s;
     }
 
-    private static String findAndReplaceRegex(String regex, String input) {
-        int i = 0;
-        ArrayList<String> matches = new ArrayList<>();
-        ArrayList<ChatColor> colorSet = new ArrayList<>();
-        Matcher patternMatcher = Pattern.compile(regex).matcher(input);
-        while(patternMatcher.find()) {
-            matches.add(patternMatcher.group());
+    private static String findAndReplaceHex(String input) {
+        Matcher matcher = HEX_PATTERN.matcher(input);
+        StringBuffer out = new StringBuffer();
+        while (matcher.find()) {
+            String replacement = ChatColor.of(matcher.group().substring(1)).toString();
+            matcher.appendReplacement(out, Matcher.quoteReplacement(replacement));
         }
-        for(String match : matches) {
-            colorSet.add(ChatColor.of(match.substring(1)));
-        }
-        Iterator<String> matchIterator = matches.iterator();
-        Iterator<ChatColor> colorIterator = colorSet.iterator();
-        while(matchIterator.hasNext() && colorIterator.hasNext()) {
-            input = input.replaceFirst(matchIterator.next(), colorIterator.next().toString());
-        }
-        return input;
+        matcher.appendTail(out);
+        return out.toString();
     }
 
     /***

@@ -91,7 +91,7 @@ public class ScoreboardStatsService {
     }
 
     public void shutdown() {
-        flushOnline();
+        Bukkit.getOnlinePlayers().forEach(this::flushNow);
     }
 
     private ScoreboardStats stats(Player player) {
@@ -105,6 +105,15 @@ public class ScoreboardStatsService {
                 (stats == null ? ScoreboardStats.empty() : stats).withPlaytimeSeconds(totalSeconds));
         sessionStartedAt.put(uuid, System.currentTimeMillis());
         saveAsync(uuid);
+    }
+
+    private void flushNow(Player player) {
+        UUID uuid = player.getUniqueId();
+        long totalSeconds = playtimeSeconds(player);
+        ScoreboardStats snapshot = cache.compute(uuid, (ignored, stats) ->
+                (stats == null ? ScoreboardStats.empty() : stats).withPlaytimeSeconds(totalSeconds));
+        sessionStartedAt.put(uuid, System.currentTimeMillis());
+        saveNow(uuid, snapshot);
     }
 
     private long sessionSeconds(UUID uuid) {
@@ -132,5 +141,17 @@ public class ScoreboardStatsService {
                 logger.log(Level.WARNING, "[Scoreboard] Failed to save stats for " + uuid, e);
             }
         });
+    }
+
+    private void saveNow(UUID uuid, ScoreboardStats snapshot) {
+        if (repository == null || snapshot == null) {
+            return;
+        }
+
+        try {
+            repository.save(uuid, snapshot);
+        } catch (SQLException e) {
+            logger.log(Level.WARNING, "[Scoreboard] Failed to save stats for " + uuid, e);
+        }
     }
 }

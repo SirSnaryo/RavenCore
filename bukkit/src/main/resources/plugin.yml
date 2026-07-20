@@ -12,98 +12,105 @@ commands:
     usage: /balance [player]
     aliases: [bal, money]
     permission: raven.economy.balance
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
   pay:
     description: Pay another online player
     usage: /pay <player> <amount>
     permission: raven.economy.pay
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
   eco:
     description: Admin economy management
     usage: /eco <give|take|set|reset> <player> [amount]
     aliases: [economy]
     permission: raven.economy.admin
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   tp:
     description: Teleport yourself or another player to a player
-    usage: /tp <destination> | /tp <player> <destination>
+    usage: /tp <player> | /tp <player> <player> | /tp <x> <y> <z> [server] | /tp <player> <x> <y> <z> [server]
     aliases: [teleport]
     permission: raven.teleport
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
+
+  tphere:
+    description: Teleport a network player to you
+    usage: /tphere <player>
+    aliases: [tph]
+    permission: raven.teleport
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
     aliases: [ci, clearinv, clearinventory]
     permission: raven.clearinventory.self
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   spawn:
     description: Open the spawn server selection menu
     usage: /spawn
     permission: raven.spawn
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   afk:
     description: Open the AFK server selection menu
     usage: /afk
     permission: raven.afk
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   setspawn:
     description: Set this server's spawn location to your current position
     usage: /setspawn
     permission: raven.setspawn
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   setafk:
     description: Set this server's AFK location to your current position
     usage: /setafk
     permission: raven.setafk
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   rtp:
     description: Teleport to a random location
     usage: /rtp
     permission: raven.rtp
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   shop:
     description: Open the server shop
     usage: /shop [category|reload]
     permission: raven.shop
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   spawner:
     description: Manage and give spawner items
     usage: /spawner <give|list|reload>
     permission: raven.spawner.admin
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
   scoreboard:
     description: Manage the Raven scoreboard
     usage: /scoreboard [toggle|on|off|list|current|select|reset|set|clear|reload]
     aliases: [sb]
     permission: raven.scoreboard
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   billford:
     description: Open the Billford trade menu
     usage: /billford
     permission: raven.billford
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
   billfordpreset:
     description: Manage Billford trade presets
     usage: /billfordpreset <create|edit|delete|switch|list|info|reload> [name]
     aliases: [bfpreset]
     permission: raven.billford.admin
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   ravencore:
     description: RavenCore version and safe module reload
     usage: /ravencore <version|modules|reload>
     aliases: [rcore]
-    permission-message: §cYou don't have permission to use this command.
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
 permissions:
   raven.teleport:

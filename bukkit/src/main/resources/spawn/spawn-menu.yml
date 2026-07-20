@@ -1,4 +1,4 @@
-Title: "ꜱᴘᴀᴡɴ ᴀʀᴇᴀꜱ"
+Title: "&8ꜱᴘᴀᴡɴ ᴀʀᴇᴀꜱ"
 Size: 54
 
 
@@ -7,14 +7,13 @@ Item-Slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25
 Items:
   Available:
     material: ITEM_FRAME
-    name: "&#A500F8ꜱᴘᴀᴡɴ {server}"
+    name: "&#FF2B2Bꜱᴘᴀᴡɴ {number}"
     lore:
-      - "&8{count}&7/&f{max}"
-      - "&7Click to go to this"
-      - "&7spawn area."
+      - "&#7A7A7Aᴘʟᴀʏᴇʀs &#FFFFFF{count}&#7A7A7A/&#FFFFFF{max}"
+      - "&#4CC9F0Click to go."
   Full:
     material: REDSTONE_BLOCK
-    name: "&#A500F8ꜱᴘᴀᴡɴ {server}"
+    name: "&#FF2B2Bꜱᴘᴀᴡɴ {number}"
     lore:
-      - "&8{count}&7/&f{max}"
-      - "&cThis area is full."
+      - "&#7A7A7Aᴘʟᴀʏᴇʀs &#FFFFFF{count}&#7A7A7A/&#FFFFFF{max}"
+      - "&#D90429This area is full."

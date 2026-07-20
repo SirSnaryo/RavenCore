@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 @Getter
 public class SpawnerStorageGui {
 
-    private static final String DEFAULT_TITLE = "&6&l%type% &8| &fStorage (%amount%x)";
+    private static final String DEFAULT_TITLE = "&#FFD447&l%type% &8| &#FFFFFFStorage (%amount%x)";
     private static final int DEFAULT_SIZE = 54;
 
     private final int size;

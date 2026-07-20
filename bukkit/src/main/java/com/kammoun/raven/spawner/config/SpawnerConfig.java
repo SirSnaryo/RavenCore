@@ -86,15 +86,15 @@ public class SpawnerConfig {
     }
 
     public enum Msg {
-        NO_SILK        ("no-silk",         "&cYou need Silk Touch to break this spawner!"),
+        NO_SILK        ("no-silk",         "&#D90429You need Silk Touch to break this spawner!"),
         SELL_BAR       ("sell-bar",         "&#38f616+$%amount%"),
         SELL_CHAT      ("sell-chat",        ""),
         XP_BAR         ("xp-collected-bar", "&#80ee0b+%xp% XP collected"),
         STACKED_BAR    ("stacked-bar",      "&#ee340bStack is now x%total% (%type%)"),
-        INVENTORY_FULL ("inventory-full",   "&cYour inventory is full!"),
-        NOT_OWNER      ("not-owner",        "&cYou don't own this spawner!"),
-        STORAGE_IN_USE ("storage-in-use",   "&cSomeone else is already accessing this spawner."),
-        STACK_LIMIT    ("stack-limit",      "&cStack limit reached (&f%max%&c).");
+        INVENTORY_FULL ("inventory-full",   "&#D90429Your inventory is full!"),
+        NOT_OWNER      ("not-owner",        "&#D90429You don't own this spawner!"),
+        STORAGE_IN_USE ("storage-in-use",   "&#D90429Someone else is already accessing this spawner."),
+        STACK_LIMIT    ("stack-limit",      "&#D90429Stack limit reached (&#FFFFFF%max%&#D90429).");
 
         public final String key;
         public final String fallback;

@@ -4,20 +4,20 @@
 # and its own storage GUI. Nothing here is shared with other types.
 # ─────────────────────────────────────────────────────────────────────────────
 
-display-name: "&7Magma Cube Spawner"
+display-name: "&#7A7A7AMagma Cube Spawner"
 
 spawner-item:
   material: SPAWNER
-  display-name: "&7Magma Cube Spawner"
+  display-name: "&#7A7A7AMagma Cube Spawner"
   lore:
-    - "&7Place this down for"
-    - "&7a Magma Cube spawner."
+    - "&#7A7A7APlace this down for"
+    - "&#7A7A7Aa Magma Cube spawner."
 
 gui-icon:
   material: MAGMA_CREAM
-  display-name: "&7%amount% Magma Cube Spawner"
+  display-name: "&#7A7A7A%amount% Magma Cube Spawner"
   lore:
-    - "&#34ee80(%fill-percentage%% filled)"
+    - "&#33FF66(%fill-percentage%% filled)"
 
 spawn-interval-seconds: 60
 xp-per-cycle: 10
@@ -30,23 +30,23 @@ drops:
 
 # ─── Storage GUI (opened on right-click) ──────────────────────────────────────
 storage-gui:
-  Title: "%amount% ᴍᴀɢᴍᴀ ᴄᴜʙᴇ ѕᴘᴀᴡɴᴇʀѕ"
+  Title: "&8%amount% ᴍᴀɢᴍᴀ ᴄᴜʙᴇ ѕᴘᴀᴡɴᴇʀѕ"
   Size: 54
 
   Items:
 
     Prev-Page:
       material: ARROW
-      display-name: "&#34ee80ᴘʀᴇᴠɪᴏᴜs ᴘᴀɢᴇ"
+      display-name: "&#33FF66ᴘʀᴇᴠɪᴏᴜs ᴘᴀɢᴇ"
       lore:
-        - "&fClick to go to the previous page"
+        - "&#FFFFFFClick to go to the previous page"
       slot: 45
 
     Next-Page:
       material: ARROW
-      display-name: "&#34ee80ɴᴇxᴛ ᴘᴀɢᴇ"
+      display-name: "&#33FF66ɴᴇxᴛ ᴘᴀɢᴇ"
       lore:
-        - "&fClick to go to the next page"
+        - "&#FFFFFFClick to go to the next page"
       slot: 53
 
     Spawner-Icon:
@@ -56,16 +56,16 @@ storage-gui:
 
     Drop-All:
       material: DROPPER
-      display-name: "&#34ee80ᴅʀᴏᴘ ᴀʟʟ ʟᴏᴏᴛ"
+      display-name: "&#33FF66ᴅʀᴏᴘ ᴀʟʟ ʟᴏᴏᴛ"
       lore:
-        - "&fClick to drop all loot"
-        - "&7All items will be dropped at your location"
+        - "&#FFFFFFClick to drop all loot"
+        - "&#7A7A7AAll items will be dropped at your location"
       slot: 50
 
     Sell-All:
       material: GOLD_INGOT
-      display-name: "&#34ee80ѕᴇʟʟ ᴀʟʟ"
+      display-name: "&#33FF66ѕᴇʟʟ ᴀʟʟ"
       lore:
-        - "&fClick to sell all mob drops!"
-        - "&7Sells all items in storage"
+        - "&#FFFFFFClick to sell all mob drops!"
+        - "&#7A7A7ASells all items in storage"
       slot: 48

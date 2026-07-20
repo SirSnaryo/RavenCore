@@ -3,6 +3,7 @@ package com.kammoun.raven.velocity;
 import com.google.inject.Inject;
 import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
+import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.command.RavenCoreVelocityCommand;
@@ -28,12 +29,13 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "1.0.11",
+        version = "1.0.12",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )
@@ -88,6 +90,7 @@ public class RavenVelocity {
         networkPlayerManager = new VelocityNetworkPlayerManager(
                 this, server, redisMessenger.getConnection().getPool(), serverId, networkEventBus
         );
+        networkEventBus.subscribe(CrossServerTeleportEvent.class, this::onTeleportTransfer);
 
         infoModule = new InfoModule();
         infoModule.onEnable(this, server, dataDirectory);
@@ -119,9 +122,39 @@ public class RavenVelocity {
         if (lobbyModule != null) {
             lobbyModule.onDisable();
         }
+        if (networkEventBus != null) {
+            networkEventBus.unsubscribe(CrossServerTeleportEvent.class);
+        }
         if (redisMessenger != null) {
             redisMessenger.close();
         }
+    }
+
+    private void onTeleportTransfer(CrossServerTeleportEvent event) {
+        if (event == null || event.getPlayerUuid() == null || event.getTargetServer() == null) {
+            return;
+        }
+
+        UUID playerUuid;
+        try {
+            playerUuid = UUID.fromString(event.getPlayerUuid());
+        } catch (IllegalArgumentException ignored) {
+            logger.warning("[Teleport] Invalid transfer UUID: " + event.getPlayerUuid());
+            return;
+        }
+
+        server.getScheduler().buildTask(this, () ->
+                server.getPlayer(playerUuid).ifPresent(player -> server.getServer(event.getTargetServer()).ifPresentOrElse(
+                        target -> player.createConnectionRequest(target).connect()
+                                .thenAccept(result -> {
+                                    if (!result.isSuccessful()) {
+                                        logger.warning("[Teleport] Failed to send " + player.getUsername()
+                                                + " to " + event.getTargetServer() + ": " + result.getStatus());
+                                    }
+                                }),
+                        () -> logger.warning("[Teleport] Unknown target server: " + event.getTargetServer())
+                ))
+        ).schedule();
     }
 
     public String getVersion() {

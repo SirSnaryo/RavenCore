@@ -36,7 +36,7 @@ public class SpawnerSellMenu extends KConfigLoader {
     public SpawnerSellMenu(KModule<?> module) {
         super(module.getApi(), "spawner/gui/sell.yml");
         this.size          = config.getInt("Size", 27);
-        this.titleTemplate = config.getString("Title", "&6Confirm Sale");
+        this.titleTemplate = config.getString("Title", "&8Confirm Sale");
         loadItems();
     }
 
@@ -50,7 +50,7 @@ public class SpawnerSellMenu extends KConfigLoader {
     public void open(Player player, SpawnerStack stack, double totalValue) {
         SellHolder holder = new SellHolder(stack, totalValue);
 
-        String title = ChatFormatter.color(PlaceholderHelper.parsePlaceholders(
+        String title = ChatFormatter.menuTitle(PlaceholderHelper.parsePlaceholders(
                 titleTemplate,
                 "%type%",  stack.getType().getDisplayName(),
                 "%value%", NumberUtils.formatDouble(totalValue)));
@@ -92,12 +92,12 @@ public class SpawnerSellMenu extends KConfigLoader {
         var meta = item.getItemMeta();
         if (meta == null) return item;
 
-        String rawName = config.getString("Items.Contents.display-name", "&6&lContents");
+        String rawName = config.getString("Items.Contents.display-name", "&#FFD447&lContents");
         meta.setDisplayName(ChatFormatter.color(rawName));
 
         List<String> lore = new ArrayList<>();
         for (Map.Entry<Material, Integer> entry : stack.getStoredItems().entrySet()) {
-            lore.add(ChatFormatter.color("&f" + formatMaterial(entry.getKey()) + " &7x" + entry.getValue()));
+            lore.add(ChatFormatter.color("&#FFFFFF" + formatMaterial(entry.getKey()) + " &#7A7A7Ax" + entry.getValue()));
         }
         meta.setLore(lore);
         item.setItemMeta(meta);

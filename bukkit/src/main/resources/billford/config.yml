@@ -9,7 +9,7 @@ preset-change-interval: "2m"
 
 # ─── Trade menu (/billford) ──────────────────────────────────────────────────
 gui:
-  title: "&#FFD447ʙɪʟʟꜰᴏʀᴅ"
+  title: "&8ʙɪʟʟꜰᴏʀᴅ"
   size: 54
   # Slots the preset's required items are laid out into, in order.
   required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
@@ -21,8 +21,8 @@ gui:
     material: LIME_CONCRETE
     name: "&#33FF66&lConfirm Trade"
     lore:
-      - "&#7A7A7AClick to hand in the required"
-      - "&#7A7A7Aitems and receive your reward."
+      - "&#7A7A7Aᴄᴏɴғɪʀᴍ"
+      - "&#4CC9F0Hand in items and receive your reward."
     glow: true
 
   info-item:
@@ -30,6 +30,7 @@ gui:
     material: BOOK
     name: "&#4CC9F0&lTrade Info"
     lore:
+      - "&#7A7A7Aᴛʀᴀᴅᴇ"
       - "&#FFFFFFYou give:"
       - "%required_item%"
       - " "
@@ -44,7 +45,7 @@ gui:
 
 # ─── Preset editor (/billfordpreset create|edit) ─────────────────────────────
 editor:
-  title: "&#FFD447ᴇᴅɪᴛɪɴɢ: &#FFFFFF%preset%"
+  title: "&8ᴇᴅɪᴛɪɴɢ: %preset%"
   size: 54
   required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
   trade-slot: 25
@@ -55,8 +56,8 @@ editor:
     material: BOOK
     name: "&#FFD447&lPreset Editor"
     lore:
+      - "&#7A7A7Aᴇᴅɪᴛᴏʀ"
       - "&#7A7A7APlace the &#FFFFFFrequired items"
-      - "&#7A7A7Ain the left section."
       - " "
       - "&#7A7A7APlace the &#FFFFFFreward item"
       - "&#7A7A7Ain the right slot."
@@ -67,21 +68,21 @@ editor:
     material: LIME_CONCRETE
     name: "&#33FF66&lSAVE PRESET"
     lore:
-      - "&#7A7A7AClick to save this preset"
-      - "&#7A7A7Anetwork-wide."
+      - "&#7A7A7Asᴀᴠᴇ"
+      - "&#4CC9F0Save this preset network-wide."
     glow: true
 
   required-placeholder:
     material: LIGHT_GRAY_STAINED_GLASS_PANE
     name: "&#7A7A7ARequired Item Slot"
     lore:
-      - "&#7A7A7APlace an item here."
+      - "&#7A7A7Aʀᴇǫᴜɪʀᴇᴅ"
 
   reward-placeholder:
     material: YELLOW_STAINED_GLASS_PANE
     name: "&#FFD447Reward Item Slot"
     lore:
-      - "&#7A7A7APlace the reward item here."
+      - "&#7A7A7Aʀᴇᴡᴀʀᴅ"
 
   filler:
     material: BLACK_STAINED_GLASS_PANE

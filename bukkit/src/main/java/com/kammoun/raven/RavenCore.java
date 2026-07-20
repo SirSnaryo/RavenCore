@@ -6,6 +6,7 @@ import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
+import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.portal.DimensionPortalModule;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Getter
 public final class RavenCore extends JavaPlugin {
@@ -78,6 +80,7 @@ public final class RavenCore extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         SchedulerUtil.init(this);
+        PluginClassPreloader.preload(this);
         registerMenuClickDispatch();
 
         String configuredId = getConfig().getString("network.server-id", "").trim();
@@ -291,21 +294,21 @@ public final class RavenCore extends JavaPlugin {
     /** Console banner shown at the very start of enable, before modules load. */
     private void printBanner() {
         var console = Bukkit.getConsoleSender();
-        console.sendMessage(ChatFormatter.color("&8&m                                        "));
-        console.sendMessage(ChatFormatter.color("&5&lRaven&d&lCore &7v" + getDescription().getVersion()));
-        console.sendMessage(ChatFormatter.color("&7Server ID: &f" + serverId + " &8| &7Role: &f" + serverRole));
-        console.sendMessage(ChatFormatter.color("&7Starting up..."));
-        console.sendMessage(ChatFormatter.color("&8&m                                        "));
+        console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
+        console.sendMessage(ChatFormatter.color("&#FF2B2B&lRaven&#D90429&lCore &#7A7A7Av" + getDescription().getVersion()));
+        console.sendMessage(ChatFormatter.color("&#7A7A7AServer ID: &#FFFFFF" + serverId + " &#7A7A7A| &#7A7A7ARole: &#FFFFFF" + serverRole));
+        console.sendMessage(ChatFormatter.color("&#7A7A7AStarting up..."));
+        console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
     }
 
     /** Console summary shown once every module has finished loading. */
     private void printReady(long elapsedMs) {
         var console = Bukkit.getConsoleSender();
-        console.sendMessage(ChatFormatter.color("&8&m                                        "));
-        console.sendMessage(ChatFormatter.color("&a&lRavenCore enabled &7in &f" + elapsedMs + "ms"));
-        console.sendMessage(ChatFormatter.color("&7Modules (&f" + enabledModules.size() + "&7): &f"
-                + String.join("&7, &f", enabledModules)));
-        console.sendMessage(ChatFormatter.color("&8&m                                        "));
+        console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
+        console.sendMessage(ChatFormatter.color("&#33FF66&lRavenCore enabled &#7A7A7Ain &#FFFFFF" + elapsedMs + "ms"));
+        console.sendMessage(ChatFormatter.color("&#7A7A7AModules (&#FFFFFF" + enabledModules.size() + "&#7A7A7A): &#FFFFFF"
+                + String.join("&#7A7A7A, &#FFFFFF", enabledModules)));
+        console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
     }
 
     /**
@@ -414,13 +417,51 @@ public final class RavenCore extends JavaPlugin {
      * the unload runs once the world has finished loading and the server is ticking.
      */
     private void unloadForRole(World world, String logMessage) {
-        Bukkit.getGlobalRegionScheduler().run(this, task -> {
-            if (Bukkit.unloadWorld(world, false)) {
-                getLogger().info("[Role] " + logMessage);
-            } else {
-                getLogger().warning("[Role] Failed to unload world '" + world.getName() + "' for role " + serverRole);
+        if (unloadWorldAsync(world, logMessage)) {
+            return;
+        }
+
+        SchedulerUtil.run(() -> {
+            if (isTickingWorlds()) {
+                getLogger().warning("[Role] Cannot unload world '" + world.getName()
+                        + "' while worlds are ticking on this runtime. Disable this world in server config.");
+                return;
+            }
+
+            try {
+                if (Bukkit.unloadWorld(world, false)) {
+                    getLogger().info("[Role] " + logMessage);
+                } else {
+                    getLogger().warning("[Role] Failed to unload world '" + world.getName() + "' for role " + serverRole);
+                }
+            } catch (UnsupportedOperationException | IllegalStateException e) {
+                getLogger().warning("[Role] Runtime does not support synchronous world unload for '"
+                        + world.getName() + "': " + e.getMessage());
             }
         });
+    }
+
+    private boolean unloadWorldAsync(World world, String logMessage) {
+        try {
+            var method = Bukkit.class.getMethod("unloadWorldAsync", World.class, boolean.class, Consumer.class);
+            Consumer<Object> callback = result -> getLogger().info("[Role] " + logMessage + " (" + result + ")");
+            method.invoke(null, world, false, callback);
+            return true;
+        } catch (NoSuchMethodException ignored) {
+            return false;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            getLogger().warning("[Role] Async world unload failed for '" + world.getName() + "': " + e.getMessage());
+            return true;
+        }
+    }
+
+    private boolean isTickingWorlds() {
+        try {
+            Object value = Bukkit.getServer().getClass().getMethod("isTickingWorlds").invoke(Bukkit.getServer());
+            return value instanceof Boolean ticking && ticking;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
     }
 
     @Override

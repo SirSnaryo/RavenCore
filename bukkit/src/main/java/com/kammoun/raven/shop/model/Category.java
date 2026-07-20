@@ -32,7 +32,7 @@ public class Category {
 
     public Inventory buildInventory(List<String> priceLore) {
         ShopCategoryHolder holder = new ShopCategoryHolder(this);
-        Inventory inv = Bukkit.createInventory(holder, size, ChatFormatter.color(title));
+        Inventory inv = Bukkit.createInventory(holder, size, ChatFormatter.menuTitle(title));
         for (ShopItem item : items) {
             if (item.getIcon().getSlot() < 0) continue;
             inv.setItem(item.getIcon().getSlot(), withPriceLore(item, priceLore));

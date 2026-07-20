@@ -32,7 +32,7 @@ public class PurchaseManager {
         int initial = Math.min(baseAmount, maxStack);
 
         PurchaseHolder holder = new PurchaseHolder(shopItem, initial, maxStack, pricePerItem, category);
-        Inventory inv = Bukkit.createInventory(holder, 27, ChatFormatter.color(shopItem.getPurchaseTitle()));
+        Inventory inv = Bukkit.createInventory(holder, 27, ChatFormatter.menuTitle(shopItem.getPurchaseTitle()));
         holder.setInventory(inv);
         refresh(inv);
         player.openInventory(inv);

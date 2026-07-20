@@ -1,6 +1,15 @@
 # Unique name for this server on the network.
 # Used as the server identifier in Redis and cross-server events.
 # Leave empty to auto-use the name defined in server.properties.
+
+# Raven visual palette for config/messages:
+# - Text supports & codes and &#RRGGBB hex colors.
+# - Menu titles are always forced to &8 by code.
+# - Lore first labels in GUI items should use Small Caps.
+# - Sounds use Bukkit Sound enum names, plus pitch/volume when a section supports them.
+# - Main colors: #FF2B2B red, #D90429 dark red, #33FF66 green,
+#   #FFD447 yellow, #FF9F1C orange, #4CC9F0 cyan,
+#   #3A86FF blue, #7A7A7A gray, #FFFFFF white.
 network:
   server-id: ''
   # All regional overworld servers (NA, EU, etc.) share one world seed so terrain

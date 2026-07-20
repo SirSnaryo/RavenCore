@@ -50,7 +50,7 @@ public class BillfordGui implements InventoryHolder {
         }
         this.preset = preset;
 
-        String title = ChatFormatter.color(config.getGuiTitle());
+        String title = ChatFormatter.menuTitle(config.getGuiTitle());
         inventory = Bukkit.createInventory(this, config.getGuiSize(), title);
 
         FileConfiguration cfg = config.getConfig();

@@ -2,6 +2,7 @@ package com.kammoun.raven.spawn;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.library.platform.sound.KSound;
 import com.kammoun.raven.library.redis.event.LocationsUpdatedEvent;
 import com.kammoun.raven.spawn.cache.LocationCache;
 import com.kammoun.raven.spawn.command.AfkCommand;
@@ -13,6 +14,7 @@ import com.kammoun.raven.spawn.countdown.TeleportCountdown;
 import com.kammoun.raven.spawn.db.LocationRepository;
 import com.kammoun.raven.spawn.db.LocationsTable;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -49,7 +51,9 @@ public class SpawnModule extends KModule<RavenCore> {
         cache.reload();
 
         int countdownSeconds = getConfig().getInt("teleport-countdown.seconds", 5);
-        countdown = new TeleportCountdown(api, messages, countdownSeconds);
+        countdown = new TeleportCountdown(api, messages, countdownSeconds,
+                readSound("teleport-countdown.sounds.tick", Sound.ENTITY_ENDERMAN_TELEPORT, 1.9f, 0.65f),
+                readSound("teleport-countdown.sounds.denied", Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f));
         countdown.start();
 
         registerCommand(new SetSpawnCommand(api, repository, cache, messages, defaultMaxPlayers), "setspawn");
@@ -84,5 +88,13 @@ public class SpawnModule extends KModule<RavenCore> {
     private FileConfiguration loadMessages() {
         saveDefaultConfig("messages.yml");
         return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml"));
+    }
+
+    private KSound readSound(String path, Sound fallback, float pitch, float volume) {
+        if (!getConfig().isConfigurationSection(path)) {
+            return new KSound(fallback, pitch, volume);
+        }
+        KSound sound = KSound.getSoundFromConfig(getConfig().getConfigurationSection(path));
+        return sound != null ? sound : new KSound(fallback, pitch, volume);
     }
 }
