@@ -9,8 +9,10 @@ public class TpaRequestEvent extends CrossServerEvent {
     private String requesterUuid;
     private String requesterName;
     private String requesterServer;
+    private String requesterServerDisplayName;
     private String targetUuid;
     private String targetName;
     private String targetServer;
+    private String targetServerDisplayName;
     private String type;
 }

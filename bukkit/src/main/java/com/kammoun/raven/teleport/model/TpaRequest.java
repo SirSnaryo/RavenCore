@@ -6,16 +6,33 @@ public record TpaRequest(
         UUID requesterId,
         String requesterName,
         String requesterServer,
+        String requesterServerDisplayName,
         UUID targetId,
         String targetName,
         String targetServer,
+        String targetServerDisplayName,
         Type type,
         long createdAt
 ) {
 
     public TpaRequest(UUID requesterId, String requesterName, String requesterServer,
                       UUID targetId, String targetName, String targetServer, Type type) {
-        this(requesterId, requesterName, requesterServer, targetId, targetName, targetServer, type,
+        this(requesterId, requesterName, requesterServer, requesterServer,
+                targetId, targetName, targetServer, targetServer, type,
+                System.currentTimeMillis());
+    }
+
+    public TpaRequest(UUID requesterId, String requesterName, String requesterServer,
+                      UUID targetId, String targetName, String targetServer, Type type, long createdAt) {
+        this(requesterId, requesterName, requesterServer, requesterServer,
+                targetId, targetName, targetServer, targetServer, type, createdAt);
+    }
+
+    public TpaRequest(UUID requesterId, String requesterName, String requesterServer, String requesterServerDisplayName,
+                      UUID targetId, String targetName, String targetServer, String targetServerDisplayName,
+                      Type type) {
+        this(requesterId, requesterName, requesterServer, requesterServerDisplayName,
+                targetId, targetName, targetServer, targetServerDisplayName, type,
                 System.currentTimeMillis());
     }
 

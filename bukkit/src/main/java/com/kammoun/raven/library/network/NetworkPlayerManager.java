@@ -12,7 +12,11 @@ import redis.clients.jedis.JedisPool;
 public class NetworkPlayerManager extends AbstractNetworkPlayerManager implements Listener {
 
     public NetworkPlayerManager(Plugin plugin, JedisPool pool, String serverId, NetworkEventBus eventBus) {
-        super(pool, serverId, eventBus);
+        this(plugin, pool, serverId, serverId, eventBus);
+    }
+
+    public NetworkPlayerManager(Plugin plugin, JedisPool pool, String serverId, String serverDisplayName, NetworkEventBus eventBus) {
+        super(pool, serverId, serverDisplayName, eventBus);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 

@@ -96,6 +96,18 @@ commands:
     aliases: [setting, prefs, preferences]
     permission: raven.settings
     permission-message: You don't have permission to use this command.
+  chattoggle:
+    description: Toggle receiving public chat messages
+    usage: /chattoggle
+    aliases: [togglechat]
+    permission: raven.chat
+    permission-message: You don't have permission to use this command.
+  broadcasttoggle:
+    description: Toggle receiving Raven auto broadcast messages
+    usage: /broadcasttoggle
+    aliases: [btoggle, togglebroadcast]
+    permission: raven.chat
+    permission-message: You don't have permission to use this command.
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
@@ -227,6 +239,36 @@ permissions:
   raven.chat:
     description: Send messages in network-wide chat
     default: true
+  raven.chat.link:
+    description: Allow clickable/colored link formatting in chat
+    default: true
+  raven.chat.color:
+    description: Allow color codes in chat messages
+    default: op
+  raven.chat.format.admin:
+    description: Use the default admin chat format
+    default: op
+  raven.chat.bypass.toggle:
+    description: Receive public chat even when other players hide it
+    default: op
+  raven.chat.bypass.cooldown:
+    description: Bypass chat cooldown checks
+    default: op
+  raven.chat.bypass.same:
+    description: Bypass duplicate message checks
+    default: op
+  raven.chat.bypass.caps:
+    description: Bypass caps checks
+    default: op
+  raven.chat.bypass.flood:
+    description: Bypass flood checks
+    default: op
+  raven.chat.bypass.filter:
+    description: Bypass configured chat filters
+    default: op
+  raven.chat.bypass.length:
+    description: Bypass max chat length
+    default: op
   raven.scoreboard:
     description: Use personal scoreboard commands
     default: true

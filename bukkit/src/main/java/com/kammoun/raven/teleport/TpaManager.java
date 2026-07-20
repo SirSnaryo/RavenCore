@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class TpaManager {
     private final TeleportSettingsService settingsService;
     private final Map<UUID, Map<UUID, TpaRequest>> activeRequests = new ConcurrentHashMap<>();
     private final Map<UUID, SchedulerUtil.Task> countdownTasks = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> requestCooldowns = new ConcurrentHashMap<>();
 
     public TpaManager(TeleportModule module, TeleportConfig config, TeleportSettingsService settingsService) {
         this.module = module;
@@ -42,13 +44,25 @@ public class TpaManager {
             return;
         }
 
+        long cooldownLeft = requestCooldownLeft(requester.getUniqueId());
+        if (cooldownLeft > 0) {
+            config.send(requester, TeleportMessage.REQUEST_COOLDOWN,
+                    "%player%", target.getPlayerName(), "%time%", String.valueOf(cooldownLeft));
+            config.actionBar(requester, TeleportMessage.REQUEST_COOLDOWN,
+                    "%player%", target.getPlayerName(), "%time%", String.valueOf(cooldownLeft));
+            config.sound(requester, "error");
+            return;
+        }
+
         TpaRequest request = new TpaRequest(
                 requester.getUniqueId(),
                 requester.getName(),
                 module.currentServer(),
+                module.currentServerDisplayName(),
                 target.getUuid(),
                 target.getPlayerName(),
                 target.getServerId(),
+                displayName(target),
                 type
         );
 
@@ -126,12 +140,14 @@ public class TpaManager {
                 request.requesterId(),
                 request.requesterName(),
                 request.requesterServer(),
+                request.requesterServerDisplayName(),
                 null
         );
         NetworkPlayerInfo destination = new NetworkPlayerInfo(
                 request.targetId(),
                 request.targetName(),
                 request.targetServer(),
+                request.targetServerDisplayName(),
                 target.getWorld().getName()
         );
 
@@ -140,7 +156,12 @@ public class TpaManager {
         notifyRequester(request, TeleportMessage.TARGET_ACCEPTED_TELEPORT);
 
         if (request.type() == TpaRequest.Type.TPA) {
-            module.teleportToPlayer(Bukkit.getConsoleSender(), requester, destination);
+            Player localRequester = Bukkit.getPlayer(request.requesterId());
+            if (localRequester != null) {
+                startCountdown(localRequester, () -> module.teleportToPlayer(Bukkit.getConsoleSender(), requester, destination));
+            } else {
+                module.teleportToPlayer(Bukkit.getConsoleSender(), requester, destination);
+            }
             return;
         }
 
@@ -148,9 +169,10 @@ public class TpaManager {
                 target.getUniqueId(),
                 target.getName(),
                 module.currentServer(),
+                module.currentServerDisplayName(),
                 target.getWorld().getName()
         );
-        module.teleportToPlayer(Bukkit.getConsoleSender(), targetInfo, requester);
+        startCountdown(target, () -> module.teleportToPlayer(Bukkit.getConsoleSender(), targetInfo, requester));
     }
 
     public void denyRequest(Player target, TpaRequest request) {
@@ -177,6 +199,7 @@ public class TpaManager {
 
     public void unload(UUID playerId) {
         cancelTeleport(playerId);
+        requestCooldowns.remove(playerId);
         activeRequests.remove(playerId);
         cancelOutgoing(playerId);
     }
@@ -230,6 +253,7 @@ public class TpaManager {
     }
 
     private void sent(Player requester, String targetName, TpaRequest.Type type) {
+        requestCooldowns.put(requester.getUniqueId(), System.currentTimeMillis());
         config.send(requester, type == TpaRequest.Type.TPA ? TeleportMessage.SENT_REQUEST : TeleportMessage.SENT_HERE_REQUEST,
                 "%player%", targetName);
         config.actionBar(requester, type == TpaRequest.Type.TPA
@@ -244,12 +268,15 @@ public class TpaManager {
         if (requester != null) {
             config.send(requester, message, "%player%", request.targetName());
             config.actionBar(requester, message, "%player%", request.targetName());
+            config.sound(requester, soundFor(message));
             return;
         }
 
         TpaNotificationEvent event = new TpaNotificationEvent();
         event.setRecipientUuid(request.requesterId().toString());
         event.setMessageKey(message.name());
+        event.setActionBarKey(message.name());
+        event.setSoundKey(soundFor(message));
         event.setPlayerName(request.targetName());
         module.getApi().getNetworkEventBus().publish(event);
     }
@@ -259,11 +286,45 @@ public class TpaManager {
         event.setRequesterUuid(request.requesterId().toString());
         event.setRequesterName(request.requesterName());
         event.setRequesterServer(request.requesterServer());
+        event.setRequesterServerDisplayName(request.requesterServerDisplayName());
         event.setTargetUuid(request.targetId().toString());
         event.setTargetName(request.targetName());
         event.setTargetServer(request.targetServer());
+        event.setTargetServerDisplayName(request.targetServerDisplayName());
         event.setType(request.type().name());
         module.getApi().getNetworkEventBus().publish(event);
+    }
+
+    private long requestCooldownLeft(UUID requesterId) {
+        long cooldownSeconds = config.requestCooldownSeconds();
+        if (cooldownSeconds <= 0) {
+            return 0;
+        }
+        Long last = requestCooldowns.get(requesterId);
+        if (last == null) {
+            return 0;
+        }
+        long elapsed = (System.currentTimeMillis() - last) / 1000L;
+        long left = cooldownSeconds - elapsed;
+        if (left <= 0) {
+            requestCooldowns.remove(requesterId);
+            return 0;
+        }
+        return left;
+    }
+
+    private String displayName(NetworkPlayerInfo info) {
+        return info.getServerDisplayName() == null || info.getServerDisplayName().isBlank()
+                ? info.getServerId()
+                : info.getServerDisplayName();
+    }
+
+    private String soundFor(TeleportMessage message) {
+        return switch (message) {
+            case TARGET_ACCEPTED_TELEPORT -> "accept-teleport";
+            case CANCELLED_REQUEST_SENDER -> "request-cancelled";
+            default -> "error";
+        };
     }
 
     private void removeRequest(UUID targetId, UUID requesterId) {
@@ -272,6 +333,44 @@ public class TpaManager {
         requests.remove(requesterId);
         if (requests.isEmpty()) {
             activeRequests.remove(targetId);
+        }
+    }
+
+    private void startCountdown(Player player, Runnable teleport) {
+        int seconds = config.countdownSeconds();
+        if (seconds <= 0) {
+            teleport.run();
+            return;
+        }
+
+        cancelTeleport(player.getUniqueId());
+        AtomicInteger remaining = new AtomicInteger(seconds);
+        SchedulerUtil.Task[] holder = new SchedulerUtil.Task[1];
+        holder[0] = SchedulerUtil.runTimer(() -> SchedulerUtil.execute(player, () -> {
+            if (!player.isOnline()) {
+                cancelCountdown(player.getUniqueId(), holder[0]);
+                return;
+            }
+
+            int left = remaining.getAndDecrement();
+            if (left <= 0) {
+                cancelCountdown(player.getUniqueId(), holder[0]);
+                teleport.run();
+                return;
+            }
+
+            String time = String.valueOf(left);
+            config.send(player, TeleportMessage.TELEPORT_COUNTDOWN, "%time%", time);
+            config.actionBar(player, TeleportMessage.TELEPORT_COUNTDOWN_ACTIONBAR, "%time%", time);
+            config.sound(player, "count-down");
+        }), 1L, 20L);
+        countdownTasks.put(player.getUniqueId(), holder[0]);
+    }
+
+    private void cancelCountdown(UUID playerId, SchedulerUtil.Task task) {
+        countdownTasks.remove(playerId);
+        if (task != null) {
+            task.cancel();
         }
     }
 }

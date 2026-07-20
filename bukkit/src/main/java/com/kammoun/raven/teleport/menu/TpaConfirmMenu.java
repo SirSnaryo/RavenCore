@@ -33,12 +33,14 @@ public class TpaConfirmMenu extends KMenu {
 
     public void open(Player player, NetworkPlayerInfo target) {
         contexts.put(player.getUniqueId(), new Context(target, null));
-        super.open(player, placeholders(target.getPlayerName(), target.getServerId(), target.getWorld()));
+        super.open(player, placeholders(target.getPlayerName(), displayServer(target.getServerId(), target.getServerDisplayName()),
+                target.getWorld(), target.getUuid()));
     }
 
     public void open(Player player, TpaRequest request) {
         contexts.put(player.getUniqueId(), new Context(null, request));
-        super.open(player, placeholders(request.requesterName(), request.requesterServer(), null));
+        super.open(player, placeholders(request.requesterName(),
+                displayServer(request.requesterServer(), request.requesterServerDisplayName()), null, request.requesterId()));
     }
 
     @Override
@@ -88,12 +90,28 @@ public class TpaConfirmMenu extends KMenu {
         }
     }
 
-    private String[] placeholders(String playerName, String server, String world) {
+    private String[] placeholders(String playerName, String server, String world, UUID playerId) {
         return new String[]{
                 "%player%", playerName == null ? "Unknown" : playerName,
                 "%server%", server == null ? "Unknown" : server,
-                "%world%", world == null ? "Unknown" : module.getTeleportConfig().worldNickname(world)
+                "%world%", world == null ? "Unknown" : module.getTeleportConfig().worldNickname(world),
+                "%is_flying%", flyingText(playerId)
         };
+    }
+
+    private String displayServer(String id, String displayName) {
+        return displayName == null || displayName.isBlank() ? id : displayName;
+    }
+
+    private String flyingText(UUID playerId) {
+        if (playerId == null) {
+            return "Unknown";
+        }
+        Player player = org.bukkit.Bukkit.getPlayer(playerId);
+        if (player == null) {
+            return "Unknown";
+        }
+        return player.isFlying() ? "Yes" : "No";
     }
 
     public enum Mode {

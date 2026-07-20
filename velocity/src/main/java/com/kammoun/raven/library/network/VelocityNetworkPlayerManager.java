@@ -19,16 +19,12 @@ public class VelocityNetworkPlayerManager extends AbstractNetworkPlayerManager {
     /** Fires after a player successfully connects to a backend server. */
     @Subscribe
     public void onServerConnect(ServerPostConnectEvent event) {
-        // previousServer == null means the player just joined the network (not switching servers)
-        if (event.getPreviousServer() == null) {
-            // world is unknown at the proxy layer; the backend's own registerPlayer call
-            // (fired by its PlayerJoinEvent) overwrites this with the real world moments later
-            registerPlayer(
-                    event.getPlayer().getUniqueId(),
-                    event.getPlayer().getUsername(),
-                    null
-            );
-        }
+        // The proxy knows the backend server name but not the world. Bukkit will overwrite
+        // this row moments later with the same server plus the real world.
+        String backend = event.getPlayer().getCurrentServer()
+                .map(connection -> connection.getServer().getServerInfo().getName())
+                .orElse(event.getPreviousServer() == null ? serverId : event.getPreviousServer().getServerInfo().getName());
+        registerPlayer(event.getPlayer().getUniqueId(), event.getPlayer().getUsername(), backend, backend, null);
     }
 
     /** Fires when a player fully disconnects from the proxy. */

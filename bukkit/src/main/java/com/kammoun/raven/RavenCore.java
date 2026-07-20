@@ -38,6 +38,10 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,6 +57,7 @@ public final class RavenCore extends JavaPlugin {
     private final List<String> enabledModules = new ArrayList<>();
 
     private String serverId;
+    private String serverDisplayName;
     private ServerRole serverRole;
     private RedisCredentials redisCredentials;
     private RedisMessenger redisMessenger;
@@ -81,12 +86,16 @@ public final class RavenCore extends JavaPlugin {
         long startedAt = System.currentTimeMillis();
         instance = this;
         saveDefaultConfig();
+        migrateCoreConfigFile();
+        reloadConfig();
         SchedulerUtil.init(this);
         PluginClassPreloader.preload(this);
         registerMenuClickDispatch();
 
         String configuredId = getConfig().getString("network.server-id", "").trim();
         serverId   = configuredId.isEmpty() ? getServer().getName() : configuredId;
+        String configuredDisplayName = getConfig().getString("network.server-display-name", "").trim();
+        serverDisplayName = configuredDisplayName.isEmpty() ? serverId : configuredDisplayName;
         serverRole = ServerRole.parse(getConfig().getString("server-role", "overworld"));
 
         printBanner();
@@ -120,7 +129,8 @@ public final class RavenCore extends JavaPlugin {
         }
 
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, SchedulerUtil::run);
-        networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(), serverId, networkEventBus);
+        networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(),
+                serverId, serverDisplayName, networkEventBus);
 
         mySqlManager = new MySQLDBManager(getConfig());
         mySqlManager.connect();
@@ -294,8 +304,94 @@ public final class RavenCore extends JavaPlugin {
 
         @Override
         public void reload() {
+            RavenCore.this.migrateCoreConfigFile();
             RavenCore.this.reloadConfig();
         }
+    }
+
+    /**
+     * Bukkit only copies config.yml the first time. This adds new core keys to
+     * existing installs with a tiny line-based migration so comments/order stay intact.
+     */
+    private void migrateCoreConfigFile() {
+        File configFile = new File(getDataFolder(), "config.yml");
+        if (!configFile.isFile()) {
+            return;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(configFile.toPath(), StandardCharsets.UTF_8);
+            if (hasNetworkKey(lines, "server-display-name")) {
+                return;
+            }
+
+            List<String> updated = new ArrayList<>(lines);
+            List<String> displayNameBlock = List.of(
+                    "  # Friendly server name shown in GUI lore/messages.",
+                    "  # Example: \"NA East\", \"SMP World NA\", \"Spawn\".",
+                    "  # Leave empty to reuse network.server-id.",
+                    "  server-display-name: ''"
+            );
+
+            int networkLine = findTopLevelSection(lines, "network");
+            if (networkLine == -1) {
+                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) {
+                    updated.add("");
+                }
+                updated.add("network:");
+                updated.add("  server-id: ''");
+                updated.addAll(displayNameBlock);
+            } else {
+                int serverIdLine = findSectionKey(lines, networkLine, "server-id");
+                int insertAt = serverIdLine == -1 ? networkLine + 1 : serverIdLine + 1;
+                updated.addAll(insertAt, displayNameBlock);
+            }
+
+            Files.write(configFile.toPath(), updated, StandardCharsets.UTF_8);
+            getLogger().info("[Config] Added missing network.server-display-name to config.yml.");
+        } catch (IOException e) {
+            getLogger().warning("[Config] Failed to migrate config.yml: " + e.getMessage());
+        }
+    }
+
+    private boolean hasNetworkKey(List<String> lines, String key) {
+        return findSectionKey(lines, findTopLevelSection(lines, "network"), key) != -1;
+    }
+
+    private int findTopLevelSection(List<String> lines, String section) {
+        String expected = section + ":";
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line == null || line.isBlank() || line.startsWith(" ") || line.startsWith("\t")) {
+                continue;
+            }
+            if (line.trim().equals(expected)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int findSectionKey(List<String> lines, int sectionLine, String key) {
+        if (sectionLine < 0) {
+            return -1;
+        }
+
+        String expected = key + ":";
+        for (int i = sectionLine + 1; i < lines.size(); i++) {
+            String line = lines.get(i);
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                continue;
+            }
+            if (!line.startsWith(" ") && !line.startsWith("\t")) {
+                return -1;
+            }
+            if (trimmed.equals(expected) || trimmed.startsWith(expected + " ")) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /** Console banner shown at the very start of enable, before modules load. */
@@ -303,7 +399,8 @@ public final class RavenCore extends JavaPlugin {
         var console = Bukkit.getConsoleSender();
         console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
         console.sendMessage(ChatFormatter.color("&#FF2B2B&lRaven&#D90429&lCore &#7A7A7Av" + getDescription().getVersion()));
-        console.sendMessage(ChatFormatter.color("&#7A7A7AServer ID: &#FFFFFF" + serverId + " &#7A7A7A| &#7A7A7ARole: &#FFFFFF" + serverRole));
+        console.sendMessage(ChatFormatter.color("&#7A7A7AServer: &#FFFFFF" + serverDisplayName
+                + " &#7A7A7A(" + serverId + ") &#7A7A7A| Role: &#FFFFFF" + serverRole));
         console.sendMessage(ChatFormatter.color("&#7A7A7AStarting up..."));
         console.sendMessage(ChatFormatter.color("&#7A7A7A&m                                        "));
     }

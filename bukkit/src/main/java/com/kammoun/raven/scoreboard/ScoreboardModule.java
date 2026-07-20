@@ -19,6 +19,10 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -42,6 +46,8 @@ public class ScoreboardModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         saveDefaultConfig("config.example.yml");
+        migrateConfigFile();
+        reloadConfig();
         statsService = createStatsService();
         statsService.init();
         service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()), statsService);
@@ -72,6 +78,7 @@ public class ScoreboardModule extends KModule<RavenCore> {
 
     @Override
     public void reload() {
+        migrateConfigFile();
         reloadConfig();
         stopTasks();
         service.reload(new ScoreboardConfig(getConfig()));
@@ -149,6 +156,28 @@ public class ScoreboardModule extends KModule<RavenCore> {
             getLogger().warning("[Scoreboard] MySQL unavailable; scoreboard stats will only live in memory.");
         }
         return new ScoreboardStatsService(repository, getLogger());
+    }
+
+    private void migrateConfigFile() {
+        File file = new File(getDataFolder(), "config.yml");
+        if (!file.isFile()) {
+            return;
+        }
+
+        try {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            String updated = content.replace(">NA East <#4CC9F0>", ">%raven_server_display% <#4CC9F0>");
+            if (!updated.contains("# - %raven_server_display%")) {
+                updated = updated.replace("# - %raven_server%\n", "# - %raven_server%\n    # - %raven_server_display%\n");
+                updated = updated.replace("# - %raven_server%\r\n", "# - %raven_server%\r\n    # - %raven_server_display%\r\n");
+            }
+            if (!updated.equals(content)) {
+                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
+                getLogger().info("[Scoreboard] Migrated server display placeholder in config.yml.");
+            }
+        } catch (IOException e) {
+            getLogger().warning("[Scoreboard] Failed to migrate config.yml: " + e.getMessage());
+        }
     }
 
     private void registerConfiguredBukkitEvents() {

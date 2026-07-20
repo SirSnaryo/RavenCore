@@ -46,6 +46,7 @@ public class SettingsModule extends KModule<RavenCore> {
 
     private void registerBuiltInSettings() {
         registerTeleportSettings();
+        registerChatSettings();
         registerScoreboardSettings();
     }
 
@@ -57,7 +58,7 @@ public class SettingsModule extends KModule<RavenCore> {
         registry.register(PlayerSettingDefinition.builder("teleport.tpa")
                 .category("Teleport")
                 .displayName("&#33FF66ᴛᴘᴀ ʀᴇǫᴜᴇsᴛs")
-                .description(List.of("&#FFFFFFAllow players to request teleporting to you."))
+                .description(List.of("&#FFFFFFAllow players to teleport to you.", "&#7A7A7AControls incoming /tpa requests."))
                 .material(Material.ENDER_PEARL)
                 .priority(10)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).acceptsTpa())
@@ -67,8 +68,8 @@ public class SettingsModule extends KModule<RavenCore> {
         registry.register(PlayerSettingDefinition.builder("teleport.tpahere")
                 .category("Teleport")
                 .displayName("&#4CC9F0ᴛᴘᴀʜᴇʀᴇ ʀᴇǫᴜᴇsᴛs")
-                .description(List.of("&#FFFFFFAllow players to ask you to teleport to them."))
-                .material(Material.ENDER_EYE)
+                .description(List.of("&#FFFFFFAllow players to pull you to them.", "&#7A7A7AControls incoming /tpahere requests."))
+                .material(Material.CLOCK)
                 .priority(11)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).acceptsTpaHere())
                 .setter((player, enabled) -> api.getTeleportModule().getSettingsService().set(player, TeleportPreference.TPA_HERE, enabled))
@@ -77,8 +78,8 @@ public class SettingsModule extends KModule<RavenCore> {
         registry.register(PlayerSettingDefinition.builder("teleport.auto")
                 .category("Teleport")
                 .displayName("&#FFD447ᴛᴘᴀᴜᴛᴏ")
-                .description(List.of("&#FFFFFFAutomatically accept incoming teleport requests."))
-                .material(Material.CLOCK)
+                .description(List.of("&#FFFFFFAutomatically accept TPA requests.", "&#D90429Use carefully near unknown players."))
+                .material(Material.REDSTONE_TORCH)
                 .priority(12)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).autoAccept())
                 .setter((player, enabled) -> api.getTeleportModule().getSettingsService().set(player, TeleportPreference.TPA_AUTO, enabled))
@@ -86,12 +87,38 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("teleport.confirm-menu")
                 .category("Teleport")
-                .displayName("&#FF2B2Bᴛᴘᴀ ᴄᴏɴғɪʀᴍ ᴍᴇɴᴜ")
-                .description(List.of("&#FFFFFFShow confirm GUIs before sending or accepting TPA."))
-                .material(Material.COMPASS)
+                .displayName("&#FF2B2Bᴛᴘᴀ ᴄᴏɴꜰɪʀᴍ ᴍᴇɴᴜ")
+                .description(List.of("&#FFFFFFShow a menu before sending/accepting.", "&#7A7A7ARecommended for safer teleports."))
+                .material(Material.ENDER_EYE)
                 .priority(13)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).confirmMenu())
                 .setter((player, enabled) -> api.getTeleportModule().getSettingsService().set(player, TeleportPreference.CONFIRM_MENU, enabled))
+                .build());
+    }
+
+    private void registerChatSettings() {
+        if (api.getChatModule() == null || api.getChatModule().getSettingsService() == null) {
+            return;
+        }
+
+        registry.register(PlayerSettingDefinition.builder("chat.public")
+                .category("Chat")
+                .displayName("&#4CC9F0ᴘᴜʙʟɪᴄ ᴄʜᴀᴛ")
+                .description(List.of("&#FFFFFFShow or hide member chat.", "&#7A7A7AYou can still send messages."))
+                .material(Material.OAK_SIGN)
+                .priority(20)
+                .getter(player -> api.getChatModule().getSettingsService().canReceiveChat(player.getUniqueId()))
+                .setter((player, enabled) -> api.getChatModule().getSettingsService().setChat(player, enabled))
+                .build());
+
+        registry.register(PlayerSettingDefinition.builder("chat.broadcast")
+                .category("Chat")
+                .displayName("&#FFD447ʙʀᴏᴀᴅᴄᴀsᴛs")
+                .description(List.of("&#FFFFFFShow or hide auto messages.", "&#7A7A7ARaven broadcasts still run on Redis."))
+                .material(Material.BELL)
+                .priority(21)
+                .getter(player -> api.getChatModule().getSettingsService().canReceiveBroadcast(player.getUniqueId()))
+                .setter((player, enabled) -> api.getChatModule().getSettingsService().setBroadcast(player, enabled))
                 .build());
     }
 
@@ -103,8 +130,8 @@ public class SettingsModule extends KModule<RavenCore> {
         registry.register(PlayerSettingDefinition.builder("scoreboard.enabled")
                 .category("Visual")
                 .displayName("&#3A86FFsᴄᴏʀᴇʙᴏᴀʀᴅ")
-                .description(List.of("&#FFFFFFShow or hide your personal scoreboard."))
-                .material(Material.MAP)
+                .description(List.of("&#FFFFFFShow or hide your sidebar.", "&#7A7A7ASaved per player."))
+                .material(Material.NAME_TAG)
                 .priority(30)
                 .getter(player -> api.getScoreboardModule().getService().isEnabled(player))
                 .setter((player, enabled) -> api.getScoreboardModule().getService().setEnabled(player, enabled))

@@ -222,9 +222,11 @@ public class TeleportModule extends KModule<RavenCore> {
                     UUID.fromString(event.getRequesterUuid()),
                     event.getRequesterName(),
                     event.getRequesterServer(),
+                    event.getRequesterServerDisplayName(),
                     UUID.fromString(event.getTargetUuid()),
                     event.getTargetName(),
                     event.getTargetServer(),
+                    event.getTargetServerDisplayName(),
                     TpaRequest.Type.valueOf(event.getType())
             );
         } catch (RuntimeException ignored) {
@@ -248,7 +250,19 @@ public class TeleportModule extends KModule<RavenCore> {
             return;
         }
         if (player == null) return;
-        SchedulerUtil.execute(player, () -> teleportConfig.send(player, message, "%player%", event.getPlayerName()));
+        SchedulerUtil.execute(player, () -> {
+            teleportConfig.send(player, message, "%player%", event.getPlayerName());
+            if (event.getActionBarKey() != null) {
+                try {
+                    teleportConfig.actionBar(player, TeleportMessage.valueOf(event.getActionBarKey()),
+                            "%player%", event.getPlayerName());
+                } catch (RuntimeException ignored) {
+                }
+            }
+            if (event.getSoundKey() != null) {
+                teleportConfig.sound(player, event.getSoundKey());
+            }
+        });
     }
 
     private void fallbackApplyTeleportEvent(Player traveller, CrossServerTeleportEvent event) {
@@ -336,6 +350,10 @@ public class TeleportModule extends KModule<RavenCore> {
 
     public String currentServer() {
         return api.getServerId();
+    }
+
+    public String currentServerDisplayName() {
+        return api.getServerDisplayName();
     }
 
     record CoordinateTarget(String server, String world, double x, double y, double z, float yaw, float pitch) {

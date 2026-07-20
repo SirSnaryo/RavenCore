@@ -81,6 +81,10 @@ public class TeleportConfig {
         return config.getLong("data.clear-time", 120L);
     }
 
+    public long requestCooldownSeconds() {
+        return config.getLong("data.request-cooldown", 5L);
+    }
+
     public int countdownSeconds() {
         return config.getInt("teleport-countdown.seconds", 5);
     }

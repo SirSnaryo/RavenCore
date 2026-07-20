@@ -8,5 +8,7 @@ import lombok.Setter;
 public class TpaNotificationEvent extends CrossServerEvent {
     private String recipientUuid;
     private String messageKey;
+    private String actionBarKey;
+    private String soundKey;
     private String playerName;
 }

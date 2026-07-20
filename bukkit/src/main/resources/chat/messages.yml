@@ -1,1 +1,17 @@
 no-permission: "&#D90429You don't have permission to use chat."
+too-long: "&#D90429Your message is too long."
+cooldown: "&#FFD447Slow down before sending another message."
+same-message: "&#D90429Please do not repeat the same message."
+caps: "&#D90429Please avoid excessive caps."
+flood: "&#D90429Please avoid repeated-character spam."
+blocked: "&#D90429That message cannot be sent."
+
+chat-toggle-on: "&#33FF66Public chat enabled."
+chat-toggle-off: "&#D90429Public chat hidden. You can still send messages."
+chat-toggle-on-actionbar: "&#33FF66Public chat visible."
+chat-toggle-off-actionbar: "&#D90429Public chat hidden."
+
+broadcast-toggle-on: "&#33FF66Auto broadcasts enabled."
+broadcast-toggle-off: "&#D90429Auto broadcasts hidden."
+broadcast-toggle-on-actionbar: "&#33FF66Broadcasts visible."
+broadcast-toggle-off-actionbar: "&#D90429Broadcasts hidden."

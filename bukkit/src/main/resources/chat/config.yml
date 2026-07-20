@@ -1,8 +1,106 @@
-# Placeholders: %server% (server-tag below), %player%, %message%.
-# Any PlaceholderAPI placeholder (e.g. %luckperms_prefix%) is also resolved here,
-# using the sender's server, before the line is broadcast network-wide.
+# Raven chat module.
+#
+# Chat lines are formatted on the sender server, published over Redis, then
+# delivered by every Bukkit server to its local players. Per-player toggles are
+# stored in Redis hashes so the state follows the player across the network.
+
+# Permission required to send network chat.
+permission: raven.chat
+
+# Placeholders: %server%, %player%, %message%.
+# PlaceholderAPI placeholders like %luckperms_prefix% are resolved on sender server.
 format: "%luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
 
-# Tag shown as %server% in the format above. Leave blank to use this
-# server's configured network.server-id.
+# Optional permission formats. Higher priority wins.
+formats:
+  - permission: "raven.chat.format.admin"
+    priority: 100
+    format: "&#D90429&lADMIN &#7A7A7A| %luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
+  - permission: ""
+    priority: 0
+    format: "%luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
+
+# Leave blank to use network.server-display-name from the core config.
 server-tag: ""
+
+limits:
+  # Maximum raw message length. Set <= 0 to disable.
+  max-length: 256
+  # Normal chat cooldown in milliseconds. 1000 = 1 second.
+  cooldown-millis: 1000
+
+rules:
+  same-message-cancel: true
+  caps:
+    enabled: true
+    # 0.75 means 75% of letters are uppercase.
+    threshold: 0.75
+  flood:
+    enabled: true
+    # Cancels repeated-character spam such as "hellooooo".
+    regex: "(.)\\1{4,}"
+  # Regex patterns. Empty by default; add entries for words/ads you want blocked.
+  blocked-patterns: []
+
+links:
+  enabled: true
+  clickable: true
+  # Applied only to players with raven.chat.link.
+  format: "&#4CC9F0%url%"
+
+mentions:
+  # %player% is the matched @Name.
+  self-format: "&#FFD447&l%player%"
+  other-format: "&#4CC9F0%player%"
+
+rich-chat:
+  enabled: true
+  # Hover the sender name in chat.
+  sender-hover:
+    enabled: true
+    lines:
+      - "&#FF2B2B&l%player%"
+      - "&#7A7A7AServer: &#FFFFFF%server%"
+      - "&#7A7A7AClick to message this player."
+  sender-click:
+    enabled: true
+    # Bukkit/Bungee actions: SUGGEST_COMMAND, RUN_COMMAND, OPEN_URL.
+    action: SUGGEST_COMMAND
+    value: "/msg %player% "
+  # Optional whole-message hover. Disabled by default so sender/link hovers stay clean.
+  message-hover:
+    enabled: false
+    lines:
+      - "&#7A7A7AFrom &#FFFFFF%player% &#7A7A7Aon &#FFFFFF%server%"
+
+sounds:
+  toggle:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.35
+    volume: 1.0
+  error:
+    sound: ENTITY_VILLAGER_NO
+    pitch: 0.85
+    volume: 1.0
+  mention:
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 1.8
+    volume: 0.8
+  broadcast:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.15
+    volume: 0.8
+
+auto-messages:
+  enabled: false
+  # One server wins this Redis lock each interval, then publishes to all servers.
+  redis-lock-key: "raven:chat:auto:lock"
+  lock-ttl-seconds: 8
+  interval-ticks: 2400
+  messages:
+    - message: "&#FF2B2B&lRaven SMP &#7A7A7AUse &#FFFFFF/settings &#7A7A7Ato control chat and broadcasts."
+      action-bar: "&#4CC9F0Raven &#7A7A7Asettings are synced across the network."
+      sound: broadcast
+    - message: "&#FFD447&lTip &#7A7A7AMention a player with &#FFFFFF@name &#7A7A7Ato ping them."
+      action-bar: ""
+      sound: broadcast

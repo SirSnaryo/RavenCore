@@ -1,32 +1,31 @@
-Title: "&8Settings"
-Size: 45
+Title: "&8sᴇᴛᴛɪɴɢs"
+Size: 54
 
+# Slot order follows DonutSMPCore's settings layout for the settings Raven has now.
+# Current built-in order:
+# 38 = TPA requests, 39 = TPAHere requests, 40 = TPAuto,
+# 30 = TPA confirm menu, 29 = Public chat, 32 = Broadcasts, 33 = Scoreboard.
 Setting-Slots:
-  - 10
-  - 11
-  - 12
-  - 13
-  - 14
-  - 15
-  - 16
-  - 19
-  - 20
-  - 21
-  - 22
-  - 23
-  - 24
-  - 25
-  - 28
-  - 29
+  - 38
+  - 39
+  - 40
   - 30
-  - 31
+  - 29
   - 32
   - 33
-  - 34
 
 Status:
-  Enabled: "&#33FF66ON"
-  Disabled: "&#D90429OFF"
+  Enabled: "&#33FF66&lON"
+  Disabled: "&#D90429&lOFF"
+
+Messages:
+  Updated: "&#33FF66Updated &#FFFFFF%setting% &#7A7A7Ato %status%&#7A7A7A."
+
+Sounds:
+  Toggle:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.35
+    volume: 1.0
 
 Navigation:
   Filler-Item:

@@ -23,6 +23,7 @@ public abstract class AbstractNetworkPlayerManager {
 
     protected final JedisPool pool;
     protected final String serverId;
+    protected final String serverDisplayName;
     private final NetworkEventBus eventBus;
     private final Gson gson = new Gson();
 
@@ -30,8 +31,13 @@ public abstract class AbstractNetworkPlayerManager {
     private final Map<UUID, String> nameCache = new ConcurrentHashMap<>();
 
     protected AbstractNetworkPlayerManager(JedisPool pool, String serverId, NetworkEventBus eventBus) {
+        this(pool, serverId, serverId, eventBus);
+    }
+
+    protected AbstractNetworkPlayerManager(JedisPool pool, String serverId, String serverDisplayName, NetworkEventBus eventBus) {
         this.pool = pool;
         this.serverId = serverId;
+        this.serverDisplayName = serverDisplayName == null || serverDisplayName.isBlank() ? serverId : serverDisplayName;
         this.eventBus = eventBus;
 
         // Seed cache with players already online on other servers before this node started
@@ -54,9 +60,13 @@ public abstract class AbstractNetworkPlayerManager {
     }
 
     protected void registerPlayer(UUID uuid, String playerName, String world) {
+        registerPlayer(uuid, playerName, serverId, serverDisplayName, world);
+    }
+
+    protected void registerPlayer(UUID uuid, String playerName, String serverId, String serverDisplayName, String world) {
         nameCache.put(uuid, playerName);
 
-        NetworkPlayerInfo info = new NetworkPlayerInfo(uuid, playerName, serverId, world);
+        NetworkPlayerInfo info = new NetworkPlayerInfo(uuid, playerName, serverId, serverDisplayName, world);
         try (Jedis jedis = pool.getResource()) {
             jedis.hset(HASH_KEY, uuid.toString(), gson.toJson(info));
         }
@@ -77,7 +87,8 @@ public abstract class AbstractNetworkPlayerManager {
             String json = jedis.hget(HASH_KEY, uuid.toString());
             if (json == null) return;
             NetworkPlayerInfo info = gson.fromJson(json, NetworkPlayerInfo.class);
-            NetworkPlayerInfo updated = new NetworkPlayerInfo(uuid, info.getPlayerName(), info.getServerId(), world);
+            NetworkPlayerInfo updated = new NetworkPlayerInfo(uuid, info.getPlayerName(), info.getServerId(),
+                    info.getServerDisplayName(), world);
             jedis.hset(HASH_KEY, uuid.toString(), gson.toJson(updated));
         }
     }

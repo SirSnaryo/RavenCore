@@ -1,4 +1,4 @@
-Title: "&8Teleport Here Request"
+Title: "&8ᴄᴏɴꜰɪʀᴍ ᴛᴘᴀʜᴇʀᴇ"
 Size: 27
 
 Navigation:
@@ -7,24 +7,38 @@ Navigation:
     name: " "
 
 Items:
-  Player:
-    material: PLAYER_HEAD
-    slot: 11
-    skull-owner: "%player%"
-    name: "&#FFD447%player%"
-    lore:
-      - "&#7A7A7Aʀᴇǫᴜᴇsᴛ ɪɴғᴏ"
-      - "&#FFFFFFServer: &#4CC9F0%server%"
   Cancel:
-    material: RED_DYE
-    slot: 13
+    material: RED_STAINED_GLASS_PANE
+    slot: 10
     name: "&#D90429ᴅᴇɴʏ"
     lore:
       - "&#7A7A7Aᴛᴇʟᴇᴘᴏʀᴛ ᴀᴄᴛɪᴏɴ"
       - "&#FFFFFFClose without accepting."
+  Location:
+    material: GRASS_BLOCK
+    slot: 12
+    name: "&#33FF66ʟᴏᴄᴀᴛɪᴏɴ"
+    lore:
+      - "&#7A7A7Aꜱᴇʀᴠᴇʀ"
+      - "&#4CC9F0%server%"
+  Player:
+    material: PLAYER_HEAD
+    slot: 13
+    skull-owner: "%player%"
+    name: "&#FFD447%player%"
+    lore:
+      - "&#7A7A7Aᴘʟᴀʏᴇʀ"
+      - "&#FFFFFFIncoming tpahere request."
+  Flying:
+    material: FEATHER
+    slot: 14
+    name: "&#4CC9F0ɪs ꜰʟʏɪɴɢ"
+    lore:
+      - "&#7A7A7Aꜱᴛᴀᴛᴜꜱ"
+      - "&#FFFFFF%is_flying%"
   Confirm:
-    material: LIME_DYE
-    slot: 15
+    material: LIME_STAINED_GLASS_PANE
+    slot: 16
     name: "&#33FF66ᴀᴄᴄᴇᴘᴛ"
     lore:
       - "&#7A7A7Aᴛᴇʟᴇᴘᴏʀᴛ ᴀᴄᴛɪᴏɴ"

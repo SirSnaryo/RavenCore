@@ -4,9 +4,11 @@ import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.library.item.ItemBuilder;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.platform.sound.KSound;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.settings.model.PlayerSettingDefinition;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,6 +22,8 @@ public class SettingsMenu extends KMenu {
     private final List<Integer> settingSlots;
     private final String enabledText;
     private final String disabledText;
+    private final String updatedMessage;
+    private final KSound toggleSound;
 
     public SettingsMenu(JavaPlugin plugin, SettingsModule module) {
         super(plugin, "settings/settings-menu.yml");
@@ -27,6 +31,10 @@ public class SettingsMenu extends KMenu {
         this.settingSlots = loadSlots();
         this.enabledText = config.getString("Status.Enabled", "&#33FF66ON");
         this.disabledText = config.getString("Status.Disabled", "&#D90429OFF");
+        this.updatedMessage = config.getString("Messages.Updated",
+                "&#33FF66Updated &#FFFFFF%setting% &#7A7A7Ato %status%&#7A7A7A.");
+        ConfigurationSection soundSection = config.getConfigurationSection("Sounds.Toggle");
+        this.toggleSound = soundSection == null ? null : KSound.getSoundFromConfig(soundSection);
     }
 
     @Override
@@ -45,7 +53,8 @@ public class SettingsMenu extends KMenu {
         lore.add("&#7A7A7A" + smallCaps(definition.category()));
         lore.addAll(definition.description());
         lore.add("");
-        lore.add("&#FFFFFFStatus: " + (enabled ? enabledText : disabledText));
+        lore.add("&#FFFFFFCurrently: " + (enabled ? enabledText : disabledText));
+        lore.add("&#7A7A7AClick to toggle.");
 
         Material material = enabled ? definition.material() : Material.GRAY_DYE;
         return MenuItem.of(new ItemBuilder(material)
@@ -60,8 +69,12 @@ public class SettingsMenu extends KMenu {
         definition.set(player, newValue);
         event.getView().getTopInventory().setItem(event.getSlot(), item(player, definition, event.getSlot()).getItemStack());
         player.updateInventory();
-        player.sendMessage(ChatFormatter.color("&#33FF66Updated &#FFFFFF" + ChatFormatter.strip(definition.displayName())
-                + " &#7A7A7Ato " + (newValue ? enabledText : disabledText) + "&#7A7A7A."));
+        if (toggleSound != null) {
+            toggleSound.playSound(player);
+        }
+        player.sendMessage(ChatFormatter.color(updatedMessage
+                .replace("%setting%", ChatFormatter.strip(definition.displayName()))
+                .replace("%status%", newValue ? enabledText : disabledText)));
     }
 
     private List<Integer> loadSlots() {
@@ -69,7 +82,7 @@ public class SettingsMenu extends KMenu {
         if (!slots.isEmpty()) {
             return slots;
         }
-        return List.of(10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34);
+        return List.of(38, 39, 40, 30, 29);
     }
 
     private String smallCaps(String value) {

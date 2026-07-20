@@ -30,6 +30,7 @@ public class ScoreboardPlaceholders {
                 .replace("%raven_player%", player.getName())
                 .replace("%raven_world%", player.getWorld().getName())
                 .replace("%raven_server%", plugin.getServerId())
+                .replace("%raven_server_display%", plugin.getServerDisplayName())
                 .replace("%raven_role%", plugin.getServerRole().name().toLowerCase())
                 .replace("%raven_online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
 

@@ -1,4 +1,4 @@
-# Raven scoreboard module.
+﻿# Raven scoreboard module.
 #
 # The module is powered by FastBoard packets, and each line can refresh on its
 # own interval or event. FastBoard hides sidebar score numbers on modern clients.
@@ -51,6 +51,7 @@ scoreboards:
     #
     # Built-in Raven placeholders:
     # - %raven_server%
+    # - %raven_server_display%
     # - %raven_role%
     # - %raven_world%
     # - %raven_online%
@@ -74,20 +75,20 @@ scoreboards:
       - text: ""
       - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#D90429>✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>"
+      - text: "<shadow:#000000FF><#D90429>âœ¦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>"
         update: event:balance
-      - text: "<shadow:#000000FF><#FF5555>🗡 <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
+      - text: "<shadow:#000000FF><#FF5555>ًں—، <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#FF9F1C>☠ <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
+      - text: "<shadow:#000000FF><#FF9F1C>âک  <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#00D5FF>⏳ <#FFFFFF>Keyall <#00D5FF>%raven_network_online%</shadow>"
+      - text: "<shadow:#000000FF><#00D5FF>âڈ³ <#FFFFFF>Keyall <#00D5FF>%raven_network_online%</shadow>"
         update: 60
-      - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
+      - text: "<shadow:#000000FF><#FFD447>âک» <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
-      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF></shadow>"
+      - text: "<shadow:#000000FF><#3A86FF>âڑ‘ <#FFFFFF>Team <#3A86FF></shadow>"
         update: static
       - text: ""
-      - text: "<shadow:#000000FF><#7A7A7A>NA East <#4CC9F0>(%raven_ping%)</shadow>"
+      - text: "<shadow:#000000FF><#7A7A7A>%raven_server_display% <#4CC9F0>(%raven_ping%)</shadow>"
         update: 40
 
   admin:
@@ -99,25 +100,26 @@ scoreboards:
         value: "raven.scoreboard.admin"
     lines:
       - text: ""
-      - text: "<shadow:#000000FF><#33FF66>⚙ <#FFFFFF>TPS <#33FF66>%raven_tps%</shadow>"
+      - text: "<shadow:#000000FF><#33FF66>âڑ™ <#FFFFFF>TPS <#33FF66>%raven_tps%</shadow>"
         update: 20
-      - text: "<shadow:#000000FF><#FF9F1C>⏱ <#FFFFFF>MSPT <#FF9F1C>%raven_mspt%</shadow>"
+      - text: "<shadow:#000000FF><#FF9F1C>âڈ± <#FFFFFF>MSPT <#FF9F1C>%raven_mspt%</shadow>"
         update: 20
-      - text: "<shadow:#000000FF><#4CC9F0>⌁ <#FFFFFF>Ping <#4CC9F0>%raven_ping%</shadow>"
+      - text: "<shadow:#000000FF><#4CC9F0>âŒپ <#FFFFFF>Ping <#4CC9F0>%raven_ping%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#A855F7>◆ <#FFFFFF>CPU <#A855F7>%raven_cpu%</shadow>"
+      - text: "<shadow:#000000FF><#A855F7>â—† <#FFFFFF>CPU <#A855F7>%raven_cpu%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#D90429>▼ <#FFFFFF>Low TPS Region <#D90429>%raven_low_tps_region%</shadow>"
+      - text: "<shadow:#000000FF><#D90429>â–¼ <#FFFFFF>Low TPS Region <#D90429>%raven_low_tps_region%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#FFD447>◆ <#FFFFFF>Mid TPS Region <#FFD447>%raven_mid_tps_region%</shadow>"
+      - text: "<shadow:#000000FF><#FFD447>â—† <#FFFFFF>Mid TPS Region <#FFD447>%raven_mid_tps_region%</shadow>"
         update: 40
       - text: ""
       - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
         update: 40
-      - text: "<shadow:#000000FF><#00D5FF>⏳ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
+      - text: "<shadow:#000000FF><#00D5FF>âڈ³ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
         update: 60
-      - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
+      - text: "<shadow:#000000FF><#FFD447>âک» <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
       - text: ""
-      - text: "<shadow:#000000FF><#7A7A7A>NA East <#4CC9F0>(%raven_ping%)</shadow>"
+      - text: "<shadow:#000000FF><#7A7A7A>%raven_server_display% <#4CC9F0>(%raven_ping%)</shadow>"
         update: 40
+

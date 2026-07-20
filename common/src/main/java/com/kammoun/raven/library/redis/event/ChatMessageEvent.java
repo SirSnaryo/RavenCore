@@ -7,5 +7,8 @@ import lombok.Setter;
 @Setter
 public class ChatMessageEvent extends CrossServerEvent {
     private String senderUuid;
+    private String senderName;
+    private String senderServer;
+    private String rawMessage;
     private String formattedMessage;
 }

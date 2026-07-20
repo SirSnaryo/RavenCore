@@ -12,6 +12,10 @@
 #   #3A86FF blue, #7A7A7A gray, #FFFFFF white.
 network:
   server-id: ''
+  # Friendly server name shown in GUI lore/messages.
+  # Example: "NA East", "SMP World NA", "Spawn".
+  # Leave empty to reuse network.server-id.
+  server-display-name: ''
   # All regional overworld servers (NA, EU, etc.) share one world seed so terrain
   # lines up across the borders drawn by the portal module. Set this to that shared
   # seed and every server will verify its own world matches on startup — a mismatch
