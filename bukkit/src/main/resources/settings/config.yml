@@ -1,0 +1,8 @@
+# Raven player settings module.
+#
+# Other modules add options to /settings by registering PlayerSettingDefinition
+# entries in SettingsModule's registry. The GUI renders all registered settings
+# automatically by priority, so adding a new setting does not require editing the
+# menu code.
+
+enabled: true

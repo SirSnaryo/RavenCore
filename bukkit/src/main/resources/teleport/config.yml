@@ -1,0 +1,95 @@
+# Raven teleport module.
+#
+# TPA settings are stored in MySQL in raven_teleport_settings, so player
+# toggles survive leaving the server and work across the whole network.
+# Cross-server teleports are prepared in Redis with a short TTL before Velocity
+# moves the player, then the target Bukkit server consumes the payload on join.
+
+confirm-menu:
+  enabled: true
+
+data:
+  # Seconds before a pending TPA request expires.
+  clear-time: 120
+
+teleport-countdown:
+  # Reserved for delayed teleport flows. Admin /tp stays instant.
+  seconds: 5
+
+world-nicknames:
+  world: Overworld
+  world_nether: Nether
+  world_the_end: End
+
+sounds:
+  information-click:
+    sound: ENTITY_ENDERMAN_TELEPORT
+    pitch: 1.75
+    volume: 0.85
+  request-cancelled:
+    sound: ENTITY_VILLAGER_NO
+    pitch: 1.0
+    volume: 1.0
+  error:
+    sound: ENTITY_VILLAGER_NO
+    pitch: 0.85
+    volume: 1.0
+  toggle:
+    sound: UI_BUTTON_CLICK
+    pitch: 1.35
+    volume: 1.0
+  accept-teleport:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.25
+    volume: 1.0
+  count-down:
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 1.8
+    volume: 1.0
+
+messages:
+  user-not-found: "&#D90429Player &#FFD447%player% &#D90429is not online."
+  self-teleport: "&#D90429You cannot send a teleport request to yourself."
+  non-valid-request: "&#D90429That teleport request is no longer valid."
+  no-requests-found: "&#D90429You do not have any pending teleport requests."
+
+  accepted-teleport: "&#33FF66You accepted the teleport request."
+  target-accepted-teleport: "&#33FF66%player% accepted your teleport request."
+
+  receive-request: "&#FFD447%player% &#FFFFFFwants to teleport to you. <click:run_command:'/tpaccept %player%'><hover:show_text:'&#33FF66Click to accept'>&#33FF66[Accept]</hover></click> <click:run_command:'/tpadeny %player%'><hover:show_text:'&#D90429Click to deny'>&#D90429[Deny]</hover></click>"
+  receive-here-request: "&#FFD447%player% &#FFFFFFwants you to teleport to them. <click:run_command:'/tpaccept %player%'><hover:show_text:'&#33FF66Click to accept'>&#33FF66[Accept]</hover></click> <click:run_command:'/tpadeny %player%'><hover:show_text:'&#D90429Click to deny'>&#D90429[Deny]</hover></click>"
+
+  sent-request: "&#33FF66Teleport request sent to &#FFD447%player%&#33FF66."
+  sent-here-request: "&#33FF66Teleport-here request sent to &#FFD447%player%&#33FF66."
+  tpa-request-sender-actionbar: "&#7A7A7AWaiting for &#FFD447%player% &#7A7A7Ato accept."
+  tpa-here-request-sender-actionbar: "&#7A7A7AWaiting for &#FFD447%player% &#7A7A7Ato accept."
+  tpa-request-target-actionbar: "&#FFD447%player% &#FFFFFFwants to teleport to you."
+  tpa-here-request-target-actionbar: "&#FFD447%player% &#FFFFFFwants you to teleport to them."
+
+  cancelled-request: "&#D90429Denied request from &#FFD447%player%&#D90429."
+  cancelled-request-sender: "&#D90429%player% denied your teleport request."
+  block-tpa-request: "&#D90429%player% is not accepting TPA requests."
+  block-tphere-request: "&#D90429%player% is not accepting TPAHere requests."
+  request-cooldown: "&#D90429You already have a pending request with that player."
+  cancel-requests: "&#33FF66Cancelled your outgoing teleport requests."
+  cancel-requests-failed: "&#D90429You do not have outgoing teleport requests."
+
+  teleport-countdown: "&#7A7A7ATeleporting in &#FFD447%time%&#7A7A7A..."
+  teleport-countdown-actionbar: "&#7A7A7ATeleporting in &#FFD447%time%&#7A7A7A..."
+  teleport-cancelled: "&#D90429Teleport cancelled."
+  teleport-movement-cancellation-action-bar: "&#D90429Teleport cancelled because you moved."
+
+  tpa-toggle-on: "&#33FF66TPA requests enabled."
+  tpa-toggle-off: "&#D90429TPA requests disabled."
+  tpa-here-toggle-on: "&#33FF66TPAHere requests enabled."
+  tpa-here-toggle-off: "&#D90429TPAHere requests disabled."
+  tpa-auto-toggle-on: "&#33FF66TPAuto enabled. Requests will auto-accept."
+  tpa-auto-toggle-off: "&#D90429TPAuto disabled."
+
+  tpa-toggle-on-actionbar: "&#33FF66TPA enabled"
+  tpa-toggle-off-actionbar: "&#D90429TPA disabled"
+  tpa-here-toggle-on-actionbar: "&#33FF66TPAHere enabled"
+  tpa-here-toggle-off-actionbar: "&#D90429TPAHere disabled"
+  tpa-auto-toggle-on-actionbar: "&#33FF66TPAuto active"
+  tpa-auto-toggle-off-actionbar: "&#D90429TPAuto disabled"
+  tpa-auto-status-actionbar: "&#33FF66TPAuto is currently active."

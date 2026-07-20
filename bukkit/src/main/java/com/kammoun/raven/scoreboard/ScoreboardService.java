@@ -93,6 +93,10 @@ public class ScoreboardService {
         return setEnabled(player, disabled.contains(player.getUniqueId()));
     }
 
+    public boolean isEnabled(Player player) {
+        return !disabled.contains(player.getUniqueId());
+    }
+
     public boolean setEnabled(Player player, boolean enabled) {
         UUID uuid = player.getUniqueId();
         if (enabled) {

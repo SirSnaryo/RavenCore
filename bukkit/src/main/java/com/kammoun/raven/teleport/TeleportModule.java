@@ -1,30 +1,57 @@
 package com.kammoun.raven.teleport;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
+import com.kammoun.raven.library.redis.event.TpaNotificationEvent;
+import com.kammoun.raven.library.redis.event.TpaRequestEvent;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
+import com.kammoun.raven.teleport.command.TpAutoCommand;
+import com.kammoun.raven.teleport.command.TpaAcceptCommand;
+import com.kammoun.raven.teleport.command.TpaCancelCommand;
+import com.kammoun.raven.teleport.command.TpaCommand;
+import com.kammoun.raven.teleport.command.TpaDenyCommand;
+import com.kammoun.raven.teleport.command.TpaHereCommand;
+import com.kammoun.raven.teleport.command.TpaHereToggleCommand;
+import com.kammoun.raven.teleport.command.TpaToggleCommand;
+import com.kammoun.raven.teleport.config.TeleportConfig;
+import com.kammoun.raven.teleport.config.TeleportMessage;
+import com.kammoun.raven.teleport.menu.TpaConfirmMenu;
+import com.kammoun.raven.teleport.model.TpaRequest;
+import com.kammoun.raven.teleport.settings.TeleportSettingsRepository;
+import com.kammoun.raven.teleport.settings.TeleportSettingsService;
+import com.kammoun.raven.teleport.transfer.TeleportTransferStore;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Getter
 public class TeleportModule extends KModule<RavenCore> {
 
-    /** playerUuid -> destinationUuid, waiting for the player to arrive on this server. */
-    private final Map<UUID, UUID> pendingPlayerTeleports = new ConcurrentHashMap<>();
-    /** playerUuid -> coordinates, waiting for the player to arrive on this server. */
-    private final Map<UUID, CoordinateTarget> pendingCoordinateTeleports = new ConcurrentHashMap<>();
+    private TeleportConfig teleportConfig;
+    private TeleportTransferStore transferStore;
+    private TeleportSettingsService settingsService;
+    private TpaManager tpaManager;
+    private TpaConfirmMenu tpaRequestMenu;
+    private TpaConfirmMenu tpaHereRequestMenu;
+    private TpaConfirmMenu tpaAcceptMenu;
+    private TpaConfirmMenu tpaHereAcceptMenu;
+    private SchedulerUtil.Task cleanupTask;
 
     public TeleportModule() {
         super("teleport");
@@ -32,18 +59,68 @@ public class TeleportModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
+        loadTeleportState();
         api.getNetworkEventBus().subscribe(CrossServerTeleportEvent.class, this::onCrossServerTeleport);
+        api.getNetworkEventBus().subscribe(TpaRequestEvent.class, this::onTpaRequest);
+        api.getNetworkEventBus().subscribe(TpaNotificationEvent.class, this::onTpaNotification);
         onEvent(PlayerJoinEvent.class, this::onJoin);
+        onEvent(PlayerQuitEvent.class, this::onQuit);
+        onEvent(PlayerMoveEvent.class, this::onMove);
         registerCommand(new TeleportCommand(this, api.getNetworkPlayerManager()), "tp");
         registerCommand(new TeleportHereCommand(this, api.getNetworkPlayerManager()), "tphere");
+        registerCommand(new TpaCommand(this, api.getNetworkPlayerManager()), "tpa");
+        registerCommand(new TpaHereCommand(this, api.getNetworkPlayerManager()), "tpahere");
+        registerCommand(new TpaAcceptCommand(this), "tpaccept");
+        registerCommand(new TpaDenyCommand(this), "tpadeny");
+        registerCommand(new TpaCancelCommand(this), "tpacancel");
+        registerCommand(new TpaToggleCommand(this), "tpatoggle");
+        registerCommand(new TpaHereToggleCommand(this), "tpaheretoggle");
+        registerCommand(new TpAutoCommand(this), "tpauto");
+        cleanupTask = SchedulerUtil.runTimer(() -> tpaManager.cleanup(), 1200L, 1200L);
         getLogger().info("[Teleport] Enabled.");
     }
 
     @Override
     public void onModuleDisable() {
         api.getNetworkEventBus().unsubscribe(CrossServerTeleportEvent.class);
-        pendingPlayerTeleports.clear();
-        pendingCoordinateTeleports.clear();
+        api.getNetworkEventBus().unsubscribe(TpaRequestEvent.class);
+        api.getNetworkEventBus().unsubscribe(TpaNotificationEvent.class);
+        if (cleanupTask != null) {
+            cleanupTask.cancel();
+            cleanupTask = null;
+        }
+        if (tpaManager != null) {
+            tpaManager.cleanup();
+        }
+        if (settingsService != null) {
+            settingsService.saveAll();
+        }
+    }
+
+    @Override
+    public void reload() {
+        if (settingsService != null) {
+            settingsService.saveAll();
+        }
+        super.reload();
+        loadTeleportState();
+    }
+
+    private void loadTeleportState() {
+        teleportConfig = new TeleportConfig(getConfig());
+        transferStore = new TeleportTransferStore(api, api.getRedisMessenger().getConnection().getPool());
+        MySQLDBManager db = api.getMySqlManager();
+        TeleportSettingsRepository repository = db != null && db.isConnected()
+                ? new TeleportSettingsRepository(db)
+                : null;
+        settingsService = new TeleportSettingsService(api, repository, teleportConfig, getLogger());
+        settingsService.init();
+        tpaManager = new TpaManager(this, teleportConfig, settingsService);
+        tpaRequestMenu = new TpaConfirmMenu(api, "teleport/tpa-request-menu.yml", this, TpaConfirmMenu.Mode.REQUEST, TpaRequest.Type.TPA);
+        tpaHereRequestMenu = new TpaConfirmMenu(api, "teleport/tpahere-request-menu.yml", this, TpaConfirmMenu.Mode.REQUEST, TpaRequest.Type.TPA_HERE);
+        tpaAcceptMenu = new TpaConfirmMenu(api, "teleport/tpa-accept-menu.yml", this, TpaConfirmMenu.Mode.ACCEPT, TpaRequest.Type.TPA);
+        tpaHereAcceptMenu = new TpaConfirmMenu(api, "teleport/tpahere-accept-menu.yml", this, TpaConfirmMenu.Mode.ACCEPT, TpaRequest.Type.TPA_HERE);
+        Bukkit.getOnlinePlayers().forEach(settingsService::load);
     }
 
     void teleportToPlayer(CommandSender sender, NetworkPlayerInfo traveller, NetworkPlayerInfo destination) {
@@ -54,6 +131,11 @@ public class TeleportModule extends KModule<RavenCore> {
             localTraveller.teleportAsync(localDestination.getLocation());
             send(sender, "&#33FF66Teleported &#FFD447" + traveller.getPlayerName()
                     + " &#33FF66to &#FFD447" + destination.getPlayerName() + "&#33FF66.");
+            return;
+        }
+
+        if (!transferStore.store(new TeleportTransferStore.PlayerTarget(traveller.getUuid(), destination.getUuid()))) {
+            send(sender, "&#D90429Failed to prepare cross-server teleport. Try again.");
             return;
         }
 
@@ -78,6 +160,13 @@ public class TeleportModule extends KModule<RavenCore> {
             return;
         }
 
+        if (!transferStore.store(new TeleportTransferStore.CoordinateTarget(
+                traveller.getUuid(), target.world(), target.x(), target.y(), target.z(), target.yaw(), target.pitch()
+        ))) {
+            send(sender, "&#D90429Failed to prepare cross-server teleport. Try again.");
+            return;
+        }
+
         CrossServerTeleportEvent event = new CrossServerTeleportEvent();
         event.setPlayerUuid(traveller.getUuid().toString());
         event.setTargetServer(target.server());
@@ -99,8 +188,72 @@ public class TeleportModule extends KModule<RavenCore> {
         }
 
         UUID playerUuid = UUID.fromString(event.getPlayerUuid());
+        Player traveller = Bukkit.getPlayer(playerUuid);
+        if (traveller != null) {
+            SchedulerUtil.execute(traveller, () -> {
+                if (!transferStore.apply(traveller, this)) {
+                    fallbackApplyTeleportEvent(traveller, event);
+                }
+            });
+        }
+    }
+
+    private void onJoin(PlayerJoinEvent event) {
+        settingsService.load(event.getPlayer());
+        transferStore.apply(event.getPlayer(), this);
+    }
+
+    private void onQuit(PlayerQuitEvent event) {
+        settingsService.unload(event.getPlayer());
+        tpaManager.unload(event.getPlayer().getUniqueId());
+    }
+
+    private void onMove(PlayerMoveEvent event) {
+        tpaManager.onMove(event);
+    }
+
+    private void onTpaRequest(TpaRequestEvent event) {
+        if (event == null || event.getTargetServer() == null || !api.getServerId().equalsIgnoreCase(event.getTargetServer())) {
+            return;
+        }
+        TpaRequest request;
+        try {
+            request = new TpaRequest(
+                    UUID.fromString(event.getRequesterUuid()),
+                    event.getRequesterName(),
+                    event.getRequesterServer(),
+                    UUID.fromString(event.getTargetUuid()),
+                    event.getTargetName(),
+                    event.getTargetServer(),
+                    TpaRequest.Type.valueOf(event.getType())
+            );
+        } catch (RuntimeException ignored) {
+            return;
+        }
+        Player target = Bukkit.getPlayer(request.targetId());
+        if (target == null) return;
+        SchedulerUtil.execute(target, () -> tpaManager.receiveRequest(request));
+    }
+
+    private void onTpaNotification(TpaNotificationEvent event) {
+        if (event == null || event.getRecipientUuid() == null || event.getMessageKey() == null) {
+            return;
+        }
+        Player player;
+        TeleportMessage message;
+        try {
+            player = Bukkit.getPlayer(UUID.fromString(event.getRecipientUuid()));
+            message = TeleportMessage.valueOf(event.getMessageKey());
+        } catch (RuntimeException ignored) {
+            return;
+        }
+        if (player == null) return;
+        SchedulerUtil.execute(player, () -> teleportConfig.send(player, message, "%player%", event.getPlayerName()));
+    }
+
+    private void fallbackApplyTeleportEvent(Player traveller, CrossServerTeleportEvent event) {
         if (event.hasCoordinates()) {
-            CoordinateTarget target = new CoordinateTarget(
+            teleportLocal(Bukkit.getConsoleSender(), traveller, new CoordinateTarget(
                     event.getTargetServer() == null ? api.getServerId() : event.getTargetServer(),
                     event.getWorld(),
                     event.getX(),
@@ -108,46 +261,21 @@ public class TeleportModule extends KModule<RavenCore> {
                     event.getZ(),
                     event.getYaw() == null ? 0.0f : event.getYaw(),
                     event.getPitch() == null ? 0.0f : event.getPitch()
-            );
-            Player traveller = Bukkit.getPlayer(playerUuid);
-            if (traveller != null) {
-                teleportLocal(Bukkit.getConsoleSender(), traveller, target);
-            } else {
-                pendingCoordinateTeleports.put(playerUuid, target);
-            }
+            ));
             return;
         }
 
         if (event.getDestinationUuid() == null) return;
-        UUID destUuid = UUID.fromString(event.getDestinationUuid());
-        Player destination = Bukkit.getPlayer(destUuid);
-        if (destination == null) return;
-
-        Player traveller = Bukkit.getPlayer(playerUuid);
-        if (traveller != null) {
-            traveller.teleportAsync(destination.getLocation());
-        } else {
-            pendingPlayerTeleports.put(playerUuid, destUuid);
+        try {
+            Player destination = Bukkit.getPlayer(UUID.fromString(event.getDestinationUuid()));
+            if (destination != null) {
+                traveller.teleportAsync(destination.getLocation());
+            }
+        } catch (RuntimeException ignored) {
         }
     }
 
-    private void onJoin(PlayerJoinEvent event) {
-        CoordinateTarget coordinateTarget = pendingCoordinateTeleports.remove(event.getPlayer().getUniqueId());
-        if (coordinateTarget != null) {
-            event.getPlayer().getScheduler().runDelayed(api,
-                    task -> teleportLocal(Bukkit.getConsoleSender(), event.getPlayer(), coordinateTarget), null, 20L);
-            return;
-        }
-
-        UUID destUuid = pendingPlayerTeleports.remove(event.getPlayer().getUniqueId());
-        if (destUuid == null) return;
-        Player destination = Bukkit.getPlayer(destUuid);
-        if (destination == null) return;
-        event.getPlayer().getScheduler().runDelayed(api,
-                task -> event.getPlayer().teleportAsync(destination.getLocation()), null, 20L);
-    }
-
-    private boolean teleportLocal(CommandSender sender, Player player, CoordinateTarget target) {
+    boolean teleportLocal(CommandSender sender, Player player, CoordinateTarget target) {
         World world = target.world() == null || target.world().isBlank()
                 ? player.getWorld()
                 : Bukkit.getWorld(target.world());
@@ -160,19 +288,41 @@ public class TeleportModule extends KModule<RavenCore> {
         return true;
     }
 
+    public boolean teleportLocal(Player player, String world, double x, double y, double z, float yaw, float pitch) {
+        return teleportLocal(Bukkit.getConsoleSender(), player, new CoordinateTarget(currentServer(), world, x, y, z, yaw, pitch));
+    }
+
+    public void openAcceptMenu(Player player, TpaRequest request) {
+        if (request.type() == TpaRequest.Type.TPA_HERE) {
+            tpaHereAcceptMenu.open(player, request);
+            return;
+        }
+        tpaAcceptMenu.open(player, request);
+    }
+
+    public boolean usesConfirmMenu(Player player) {
+        return teleportConfig.confirmMenusEnabled()
+                && settingsService.get(player.getUniqueId()).confirmMenu();
+    }
+
+    public Optional<TpaRequest> findRequest(Player target, String requesterName) {
+        return api.getNetworkPlayerManager().findPlayer(requesterName)
+                .flatMap(info -> tpaManager.requestFrom(target.getUniqueId(), info.getUuid()));
+    }
+
     private void send(CommandSender sender, String message) {
         sender.sendMessage(ChatFormatter.color(message));
     }
 
-    List<String> tabPlayers(String prefix) {
+    public List<String> tabPlayers(String prefix) {
         return api.getNetworkPlayerManager().completePlayerNames(prefix);
     }
 
-    List<String> tabPlayers(String prefix, String excludedName) {
+    public List<String> tabPlayers(String prefix, String excludedName) {
         return api.getNetworkPlayerManager().completePlayerNames(prefix, excludedName);
     }
 
-    List<String> tabServers(String prefix) {
+    public List<String> tabServers(String prefix) {
         String lower = prefix.toLowerCase();
         return Stream.concat(
                         Stream.of(api.getServerId()),
@@ -184,7 +334,7 @@ public class TeleportModule extends KModule<RavenCore> {
                 .collect(Collectors.toList());
     }
 
-    String currentServer() {
+    public String currentServer() {
         return api.getServerId();
     }
 

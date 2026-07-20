@@ -39,6 +39,63 @@ commands:
     permission: raven.teleport
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
+
+  tpa:
+    description: Request to teleport to a player
+    usage: /tpa <player>
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpahere:
+    description: Request a player to teleport to you
+    usage: /tpahere <player>
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpaccept:
+    description: Accept a pending TPA request
+    usage: /tpaccept [player]
+    aliases: [tpyes]
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpadeny:
+    description: Deny a pending TPA request
+    usage: /tpadeny [player]
+    aliases: [tpdeny, tpno]
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpacancel:
+    description: Cancel outgoing TPA requests
+    usage: /tpacancel
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpatoggle:
+    description: Toggle receiving TPA requests
+    usage: /tpatoggle
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpaheretoggle:
+    description: Toggle receiving TPAHere requests
+    usage: /tpaheretoggle
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  tpauto:
+    description: Toggle automatic TPA acceptance
+    usage: /tpauto
+    permission: raven.teleport.tpa
+    permission-message: You don't have permission to use this command.
+
+  settings:
+    description: Open your player settings
+    usage: /settings
+    aliases: [setting, prefs, preferences]
+    permission: raven.settings
+    permission-message: You don't have permission to use this command.
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
@@ -116,6 +173,12 @@ permissions:
   raven.teleport:
     description: Teleport yourself or others across the network
     default: op
+  raven.teleport.tpa:
+    description: Use TPA requests and personal teleport settings
+    default: true
+  raven.settings:
+    description: Open and change personal settings
+    default: true
   raven.clearinventory.self:
     description: Clear your own inventory
     default: true
@@ -179,3 +242,4 @@ permissions:
   raven.billford.admin:
     description: Manage Billford trade presets
     default: op
+
