@@ -1,4 +1,4 @@
-confirm: "&#FF9F1CAre you sure? Run &#FFFFFF/clearinventory &#FF9F1Cagain within &#FFFFFF{seconds}s &#FF9F1Cto confirm."
+confirm: "&#FF9F1CAre you sure? Run &#FFFFFF/clear &#FF9F1Cagain within &#FFFFFF{seconds}s &#FF9F1Cto confirm."
 cleared-self: "&#33FF66Your inventory has been cleared."
 cleared-other: "&#33FF66Cleared &#FFFFFF{player}&#33FF66's inventory."
 cleared-by-admin: "&#33FF66Your inventory was cleared by an admin."

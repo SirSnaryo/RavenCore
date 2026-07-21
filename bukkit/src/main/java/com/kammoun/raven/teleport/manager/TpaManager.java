@@ -1,9 +1,10 @@
-package com.kammoun.raven.teleport;
+package com.kammoun.raven.teleport.manager;
 
 import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.redis.event.TpaNotificationEvent;
 import com.kammoun.raven.library.redis.event.TpaRequestEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
+import com.kammoun.raven.teleport.TeleportModule;
 import com.kammoun.raven.teleport.config.TeleportConfig;
 import com.kammoun.raven.teleport.config.TeleportMessage;
 import com.kammoun.raven.teleport.model.TeleportSettings;

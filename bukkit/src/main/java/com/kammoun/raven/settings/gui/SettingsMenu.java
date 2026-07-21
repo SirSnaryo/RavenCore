@@ -32,7 +32,7 @@ public class SettingsMenu extends KMenu {
         this.enabledText = config.getString("Status.Enabled", "&#33FF66ON");
         this.disabledText = config.getString("Status.Disabled", "&#D90429OFF");
         this.updatedMessage = config.getString("Messages.Updated",
-                "&#33FF66Updated &#FFFFFF%setting% &#7A7A7Ato %status%&#7A7A7A.");
+                "&#FFFFFF%setting% &#7A7A7Aset to %status%&#7A7A7A.");
         ConfigurationSection soundSection = config.getConfigurationSection("Sounds.Toggle");
         this.toggleSound = soundSection == null ? null : KSound.getSoundFromConfig(soundSection);
     }

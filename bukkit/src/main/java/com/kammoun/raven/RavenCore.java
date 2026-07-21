@@ -16,7 +16,6 @@ import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.settings.SettingsModule;
-import com.kammoun.raven.spawner.SpawnerModule;
 import com.kammoun.raven.teleport.TeleportModule;
 import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
@@ -75,7 +74,6 @@ public final class RavenCore extends JavaPlugin {
     private RtpModule rtpModule;
     private RtpZoneModule rtpZoneModule;
     private ShopModule shopModule;
-    private SpawnerModule spawnerModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
@@ -154,9 +152,6 @@ public final class RavenCore extends JavaPlugin {
         shopModule.onEnable(this);
         enabledModules.add("Shop");
 
-        spawnerModule = new SpawnerModule();
-        spawnerModule.onEnable(this);
-        enabledModules.add("Spawner");
 
         billfordModule = new BillfordModule();
         billfordModule.onEnable(this);
@@ -264,7 +259,6 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "core", null);
         putModule(modules, "economy", economyModule);
         putModule(modules, "shop", shopModule);
-        putModule(modules, "spawner", spawnerModule);
         putModule(modules, "billford", billfordModule);
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "chat", chatModule);
@@ -599,9 +593,9 @@ public final class RavenCore extends JavaPlugin {
         if (billfordModule != null) {
             billfordModule.onDisable(this);
         }
-        if (spawnerModule != null) {
-            spawnerModule.onDisable(this);
-        }
+
+
+
         if (economyModule != null) {
             economyModule.onDisable(this);
         }

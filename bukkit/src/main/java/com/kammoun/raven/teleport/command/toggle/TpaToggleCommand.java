@@ -1,4 +1,4 @@
-package com.kammoun.raven.teleport.command;
+package com.kammoun.raven.teleport.command.toggle;
 
 import com.kammoun.raven.library.command.KCommand;
 import com.kammoun.raven.teleport.TeleportModule;
@@ -10,25 +10,21 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class TpAutoCommand extends KCommand {
+public class TpaToggleCommand extends KCommand {
 
     private final TeleportModule module;
 
-    public TpAutoCommand(TeleportModule module) {
-        super("tpauto", "raven.teleport.tpa", true);
+    public TpaToggleCommand(TeleportModule module) {
+        super("tpatoggle", "raven.teleport.tpa", true);
         this.module = module;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         Player player = (Player) sender;
-        TeleportSettings settings = module.getSettingsService().toggle(player, TeleportPreference.TPA_AUTO);
-        TeleportMessage message = settings.autoAccept()
-                ? TeleportMessage.TPAUTO_TOGGLE_ON
-                : TeleportMessage.TPAUTO_TOGGLE_OFF;
-        TeleportMessage action = settings.autoAccept()
-                ? TeleportMessage.TPA_AUTO_TOGGLE_ON_ACTIONBAR
-                : TeleportMessage.TPA_AUTO_TOGGLE_OFF_ACTIONBAR;
+        TeleportSettings settings = module.getSettingsService().toggle(player, TeleportPreference.TPA);
+        TeleportMessage message = settings.acceptsTpa() ? TeleportMessage.TPA_TOGGLE_ON : TeleportMessage.TPA_TOGGLE_OFF;
+        TeleportMessage action = settings.acceptsTpa() ? TeleportMessage.TPA_TOGGLE_ON_ACTIONBAR : TeleportMessage.TPA_TOGGLE_OFF_ACTIONBAR;
         module.getTeleportConfig().send(player, message);
         module.getTeleportConfig().actionBar(player, action);
         module.getTeleportConfig().sound(player, "toggle");

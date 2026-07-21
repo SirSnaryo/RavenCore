@@ -1,25 +1,24 @@
 Title: "&8sᴇᴛᴛɪɴɢs"
 Size: 54
 
-# Slot order follows DonutSMPCore's settings layout for the settings Raven has now.
-# Current built-in order:
-# 38 = TPA requests, 39 = TPAHere requests, 40 = TPAuto,
-# 30 = TPA confirm menu, 29 = Public chat, 32 = Broadcasts, 33 = Scoreboard.
+# Settings are centered in row 4 (slots 20-26), grouped left-to-right:
+# 20 = TPA requests, 21 = TPAHere requests, 22 = TPAuto, 23 = TPA confirm menu,
+# 24 = Public chat, 25 = Broadcasts, 26 = Scoreboard.
 Setting-Slots:
-  - 38
-  - 39
-  - 40
-  - 30
-  - 29
-  - 32
-  - 33
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
 
 Status:
   Enabled: "&#33FF66&lON"
   Disabled: "&#D90429&lOFF"
 
 Messages:
-  Updated: "&#33FF66Updated &#FFFFFF%setting% &#7A7A7Ato %status%&#7A7A7A."
+  Updated: "&#FFFFFF%setting% &#7A7A7Aset to %status%&#7A7A7A."
 
 Sounds:
   Toggle:
@@ -28,6 +27,10 @@ Sounds:
     volume: 1.0
 
 Navigation:
+  Close-Page:
+    material: BARRIER
+    name: "&#FF4444&lClose"
+    slot: 49
   Filler-Item:
     material: BLACK_STAINED_GLASS_PANE
     name: " "

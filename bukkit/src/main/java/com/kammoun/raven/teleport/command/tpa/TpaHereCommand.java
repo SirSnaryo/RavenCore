@@ -1,4 +1,4 @@
-package com.kammoun.raven.teleport.command;
+package com.kammoun.raven.teleport.command.tpa;
 
 import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.network.NetworkPlayerManager;

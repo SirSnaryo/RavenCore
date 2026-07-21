@@ -1,4 +1,4 @@
-package com.kammoun.raven.teleport.command;
+package com.kammoun.raven.teleport.command.tpa;
 
 import com.kammoun.raven.library.command.KCommand;
 import com.kammoun.raven.teleport.TeleportModule;
@@ -10,12 +10,12 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.Optional;
 
-public class TpaDenyCommand extends KCommand {
+public class TpaAcceptCommand extends KCommand {
 
     private final TeleportModule module;
 
-    public TpaDenyCommand(TeleportModule module) {
-        super("tpadeny", "raven.teleport.tpa", true);
+    public TpaAcceptCommand(TeleportModule module) {
+        super("tpaccept", "raven.teleport.tpa", true);
         this.module = module;
     }
 
@@ -31,7 +31,12 @@ public class TpaDenyCommand extends KCommand {
             return;
         }
 
-        module.getTpaManager().denyRequest(player, request.get());
+        if (module.usesConfirmMenu(player)) {
+            module.openAcceptMenu(player, request.get());
+            return;
+        }
+
+        module.getTpaManager().acceptRequest(player, request.get());
     }
 
     @Override
