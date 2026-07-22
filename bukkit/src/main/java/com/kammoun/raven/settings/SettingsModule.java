@@ -6,7 +6,7 @@ import com.kammoun.raven.settings.command.SettingsCommand;
 import com.kammoun.raven.settings.gui.SettingsMenu;
 import com.kammoun.raven.settings.model.PlayerSettingDefinition;
 import com.kammoun.raven.settings.model.PlayerSettingRegistry;
-import com.kammoun.raven.teleport.model.TeleportPreference;
+import com.kammoun.raven.tpa.model.TeleportPreference;
 import lombok.Getter;
 import org.bukkit.Material;
 

@@ -1,21 +1,17 @@
 # Unique name for this server on the network.
 # Used as the server identifier in Redis and cross-server events.
-# Leave empty to auto-use the name defined in server.properties.
-
-# Raven visual palette for config/messages:
-# - Text supports & codes and &#RRGGBB hex colors.
-# - Menu titles are always forced to &8 by code.
-# - Lore first labels in GUI items should use Small Caps.
-# - Sounds use Bukkit Sound enum names, plus pitch/volume when a section supports them.
-# - Main colors: #FF2B2B red, #D90429 dark red, #33FF66 green,
-#   #FFD447 yellow, #FF9F1C orange, #4CC9F0 cyan,
-#   #3A86FF blue, #7A7A7A gray, #FFFFFF white.
+# Dont leave it empty!
 network:
   server-id: ''
   # Friendly server name shown in GUI lore/messages.
   # Example: "NA East", "SMP World NA", "Spawn".
   # Leave empty to reuse network.server-id.
   server-display-name: ''
+  # Which regional cluster this server belongs to. Only meaningful for
+  # server-role: survival. Used by the border system and the Location
+  # Library to resolve cluster-wide requests (e.g. RTP picking any server
+  # in the player's current cluster). Example: "na", "eu".
+  cluster: ''
   # All regional overworld servers (NA, EU, etc.) share one world seed so terrain
   # lines up across the borders drawn by the portal module. Set this to that shared
   # seed and every server will verify its own world matches on startup — a mismatch
@@ -42,3 +38,60 @@ database:
   name: ravencore
   user: root
   password: ''
+
+# Virtual grid placement for this server, only used when server-role: survival.
+# Defines the exact slice of the shared coordinate space this server owns —
+# read by the border-crossing listener, the portal interceptor, and the
+# Location Library's pool generation (locations are never generated outside
+# this box).
+grid:
+  # Size of one grid cell in blocks, per edge, measured in Overworld
+  # coordinates. Nether cell size is this value divided by nether-ratio.
+  # Must be identical across every server in the network.
+  cell-size: 5000
+  # Overworld:Nether coordinate ratio. Vanilla default is 8. Only change
+  # this if you're running a modified Nether scale.
+  nether-ratio: 8
+  # This server's position within its cluster's grid, in cell units (not
+  # blocks). E.g. cell-x: 0, cell-z: 0 is the origin cell; cell-x: 1 is the
+  # next cell to the east, etc.
+  cell-x: 0
+  cell-z: 0
+  # How many blocks of buffer to keep between any RTP-generated location
+  # and this cell's true border, in every direction. Prevents a random
+  # teleport from landing close enough to immediately re-trigger a
+  # border-crossing transfer, and stops Location Library pools from ever
+  # spilling coordinates into a neighboring server's territory.
+  border-safety-margin: 300
+
+# Virtual border settings (applies to all derived region borders).
+border:
+  # How close (in blocks) a player must be to see the particle wall.
+  detection-distance: 30
+  # Vertical spacing between particle rows in the wall.
+  particle-spacing: 1.5
+  # How many blocks tall the particle wall is.
+  wall-height: 50
+  # Any Bukkit Particle enum value.
+  particle: DUST_PLUME
+  # Sent when a player tries to break or place a block past the border.
+  deny-message: ""
+
+# Location Library — shared pool engine used by the RTP, RTP-Zone, and
+# Respawn modules to hand out safe random coordinates. See the design doc
+# (rtp-pool-design.md) for full behavior.
+location-library:
+  # How many valid locations to keep ready in this server's pool at once,
+  # per dimension (overworld pool and nether pool are sized independently).
+  pool-target-size: 50
+  # How often (seconds) the refill task checks the pool and tops it back
+  # up to pool-target-size.
+  refill-interval-seconds: 45
+  # Max new locations the refill task will generate in a single cycle,
+  # even if the pool is far below target — avoids a burst of simultaneous
+  # chunk-loading work if the pool drains quickly.
+  max-refill-per-cycle: 10
+  # Whether Nether pools are generated/maintained at all. If false, Nether
+  # RTP falls back to whatever the calling module defines (e.g. blocked,
+  # or a live scan).
+  nether-pool-enabled: true

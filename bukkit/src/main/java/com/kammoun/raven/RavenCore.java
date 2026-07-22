@@ -1,6 +1,7 @@
 package com.kammoun.raven;
 
 import com.kammoun.raven.billford.BillfordModule;
+import com.kammoun.raven.borders.BorderModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
@@ -9,14 +10,11 @@ import com.kammoun.raven.lastlocation.LastLocationModule;
 import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
-import com.kammoun.raven.portal.DimensionPortalModule;
-import com.kammoun.raven.portal.border.ServerBorderModule;
-import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.settings.SettingsModule;
-import com.kammoun.raven.teleport.TeleportModule;
+import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
@@ -66,18 +64,16 @@ public final class RavenCore extends JavaPlugin {
     private LastLocationModule lastLocationModule;
     private EconomyModule economyModule;
     private ClearInventoryModule clearInventoryModule;
-    private DimensionPortalModule dimensionPortalModule;
-    private ServerBorderModule serverBorderModule;
     private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
-    private RtpModule rtpModule;
     private RtpZoneModule rtpZoneModule;
     private ShopModule shopModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
     private BillfordModule billfordModule;
+    private BorderModule borderModule;
 
     @Override
     public void onEnable() {
@@ -180,18 +176,7 @@ public final class RavenCore extends JavaPlugin {
         spawnModule = new SpawnModule();
         spawnModule.onEnable(this);
         enabledModules.add("Spawn");
-
-        if (serverRole != ServerRole.SPAWN) {
-            dimensionPortalModule = new DimensionPortalModule();
-            dimensionPortalModule.onEnable(this);
-            enabledModules.add("DimensionPortal");
-        }
-
-        // RTP is available on every server role: on a lobby it hands the player off to a
-        // gameplay server, on a gameplay server it teleports locally — so it always enables.
-        rtpModule = new RtpModule();
-        rtpModule.onEnable(this);
-        enabledModules.add("RTP");
+        ;
 
         // The RTP zone (WorldGuard region -> countdown -> random overworld teleport) lives on the
         // spawn/hub server, so it only enables there. It reuses RTP's shared pools for destinations.
@@ -202,13 +187,13 @@ public final class RavenCore extends JavaPlugin {
         }
 
         if (serverRole == ServerRole.SURVIVAL) {
-            serverBorderModule = new ServerBorderModule();
-            serverBorderModule.onEnable(this);
-            enabledModules.add("ServerBorder");
-
             timeSyncModule = new TimeSyncModule();
             timeSyncModule.onEnable(this);
             enabledModules.add("TimeSync");
+
+            borderModule = new BorderModule();
+            borderModule.onEnable(this);
+            enabledModules.add("Borders");
         }
 
         if (getCommand("ravencore") != null) {
@@ -266,12 +251,10 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "settings", settingsModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
-        putModule(modules, "rtp", rtpModule);
         putModule(modules, "rtpzone", rtpZoneModule);
         putModule(modules, "lastlocation", lastLocationModule);
-        putModule(modules, "dimensionportal", dimensionPortalModule);
-        putModule(modules, "serverborder", serverBorderModule);
         putModule(modules, "timesync", timeSyncModule);
+        putModule(modules, "borders", borderModule);
         return modules;
     }
 
@@ -439,7 +422,6 @@ public final class RavenCore extends JavaPlugin {
 
     /**
      * All regional overworld servers share one world seed so terrain lines up across
-     * the borders drawn by {@link com.kammoun.raven.portal.border.ServerBorderModule}. Plugins
      * load with {@code load: STARTUP}, so no world is guaranteed loaded yet — check any
      * world that's already up and also listen for the overworld's WorldLoadEvent.
      */
@@ -566,17 +548,11 @@ public final class RavenCore extends JavaPlugin {
     public void onDisable() {
         if (spawnModule != null) spawnModule.onDisable(this);
         if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
-        if (rtpModule != null) rtpModule.onDisable(this);
         if (settingsModule != null) settingsModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);
+        if (borderModule != null) borderModule.onDisable(this);
         if (timeSyncModule != null) {
             timeSyncModule.onDisable(this);
-        }
-        if (serverBorderModule != null) {
-            serverBorderModule.onDisable(this);
-        }
-        if (dimensionPortalModule != null) {
-            dimensionPortalModule.onDisable(this);
         }
         if (clearInventoryModule != null) {
             clearInventoryModule.onDisable(this);

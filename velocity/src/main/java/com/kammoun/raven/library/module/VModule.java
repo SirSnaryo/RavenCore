@@ -67,6 +67,10 @@ public abstract class VModule {
 
     public abstract void onModuleDisable();
 
+    public void reload() {
+        reloadConfig();
+    }
+
     public String getName() {
         return moduleName;
     }

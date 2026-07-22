@@ -8,6 +8,7 @@ import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.command.RavenCoreVelocityCommand;
 import com.kammoun.raven.velocity.info.InfoModule;
+import com.kammoun.raven.velocity.borders.BorderTransferModule;
 import com.kammoun.raven.velocity.lobby.LobbyModule;
 import com.kammoun.raven.velocity.privatemessage.PrivateMessageModule;
 import com.kammoun.raven.velocity.proxycommandfilter.ProxyCommandFilterModule;
@@ -58,6 +59,7 @@ public class RavenVelocity {
     private ProxyCommandFilterModule proxyCommandFilterModule;
     private PrivateMessageModule privateMessageModule;
     private LobbyModule lobbyModule;
+    private BorderTransferModule borderTransferModule;
 
     @Inject
     public RavenVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -103,6 +105,9 @@ public class RavenVelocity {
 
         lobbyModule = new LobbyModule();
         lobbyModule.onEnable(this, server, dataDirectory);
+
+        borderTransferModule = new BorderTransferModule(this);
+        borderTransferModule.onEnable(this, server, dataDirectory);
         registerCoreCommand();
 
         logger.info("RavenCore (Velocity) enabled — proxy id: " + serverId);
@@ -121,6 +126,9 @@ public class RavenVelocity {
         }
         if (lobbyModule != null) {
             lobbyModule.onDisable();
+        }
+        if (borderTransferModule != null) {
+            borderTransferModule.onDisable();
         }
         if (networkEventBus != null) {
             networkEventBus.unsubscribe(CrossServerTeleportEvent.class);
@@ -194,6 +202,7 @@ public class RavenVelocity {
         if (proxyCommandFilterModule != null) modules.put("proxycommandfilter", proxyCommandFilterModule::reload);
         if (privateMessageModule != null) modules.put("privatemessage", privateMessageModule::reload);
         if (lobbyModule != null) modules.put("lobby", lobbyModule::reload);
+        if (borderTransferModule != null) modules.put("borders", borderTransferModule::reload);
         return modules;
     }
 

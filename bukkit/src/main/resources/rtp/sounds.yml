@@ -1,0 +1,20 @@
+warmup-start:
+  sound: BLOCK_NOTE_BLOCK_PLING
+  volume: 1.0
+  pitch: 1.0
+warmup-cancelled:
+  sound: ENTITY_VILLAGER_NO
+  volume: 1.0
+  pitch: 1.0
+teleport-success:
+  sound: ENTITY_ENDERMAN_TELEPORT
+  volume: 1.0
+  pitch: 1.0
+cooldown:
+  sound: BLOCK_NOTE_BLOCK_BASS
+  volume: 1.0
+  pitch: 0.5
+insufficient-funds:
+  sound: ENTITY_VILLAGER_NO
+  volume: 1.0
+  pitch: 0.7

@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/** Tracks which players are currently standing inside the RTP zone. */
 public class ZonePlayerManager {
 
     private final Set<UUID> players = Collections.synchronizedSet(new HashSet<>());

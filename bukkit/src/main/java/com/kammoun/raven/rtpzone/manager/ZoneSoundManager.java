@@ -5,7 +5,6 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-/** Plays the zone's enter/countdown/exit/teleport cues, all sourced from config. */
 public class ZoneSoundManager {
 
     private final KSound enter;
