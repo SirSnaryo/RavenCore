@@ -20,10 +20,10 @@ regions:
   - rtpzone
 
 titles:
-  # Shown every second during the countdown. {time} = seconds remaining.
+  # Shown every second during the countdown. %time% = seconds remaining.
   countdown:
     header: "&#FF2B2B&lRTP ZONE"
-    footer: "&#FFFFFFTeleporting in &#FFD447{time}&#FFFFFFs"
+    footer: "&#FFFFFFTeleporting in &#FFD447%time%&#FFFFFFs"
     fade_in: 0
     stay: 25
     fade_out: 5

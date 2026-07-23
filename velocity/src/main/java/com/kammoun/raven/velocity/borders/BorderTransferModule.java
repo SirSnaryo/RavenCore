@@ -2,6 +2,7 @@ package com.kammoun.raven.velocity.borders;
 
 import com.kammoun.raven.library.module.VModule;
 import com.kammoun.raven.library.redis.event.BorderCrossEvent;
+import com.kammoun.raven.library.redis.event.BorderTransferFailedEvent;
 import com.kammoun.raven.velocity.RavenVelocity;
 
 import java.util.UUID;
@@ -44,17 +45,38 @@ public class BorderTransferModule extends VModule {
                                 ravenVelocity.getServer().getServer(event.getTargetServer()).ifPresentOrElse(
                                         target -> player.createConnectionRequest(target).connect()
                                                 .thenAccept(result -> {
-                                                    if (!result.isSuccessful()) {
+                                                    if (!result.isSuccessful()
+                                                            && !"ALREADY_CONNECTED".equals(
+                                                            result.getStatus().toString())) {
                                                         Logger.getLogger("RavenCore/borders").warning(
                                                                 "[Borders] Failed to transfer " + player.getUsername()
                                                                         + " to " + event.getTargetServer()
                                                                         + ": " + result.getStatus());
+                                                        notifyFailure(event, result.getStatus().toString());
                                                     }
+                                                })
+                                                .exceptionally(error -> {
+                                                    Logger.getLogger("RavenCore/borders").warning(
+                                                            "[Borders] Transfer error for " + player.getUsername()
+                                                                    + ": " + error.getMessage());
+                                                    notifyFailure(event, error.getMessage());
+                                                    return null;
                                                 }),
-                                        () -> Logger.getLogger("RavenCore/borders").warning(
-                                                "[Borders] Unknown target server: " + event.getTargetServer())
+                                        () -> {
+                                            Logger.getLogger("RavenCore/borders").warning(
+                                                    "[Borders] Unknown target server: " + event.getTargetServer());
+                                            notifyFailure(event, "Unknown target server");
+                                        }
                                 )
                         )
                 ).schedule();
+    }
+
+    private void notifyFailure(BorderCrossEvent event, String reason) {
+        BorderTransferFailedEvent failure = new BorderTransferFailedEvent();
+        failure.setPlayerUuid(event.getPlayerUuid());
+        failure.setTargetServer(event.getSourceServer());
+        failure.setReason(reason);
+        ravenVelocity.getNetworkEventBus().publish(failure);
     }
 }

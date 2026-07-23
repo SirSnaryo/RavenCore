@@ -2,16 +2,20 @@ package com.kammoun.raven.borders;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.borders.config.BorderConfig;
+import com.kammoun.raven.borders.listener.BorderInteractionListener;
 import com.kammoun.raven.borders.listener.BorderMovementListener;
 import com.kammoun.raven.borders.listener.PlayerListener;
+import com.kammoun.raven.borders.particle.BorderParticleRenderer;
 import com.kammoun.raven.borders.registery.BorderRegistry;
 import com.kammoun.raven.borders.utils.BorderTransferStore;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.redis.event.BorderTransferFailedEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
-import org.bukkit.World;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.entity.Player;
 
+import java.util.UUID;
 
 @Getter
 public class BorderModule extends KModule<RavenCore> {
@@ -19,6 +23,8 @@ public class BorderModule extends KModule<RavenCore> {
     private BorderConfig borderConfig;
     private BorderRegistry registry;
     private BorderTransferStore transferStore;
+    private BorderParticleRenderer particleRenderer;
+    private BorderMovementListener movementListener;
 
     public BorderModule() {
         super("borders");
@@ -30,19 +36,63 @@ public class BorderModule extends KModule<RavenCore> {
         var pool = api.getRedisMessenger().getConnection().getPool();
         registry = new BorderRegistry(pool, getLogger());
         transferStore = new BorderTransferStore(pool, getLogger());
+        particleRenderer = new BorderParticleRenderer(this);
 
-        registerEvent(new BorderMovementListener(api, borderConfig, registry, transferStore, api.getNetworkEventBus()));
+        movementListener = new BorderMovementListener(
+                api, borderConfig, registry, transferStore, api.getNetworkEventBus());
+        registerEvent(movementListener);
+        registerEvent(new BorderInteractionListener(this));
         registerEvent(new PlayerListener(this));
+        registerEvent(particleRenderer);
+        particleRenderer.start();
+        api.getNetworkEventBus().subscribe(BorderTransferFailedEvent.class, this::onTransferFailed);
 
         getLogger().info("[Borders] Enabled — cluster=" + borderConfig.cluster()
                 + " cell=(" + borderConfig.cellX() + "," + borderConfig.cellZ() + ")");
     }
 
     @Override
-    public void onModuleDisable() {}
+    public void onModuleDisable() {
+        if (particleRenderer != null) {
+            particleRenderer.close();
+        }
+        api.getNetworkEventBus().unsubscribe(BorderTransferFailedEvent.class);
+    }
 
     @Override
     public void reload() {
         borderConfig = new BorderConfig(api.getConfig());
+    }
+
+    public void suppressTransfers(UUID playerUuid, long durationMillis) {
+        if (movementListener != null) movementListener.suppress(playerUuid, durationMillis);
+    }
+
+    public void releaseTransfers(UUID playerUuid) {
+        if (movementListener != null) movementListener.release(playerUuid);
+    }
+
+    private void onTransferFailed(BorderTransferFailedEvent event) {
+        if (!api.getServerId().equals(event.getTargetServer()) || event.getPlayerUuid() == null) {
+            return;
+        }
+        if ("ALREADY_CONNECTED".equalsIgnoreCase(event.getReason())) {
+            getLogger().info("[Borders] Ignoring completed transfer reported as ALREADY_CONNECTED for "
+                    + event.getPlayerUuid() + ".");
+            return;
+        }
+
+        UUID playerUuid;
+        try {
+            playerUuid = UUID.fromString(event.getPlayerUuid());
+        } catch (IllegalArgumentException ignored) {
+            return;
+        }
+
+        Player player = api.getServer().getPlayer(playerUuid);
+        if (player != null) {
+            SchedulerUtil.execute(player, () ->
+                    player.kickPlayer(ChatFormatter.color(borderConfig.transferFailureMessage())));
+        }
     }
 }

@@ -1,0 +1,8 @@
+# Cluster IDs must match the Redis grid registry used by LocationPool.
+clusters:
+  - na
+  - eu
+
+messages:
+  no-location: "&cNo safe respawn location is available right now."
+  transfer-failed: "&cCould not send you to your respawn server."

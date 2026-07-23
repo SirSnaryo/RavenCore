@@ -1,4 +1,4 @@
-# Seamless Cross-Server Border System — Technical Design
+ # Seamless Cross-Server Border System — Technical Design
 
 ## 1. Goal
 

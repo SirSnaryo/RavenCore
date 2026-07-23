@@ -21,7 +21,7 @@ public final class RtpZoneConfig {
     private final int timer;
     /** WorldGuard region ids that act as the zone (matched case-insensitively, any world). */
     private final List<String> regions;
-    /** Shown every second during the countdown; carries the {time} placeholder. */
+    /** Shown every second during the countdown; carries the %time% placeholder. */
     private final KTitle countdownTitle;
     /** Shown once as the player is whisked away. */
     private final KTitle teleportedTitle;
@@ -42,7 +42,7 @@ public final class RtpZoneConfig {
         List<String> regions = config.getStringList("regions");
 
         KTitle countdown = title(config.getConfigurationSection("titles.countdown"),
-                "&#FF2B2B&lRTP ZONE", "&#FFFFFFTeleporting in &#FFD447{time}&#FFFFFFs");
+                "&#FF2B2B&lRTP ZONE", "&#FFFFFFTeleporting in &#FFD447%time%&#FFFFFFs");
         KTitle teleported = title(config.getConfigurationSection("titles.teleported"),
                 "&#FF2B2B&lRTP ZONE", "&#33FF66Whoosh!");
 

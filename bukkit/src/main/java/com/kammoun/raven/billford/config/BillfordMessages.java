@@ -17,13 +17,15 @@ public class BillfordMessages {
 
     /**
      * Fetches a message by dot-path, translates &-color codes, and replaces any number
-     * of {key} placeholders. Usage: {@code format("preset.created", "preset", name)}.
+     * of %key% placeholders. Usage: {@code format("preset.created", "preset", name)}.
      */
     public String format(String key, Object... kvPairs) {
         String raw = config.getString(key, "&#D90429[Missing message: " + key + "]");
         String msg = ChatFormatter.color(raw);
         for (int i = 0; i + 1 < kvPairs.length; i += 2) {
-            msg = msg.replace("{" + kvPairs[i] + "}", String.valueOf(kvPairs[i + 1]));
+            String name = String.valueOf(kvPairs[i]);
+            String value = String.valueOf(kvPairs[i + 1]);
+            msg = msg.replace("%" + name + "%", value).replace("{" + name + "}", value);
         }
         return msg;
     }

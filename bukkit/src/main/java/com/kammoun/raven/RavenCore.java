@@ -7,10 +7,13 @@ import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
+import com.kammoun.raven.locationPool.LocationPoolModule;
 import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.rtpzone.RtpZoneModule;
+import com.kammoun.raven.rtp.RtpModule;
+import com.kammoun.raven.respawn.RespawnModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.settings.SettingsModule;
@@ -33,6 +36,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -62,12 +66,15 @@ public final class RavenCore extends JavaPlugin {
     private NetworkPlayerManager networkPlayerManager;
     private MySQLDBManager mySqlManager;
     private LastLocationModule lastLocationModule;
+    private LocationPoolModule locationPoolModule;
     private EconomyModule economyModule;
     private ClearInventoryModule clearInventoryModule;
     private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
     private RtpZoneModule rtpZoneModule;
+    private RtpModule rtpModule;
+    private RespawnModule respawnModule;
     private ShopModule shopModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
@@ -133,6 +140,18 @@ public final class RavenCore extends JavaPlugin {
         } else {
             getLogger().warning("MySQL connection failed. Persistent data will not be saved.");
         }
+
+        locationPoolModule = new LocationPoolModule();
+        locationPoolModule.onEnable(this);
+        enabledModules.add("LocationPool");
+
+        rtpModule = new RtpModule();
+        rtpModule.onEnable(this);
+        enabledModules.add("RTP");
+
+        respawnModule = new RespawnModule();
+        respawnModule.onEnable(this);
+        enabledModules.add("Respawn");
 
         if (serverRole != ServerRole.SPAWN) {
             lastLocationModule = new LastLocationModule();
@@ -253,6 +272,9 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "spawn", spawnModule);
         putModule(modules, "rtpzone", rtpZoneModule);
         putModule(modules, "lastlocation", lastLocationModule);
+        putModule(modules, "locationpool", locationPoolModule);
+        putModule(modules, "rtp", rtpModule);
+        putModule(modules, "respawn", respawnModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
         return modules;
@@ -298,34 +320,105 @@ public final class RavenCore extends JavaPlugin {
 
         try {
             List<String> lines = Files.readAllLines(configFile.toPath(), StandardCharsets.UTF_8);
-            if (hasNetworkKey(lines, "server-display-name")) {
-                return;
-            }
-
             List<String> updated = new ArrayList<>(lines);
-            List<String> displayNameBlock = List.of(
-                    "  # Friendly server name shown in GUI lore/messages.",
-                    "  # Example: \"NA East\", \"SMP World NA\", \"Spawn\".",
-                    "  # Leave empty to reuse network.server-id.",
-                    "  server-display-name: ''"
-            );
+            boolean changed = false;
 
-            int networkLine = findTopLevelSection(lines, "network");
-            if (networkLine == -1) {
-                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) {
-                    updated.add("");
+            if (!hasNetworkKey(updated, "server-display-name")) {
+                List<String> displayNameBlock = List.of(
+                        "  # Friendly server name shown in GUI lore/messages.",
+                        "  # Example: \"NA East\", \"SMP World NA\", \"Spawn\".",
+                        "  # Leave empty to reuse network.server-id.",
+                        "  server-display-name: ''"
+                );
+                int networkLine = findTopLevelSection(updated, "network");
+                if (networkLine == -1) {
+                    if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
+                    updated.add("network:");
+                    updated.add("  server-id: ''");
+                    updated.addAll(displayNameBlock);
+                } else {
+                    int serverIdLine = findSectionKey(updated, networkLine, "server-id");
+                    updated.addAll(serverIdLine == -1 ? networkLine + 1 : serverIdLine + 1, displayNameBlock);
                 }
-                updated.add("network:");
-                updated.add("  server-id: ''");
-                updated.addAll(displayNameBlock);
-            } else {
-                int serverIdLine = findSectionKey(lines, networkLine, "server-id");
-                int insertAt = serverIdLine == -1 ? networkLine + 1 : serverIdLine + 1;
-                updated.addAll(insertAt, displayNameBlock);
+                changed = true;
             }
 
-            Files.write(configFile.toPath(), updated, StandardCharsets.UTF_8);
-            getLogger().info("[Config] Added missing network.server-display-name to config.yml.");
+            YamlConfiguration existing = YamlConfiguration.loadConfiguration(configFile);
+            int cellSize = existing.getInt("grid.cell-size", 5000);
+            int ratio = Math.max(1, existing.getInt("grid.nether-ratio", 8));
+            int cellX = existing.getInt("grid.cell-x", 0);
+            int cellZ = existing.getInt("grid.cell-z", 0);
+            int margin = Math.max(0, existing.getInt("grid.border-safety-margin", 300));
+            long overworldMinX = (long) cellX * cellSize + margin;
+            long overworldMinZ = (long) cellZ * cellSize + margin;
+            long overworldMaxX = (long) (cellX + 1) * cellSize - margin;
+            long overworldMaxZ = (long) (cellZ + 1) * cellSize - margin;
+            int netherSize = cellSize / ratio;
+            int netherMargin = (int) Math.ceil(margin / (double) ratio);
+            long netherMinX = (long) cellX * netherSize + netherMargin;
+            long netherMinZ = (long) cellZ * netherSize + netherMargin;
+            long netherMaxX = (long) (cellX + 1) * netherSize - netherMargin;
+            long netherMaxZ = (long) (cellZ + 1) * netherSize - netherMargin;
+
+            int locationLine = findTopLevelSection(updated, "location-library");
+            if (locationLine == -1) {
+                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
+                updated.add("location-library:");
+                updated.add("  refill-interval-seconds: 45");
+                updated.add("  nether-pool-enabled: true");
+                locationLine = updated.size() - 3;
+                changed = true;
+            }
+
+            List<String> additions = new ArrayList<>();
+            if (findSectionKey(updated, locationLine, "bounds") == -1) {
+                additions.addAll(List.of(
+                        "  bounds:",
+                        "    overworld:",
+                        "      min: { x: " + overworldMinX + ", y: -64, z: " + overworldMinZ + " }",
+                        "      max: { x: " + overworldMaxX + ", y: 320, z: " + overworldMaxZ + " }",
+                        "    nether:",
+                        "      min: { x: " + netherMinX + ", y: 5, z: " + netherMinZ + " }",
+                        "      max: { x: " + netherMaxX + ", y: 120, z: " + netherMaxZ + " }",
+                        "    end:",
+                        "      min: { x: -5000, y: 1, z: -5000 }",
+                        "      max: { x: 5000, y: 255, z: 5000 }"
+                ));
+            }
+            if (findSectionKey(updated, locationLine, "blacklisted-blocks") == -1) {
+                additions.addAll(List.of(
+                        "  blacklisted-blocks:",
+                        "    - WATER", "    - LAVA", "    - CACTUS", "    - BEDROCK",
+                        "    - KELP", "    - MAGMA_BLOCK", "    - FIRE", "    - SOUL_FIRE",
+                        "    - CAMPFIRE", "    - SOUL_CAMPFIRE", "    - POWDER_SNOW",
+                        "    - SWEET_BERRY_BUSH", "    - OAK_LEAVES", "    - SPRUCE_LEAVES",
+                        "    - BIRCH_LEAVES", "    - JUNGLE_LEAVES", "    - ACACIA_LEAVES",
+                        "    - DARK_OAK_LEAVES", "    - MANGROVE_LEAVES", "    - CHERRY_LEAVES",
+                        "    - PALE_OAK_LEAVES"
+                ));
+            }
+            if (findSectionKey(updated, locationLine, "blacklisted-biomes") == -1) {
+                additions.addAll(List.of("  blacklisted-biomes:", "    - BEACH"));
+            }
+            if (!additions.isEmpty()) {
+                updated.addAll(findSectionEnd(updated, locationLine), additions);
+                changed = true;
+            }
+
+            int boundsLine = findSectionKey(updated, locationLine, "bounds");
+            if (boundsLine != -1 && !containsExactLine(updated, "    end:")) {
+                updated.addAll(findNestedSectionEnd(updated, boundsLine, 4), List.of(
+                        "    end:",
+                        "      min: { x: -5000, y: 1, z: -5000 }",
+                        "      max: { x: 5000, y: 255, z: 5000 }"
+                ));
+                changed = true;
+            }
+
+            if (changed) {
+                Files.write(configFile.toPath(), updated, StandardCharsets.UTF_8);
+                getLogger().info("[Config] Added missing RavenCore configuration defaults.");
+            }
         } catch (IOException e) {
             getLogger().warning("[Config] Failed to migrate config.yml: " + e.getMessage());
         }
@@ -369,6 +462,32 @@ public final class RavenCore extends JavaPlugin {
             }
         }
         return -1;
+    }
+
+    private int findSectionEnd(List<String> lines, int sectionLine) {
+        for (int i = sectionLine + 1; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (!line.isBlank() && !line.startsWith(" ") && !line.startsWith("\t")
+                    && !line.trim().startsWith("#")) {
+                return i;
+            }
+        }
+        return lines.size();
+    }
+
+    private int findNestedSectionEnd(List<String> lines, int sectionLine, int childIndent) {
+        for (int i = sectionLine + 1; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.isBlank() || line.trim().startsWith("#")) continue;
+            int indent = 0;
+            while (indent < line.length() && line.charAt(indent) == ' ') indent++;
+            if (indent < childIndent) return i;
+        }
+        return lines.size();
+    }
+
+    private boolean containsExactLine(List<String> lines, String expected) {
+        return lines.stream().anyMatch(expected::equals);
     }
 
     /** Console banner shown at the very start of enable, before modules load. */
@@ -422,8 +541,8 @@ public final class RavenCore extends JavaPlugin {
 
     /**
      * All regional overworld servers share one world seed so terrain lines up across
-     * load with {@code load: STARTUP}, so no world is guaranteed loaded yet — check any
-     * world that's already up and also listen for the overworld's WorldLoadEvent.
+     * borders. Validate the already-loaded world and retain the WorldLoadEvent fallback
+     * for worlds loaded later by server-management plugins.
      */
     private void enforceWorldSeed() {
         String expected = getConfig().getString("network.expected-seed", "").trim();
@@ -546,6 +665,8 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (respawnModule != null) respawnModule.onDisable(this);
+        if (rtpModule != null) rtpModule.onDisable(this);
         if (spawnModule != null) spawnModule.onDisable(this);
         if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
         if (settingsModule != null) settingsModule.onDisable(this);
@@ -577,6 +698,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (lastLocationModule != null) {
             lastLocationModule.onDisable(this);
+        }
+        if (locationPoolModule != null) {
+            locationPoolModule.onDisable(this);
         }
         if (redisMessenger != null) {
             redisMessenger.close();

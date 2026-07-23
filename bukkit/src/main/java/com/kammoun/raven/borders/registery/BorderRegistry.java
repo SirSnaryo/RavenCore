@@ -1,5 +1,7 @@
 package com.kammoun.raven.borders.registery;
 
+import com.kammoun.raven.library.locationpool.LocationDimension;
+import com.kammoun.raven.library.locationpool.LocationPoolKeys;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -38,7 +40,23 @@ public class BorderRegistry {
         String key = KEY_PREFIX + cluster + ":" + dimension;
         String field = cellX + ":" + cellZ;
         try (Jedis jedis = pool.getResource()) {
-            return jedis.hget(key, field);
+            String target = jedis.hget(key, field);
+            if (target != null) {
+                return target;
+            }
+            LocationDimension locationDimension;
+            try {
+                locationDimension = switch (dimension) {
+                    case "NORMAL" -> LocationDimension.OVERWORLD;
+                    case "NETHER" -> LocationDimension.NETHER;
+                    case "THE_END" -> LocationDimension.END;
+                    default -> null;
+                };
+            } catch (IllegalArgumentException ignored) {
+                locationDimension = null;
+            }
+            return locationDimension == null ? null
+                    : jedis.hget(LocationPoolKeys.globalGridRegistry(locationDimension), field);
         } catch (Exception e) {
             logger.warning("[Borders] Registry lookup failed for " + key + " " + field + ": " + e.getMessage());
             return null;

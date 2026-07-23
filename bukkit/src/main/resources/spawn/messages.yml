@@ -1,10 +1,10 @@
 not-ready: "&#D90429Error, please try again in a moment."
-none-available: "&#D90429No &#FFFFFF{type} &#D90429locations are currently available on the network."
-server-full: "&#D90429Server &#FFFFFF{server} &#D90429is full."
+none-available: "&#D90429No &#FFFFFF%type% &#D90429locations are currently available on the network."
+server-full: "&#D90429Server &#FFFFFF%server% &#D90429is full."
 world-missing: "&#D90429That destination's world is currently unavailable. Please try again."
 set:
-  success: "&#33FF66Set the &#FFFFFF{type} &#33FF66location for &#FFFFFF{server} &#33FF66to your current position."
+  success: "&#33FF66Set the &#FFFFFF%type% &#33FF66location for &#FFFFFF%server% &#33FF66to your current position."
   failure: "&#D90429Failed to save the location. Check console for details."
 teleport:
-  countdown: "&#4CC9F0Teleporting in &#FFFFFF{seconds} &#4CC9F0seconds..."
+  countdown: "&#4CC9F0Teleporting in &#FFFFFF%seconds% &#4CC9F0seconds..."
   cancelled: "&#D90429Teleport cancelled."

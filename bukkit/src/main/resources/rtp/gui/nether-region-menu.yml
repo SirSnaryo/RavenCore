@@ -6,9 +6,9 @@ Item-Slots: [10,11,12,13,14,15,16]
 Items:
   Region:
     material: NETHERRACK
-    name: "&#FF2B2B{region}"
+    name: "&#FF2B2B%region%"
     lore:
-      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF{region}"
+      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF%region%"
       - "&#4CC9F0Click to teleport."
 
 Navigation:

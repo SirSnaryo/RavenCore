@@ -126,7 +126,7 @@ public class TeleportModule extends KModule<RavenCore> {
         Bukkit.getOnlinePlayers().forEach(settingsService::load);
     }
 
-    void teleportToPlayer(CommandSender sender, NetworkPlayerInfo traveller, NetworkPlayerInfo destination) {
+    public void teleportToPlayer(CommandSender sender, NetworkPlayerInfo traveller, NetworkPlayerInfo destination) {
         Player localTraveller = Bukkit.getPlayer(traveller.getUuid());
         Player localDestination = Bukkit.getPlayer(destination.getUuid());
 
@@ -152,7 +152,7 @@ public class TeleportModule extends KModule<RavenCore> {
                 + " &#33FF66to &#FFD447" + destination.getPlayerName() + "&#33FF66...");
     }
 
-    void teleportToCoordinates(CommandSender sender, NetworkPlayerInfo traveller, CoordinateTarget target) {
+    public void teleportToCoordinates(CommandSender sender, NetworkPlayerInfo traveller, CoordinateTarget target) {
         Player localTraveller = Bukkit.getPlayer(traveller.getUuid());
 
         if (localTraveller != null && api.getServerId().equalsIgnoreCase(target.server())) {
@@ -359,7 +359,7 @@ public class TeleportModule extends KModule<RavenCore> {
         return api.getServerDisplayName();
     }
 
-    record CoordinateTarget(String server, String world, double x, double y, double z, float yaw, float pitch) {
+    public record CoordinateTarget(String server, String world, double x, double y, double z, float yaw, float pitch) {
         String shortLabel() {
             return trim(x) + " " + trim(y) + " " + trim(z) + " @ " + server;
         }

@@ -89,11 +89,11 @@ public class LocationMenu extends KMenu {
             if (template == null) continue;
 
             ItemStack stack = PlaceholderHelper.parsePlaceholders(template.getItemStack(),
-                    "{server}", location.getServerName(),
-                    "{number}", String.valueOf(slotIndex),
-                    "{index}", String.valueOf(slotIndex),
-                    "{count}", String.valueOf(count),
-                    "{max}", String.valueOf(location.getMaxPlayers()));
+                    "%server%", location.getServerName(),
+                    "%number%", String.valueOf(slotIndex),
+                    "%index%", String.valueOf(slotIndex),
+                    "%count%", String.valueOf(count),
+                    "%max%", String.valueOf(location.getMaxPlayers()));
 
             ItemBuilder builder = new ItemBuilder(stack);
             if (isCurrentLocation(viewer, location)) builder.glow();

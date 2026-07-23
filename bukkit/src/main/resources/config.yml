@@ -26,18 +26,19 @@ network:
 server-role: survival
 
 redis:
-  host: 127.0.0.1
+  host: '172.18.0.2'
   port: 6379
-  password: ''
+  password: 'v9OvHKGQ3EXLqE0F'
   database: 0
+
 
 # MySQL connection used by network-wide persistent features (e.g. /setspawn, /setafk).
 database:
-  host: 127.0.0.1
+  host: 172.18.0.1
   port: 3306
-  name: ravencore
-  user: root
-  password: ''
+  name: s10_SMP_DATABASE
+  user: u10_Y8LJHuTiM8
+  password: 'D@o!DfVIJPOA9DnPGmF9o@Xh'
 
 # Virtual grid placement for this server, only used when server-role: survival.
 # Defines the exact slice of the shared coordinate space this server owns —
@@ -76,22 +77,3 @@ border:
   particle: DUST_PLUME
   # Sent when a player tries to break or place a block past the border.
   deny-message: ""
-
-# Location Library — shared pool engine used by the RTP, RTP-Zone, and
-# Respawn modules to hand out safe random coordinates. See the design doc
-# (rtp-pool-design.md) for full behavior.
-location-library:
-  # How many valid locations to keep ready in this server's pool at once,
-  # per dimension (overworld pool and nether pool are sized independently).
-  pool-target-size: 50
-  # How often (seconds) the refill task checks the pool and tops it back
-  # up to pool-target-size.
-  refill-interval-seconds: 45
-  # Max new locations the refill task will generate in a single cycle,
-  # even if the pool is far below target — avoids a burst of simultaneous
-  # chunk-loading work if the pool drains quickly.
-  max-refill-per-cycle: 10
-  # Whether Nether pools are generated/maintained at all. If false, Nether
-  # RTP falls back to whatever the calling module defines (e.g. blocked,
-  # or a live scan).
-  nether-pool-enabled: true

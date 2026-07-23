@@ -6,9 +6,9 @@ Item-Slots: [10,11,12,13,14,15,16]
 Items:
   Region:
     material: FILLED_MAP
-    name: "&#33FF66{region}"
+    name: "&#33FF66%region%"
     lore:
-      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF{region}"
+      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF%region%"
       - "&#4CC9F0Click to teleport."
 
 Navigation:

@@ -2,7 +2,6 @@ package com.kammoun.raven.lastlocation;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.module.KModule;
-import com.kammoun.raven.portal.helper.PortalTransferHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -69,7 +68,7 @@ public class LastLocationModule extends KModule<RavenCore> {
         Bukkit.getAsyncScheduler().runNow(api, task -> {
             // A portal/border transfer already has a specific destination in flight for this
             // join — let it win instead of racing it back to wherever we were last on this server.
-            if (PortalTransferHelper.hasPendingDestination(jedisPool, player)) return;
+            if (hasPendingTransfer(player)) return;
 
             String value;
             try (Jedis jedis = jedisPool.getResource()) {
@@ -112,5 +111,21 @@ public class LastLocationModule extends KModule<RavenCore> {
             Location location = new Location(world, x, y, z, yaw, pitch);
             player.getScheduler().run(api, t -> player.teleportAsync(location), null);
         });
+    }
+
+    private boolean hasPendingTransfer(Player player) {
+        String uuid = player.getUniqueId().toString();
+        try (Jedis jedis = jedisPool.getResource()) {
+            return jedis.exists(
+                    "raven:border:arrival:" + uuid,
+                    "raven:spawn:destination:" + uuid,
+                    "raven:teleport:destination:" + uuid,
+                    "raven:teleport:pending:" + uuid,
+                    "raven:respawn:pending:" + uuid) > 0;
+        } catch (Exception e) {
+            getLogger().warning("[LastLocation] Failed to check pending transfer for "
+                    + player.getName() + ": " + e.getMessage());
+            return true;
+        }
     }
 }

@@ -1,0 +1,46 @@
+# Random-location pool generation settings for this server.
+location-library:
+  # How often the asynchronous refill controller checks each pool.
+  refill-interval-seconds: 45
+  nether-pool-enabled: true
+
+  # Absolute search bounds. Minimum values are inclusive and maximum values
+  # are exclusive. Survival X/Z bounds must fit within the server's grid cell
+  # and border safety margin from the main RavenCore config.yml.
+  bounds:
+    overworld:
+      min: { x: 300, y: -64, z: 300 }
+      max: { x: 4700, y: 320, z: 4700 }
+    nether:
+      min: { x: 38, y: 5, z: 38 }
+      max: { x: 587, y: 120, z: 587 }
+    end:
+      min: { x: -5000, y: 1, z: -5000 }
+      max: { x: 5000, y: 255, z: 5000 }
+
+  blacklisted-blocks:
+    - WATER
+    - LAVA
+    - CACTUS
+    - BEDROCK
+    - KELP
+    - MAGMA_BLOCK
+    - FIRE
+    - SOUL_FIRE
+    - CAMPFIRE
+    - SOUL_CAMPFIRE
+    - POWDER_SNOW
+    - SWEET_BERRY_BUSH
+    - WITHER_ROSE
+    - OAK_LEAVES
+    - SPRUCE_LEAVES
+    - BIRCH_LEAVES
+    - JUNGLE_LEAVES
+    - ACACIA_LEAVES
+    - DARK_OAK_LEAVES
+    - MANGROVE_LEAVES
+    - CHERRY_LEAVES
+    - PALE_OAK_LEAVES
+
+  blacklisted-biomes:
+    - BEACH

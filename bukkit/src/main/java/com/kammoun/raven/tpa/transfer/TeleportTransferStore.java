@@ -10,10 +10,12 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class TeleportTransferStore {
 
     private static final String KEY_PREFIX = "raven:teleport:destination:";
+    private static final String MARKER_PREFIX = "raven:teleport:pending:";
     private static final int TTL_SECONDS = 45;
     private static final Gson GSON = new Gson();
 
@@ -73,11 +75,13 @@ public class TeleportTransferStore {
                     }
                 } catch (RuntimeException ignored) {
                 }
+                clearMarkerLater(player.getUniqueId());
                 return;
             }
 
             module.teleportLocal(player, pending.world, pending.x, pending.y, pending.z, pending.yaw, pending.pitch);
-        }, null, 20L);
+            clearMarkerLater(player.getUniqueId());
+        }, null, 1L);
         return true;
     }
 
@@ -87,11 +91,23 @@ public class TeleportTransferStore {
         }
         try (Jedis jedis = pool.getResource()) {
             jedis.setex(KEY_PREFIX + playerUuid, TTL_SECONDS, GSON.toJson(payload));
+            jedis.setex(MARKER_PREFIX + playerUuid, TTL_SECONDS, "1");
             return true;
         } catch (Exception e) {
             plugin.getLogger().warning("[Teleport] Failed to store transfer payload for " + playerUuid + ": " + e.getMessage());
             return false;
         }
+    }
+
+    private void clearMarkerLater(UUID playerUuid) {
+        Bukkit.getAsyncScheduler().runDelayed(plugin, task -> {
+            try (Jedis jedis = pool.getResource()) {
+                jedis.del(MARKER_PREFIX + playerUuid);
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Teleport] Failed to clear pending marker for "
+                        + playerUuid + ": " + e.getMessage());
+            }
+        }, 2L, TimeUnit.SECONDS);
     }
 
     public record PlayerTarget(UUID playerUuid, String destinationUuid, String type) {
