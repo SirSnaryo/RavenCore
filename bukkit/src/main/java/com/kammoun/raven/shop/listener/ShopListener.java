@@ -1,5 +1,8 @@
 package com.kammoun.raven.shop.listener;
 
+import com.kammoun.raven.economy.model.EconomyReason;
+import com.kammoun.raven.economy.model.EconomyTransactionResult;
+import com.kammoun.raven.economy.model.EconomyTransactionType;
 import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.item.ClickAction;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
@@ -173,15 +176,32 @@ public class ShopListener implements Listener {
             return;
         }
 
-        economy.withdrawPlayer(player, total);
-
         String itemName = "";
         var meta = shopItem.getIcon().getItemStack().getItemMeta();
         if (meta != null) itemName = meta.getDisplayName();
 
-        player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgBuying()
-                .replace("%amount%", String.valueOf(amount))
-                .replace("%item-name%", itemName)));
+        EconomyTransactionResult result = module.getApi().getEconomyModule().getEconomyService().withdraw(
+                player.getUniqueId(),
+                total,
+                new EconomyReason(EconomyTransactionType.SHOP_BUY,
+                        "Bought " + amount + "x " + itemName,
+                        "/shop buy " + amount + "x " + itemName),
+                "Shop",
+                null,
+                player.getName()
+        );
+        if (!result.success()) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
+            player.closeInventory();
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            return;
+        }
+
+        if (module.getApi().getEconomyModule().getSettingsService().paymentMessages(player.getUniqueId())) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgBuying()
+                    .replace("%amount%", String.valueOf(amount))
+                    .replace("%item-name%", itemName)));
+        }
 
         if (commandsOnly) {
             CommandHelper.executeCommand(player, action.commands());

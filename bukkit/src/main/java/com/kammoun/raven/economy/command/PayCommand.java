@@ -1,13 +1,12 @@
 package com.kammoun.raven.economy.command;
 
+import com.kammoun.raven.economy.confirm.EconomyConfirmationService;
 import com.kammoun.raven.economy.config.EconomyMessages;
-import com.kammoun.raven.economy.service.EconomyService;
-import com.kammoun.raven.economy.hook.RavenEconomy;
+import com.kammoun.raven.economy.util.EconomyAmountParser;
 import com.kammoun.raven.library.command.KCommand;
 import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
-import com.kammoun.raven.library.redis.event.NetworkEventBus;
-import com.kammoun.raven.library.redis.event.PaymentNotificationEvent;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,21 +19,16 @@ import java.util.UUID;
 public class PayCommand extends KCommand {
 
     private final JavaPlugin plugin;
-    private final EconomyService service;
-    private final RavenEconomy economy;
+    private final EconomyConfirmationService confirmations;
     private final NetworkPlayerManager networkPlayerManager;
-    private final NetworkEventBus networkEventBus;
     private final EconomyMessages messages;
 
-    public PayCommand(JavaPlugin plugin, EconomyService service, RavenEconomy economy,
-                      NetworkPlayerManager networkPlayerManager, NetworkEventBus networkEventBus,
-                      EconomyMessages messages) {
+    public PayCommand(JavaPlugin plugin, EconomyConfirmationService confirmations,
+                      NetworkPlayerManager networkPlayerManager, EconomyMessages messages) {
         super("pay", null, true);
         this.plugin = plugin;
-        this.service = service;
-        this.economy = economy;
+        this.confirmations = confirmations;
         this.networkPlayerManager = networkPlayerManager;
-        this.networkEventBus = networkEventBus;
         this.messages = messages;
     }
 
@@ -49,7 +43,7 @@ public class PayCommand extends KCommand {
 
         double amount;
         try {
-            amount = Double.parseDouble(args[1]);
+            amount = EconomyAmountParser.parse(args[1]);
         } catch (NumberFormatException e) {
             player.sendMessage(messages.format("pay.invalid-amount", "amount", args[1]));
             return;
@@ -76,28 +70,8 @@ public class PayCommand extends KCommand {
                 return;
             }
 
-            if (!service.withdraw(player.getUniqueId(), amount)) {
-                player.sendMessage(messages.format("pay.insufficient-funds",
-                        "balance", economy.format(service.getBalance(player.getUniqueId()))));
-                return;
-            }
-
-            service.deposit(targetUuid, amount);
-
-            String formattedAmount = economy.format(amount);
-            player.sendMessage(messages.format("pay.sent", "amount", formattedAmount, "player", info.getPlayerName()));
-
-            String receivedMsg = messages.format("pay.received", "amount", formattedAmount, "player", player.getName());
-
-            Player localTarget = Bukkit.getPlayer(targetUuid);
-            if (localTarget != null) {
-                localTarget.sendMessage(receivedMsg);
-            } else {
-                PaymentNotificationEvent notif = new PaymentNotificationEvent();
-                notif.setRecipientUuid(targetUuid.toString());
-                notif.setMessage(receivedMsg);
-                networkEventBus.publish(notif);
-            }
+            SchedulerUtil.execute(player, () -> confirmations.startPay(player, targetUuid, info.getPlayerName(), amount,
+                    "/pay " + targetName + " " + args[1]));
         });
     }
 

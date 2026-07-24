@@ -3,7 +3,8 @@ Size: 54
 
 # Settings are centered in row 4 (slots 20-26), grouped left-to-right:
 # 20 = TPA requests, 21 = TPAHere requests, 22 = TPAuto, 23 = TPA confirm menu,
-# 24 = Public chat, 25 = Broadcasts, 26 = Scoreboard.
+# 24 = Public chat, 25 = Broadcasts, 26 = Scoreboard,
+# 29 = Economy payments, 33 = Economy messages.
 Setting-Slots:
   - 20
   - 21
@@ -12,6 +13,8 @@ Setting-Slots:
   - 24
   - 25
   - 26
+  - 29
+  - 33
 
 Status:
   Enabled: "&#33FF66&lON"

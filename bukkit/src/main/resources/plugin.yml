@@ -18,9 +18,20 @@ commands:
     usage: /pay <player> <amount>
     permission: raven.economy.pay
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
+  paytoggle:
+    description: Toggle receiving player payments
+    usage: /paytoggle
+    permission: raven.economy.pay
+    permission-message: You don't have permission to use this command.
+  paymsg:
+    description: Toggle economy payment messages
+    usage: /paymsg
+    aliases: [paymessages]
+    permission: raven.economy.pay
+    permission-message: You don't have permission to use this command.
   eco:
     description: Admin economy management
-    usage: /eco <give|take|set|reset> <player> [amount]
+    usage: /eco <give|take|set|reset|log|logs> <player> [amount] [reason]
     aliases: [economy]
     permission: raven.economy.admin
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
@@ -208,6 +219,12 @@ permissions:
     default: true
   raven.economy.admin:
     description: Admin economy commands (give, take, set, reset)
+    default: op
+  raven.economy.confirm.bypass:
+    description: Bypass large payment confirmation
+    default: op
+  raven.economy.paytoggle.bypass:
+    description: Pay players who disabled player payments
     default: op
   raven.spawn:
     description: Open the spawn server selection menu

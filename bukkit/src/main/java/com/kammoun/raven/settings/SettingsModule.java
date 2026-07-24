@@ -47,6 +47,7 @@ public class SettingsModule extends KModule<RavenCore> {
     private void registerBuiltInSettings() {
         registerTeleportSettings();
         registerChatSettings();
+        registerEconomySettings();
         registerScoreboardSettings();
     }
 
@@ -135,6 +136,32 @@ public class SettingsModule extends KModule<RavenCore> {
                 .priority(30)
                 .getter(player -> api.getScoreboardModule().getService().isEnabled(player))
                 .setter((player, enabled) -> api.getScoreboardModule().getService().setEnabled(player, enabled))
+                .build());
+    }
+
+    private void registerEconomySettings() {
+        if (api.getEconomyModule() == null || api.getEconomyModule().getSettingsService() == null) {
+            return;
+        }
+
+        registry.register(PlayerSettingDefinition.builder("economy.payments")
+                .category("Economy")
+                .displayName("&#33FF66ᴘᴀʏᴍᴇɴᴛs")
+                .description(List.of("&#FFFFFFAllow players to send you money.", "&#7A7A7AAdmins with bypass can still pay you."))
+                .material(Material.EMERALD)
+                .priority(40)
+                .getter(player -> api.getEconomyModule().getSettingsService().acceptsPayments(player.getUniqueId()))
+                .setter((player, enabled) -> api.getEconomyModule().getSettingsService().setPayments(player.getUniqueId(), enabled))
+                .build());
+
+        registry.register(PlayerSettingDefinition.builder("economy.messages")
+                .category("Economy")
+                .displayName("&#FFD447ᴘᴀʏ ᴍᴇssᴀɢᴇs")
+                .description(List.of("&#FFFFFFShow pay and shop economy messages.", "&#7A7A7ATransactions still log normally."))
+                .material(Material.PAPER)
+                .priority(41)
+                .getter(player -> api.getEconomyModule().getSettingsService().paymentMessages(player.getUniqueId()))
+                .setter((player, enabled) -> api.getEconomyModule().getSettingsService().setMessages(player.getUniqueId(), enabled))
                 .build());
     }
 }

@@ -4,3 +4,30 @@ currency:
   singular: "Coin"
   plural: "Coins"
   fractional-digits: 2
+
+confirm:
+  enabled: true
+  large-amount-threshold: 100000.0
+  expires-seconds: 30
+
+logs:
+  enabled: true
+  gui-page-size: 45
+
+sounds:
+  confirm-open:
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 1.25
+    volume: 0.75
+  pay-success:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.45
+    volume: 1.0
+  cancel:
+    sound: UI_BUTTON_CLICK
+    pitch: 0.75
+    volume: 0.8
+  fail:
+    sound: ENTITY_VILLAGER_NO
+    pitch: 0.8
+    volume: 0.9

@@ -37,6 +37,33 @@ public class RavenEconomy implements Economy {
         return format.format(amount) + " " + (amount == 1.0 ? singular : plural);
     }
 
+    public String formatCompact(double amount) {
+        double absolute = Math.abs(amount);
+        String sign = amount < 0 ? "-" : "";
+
+        if (absolute < 1_000D) {
+            return sign + trimOneDecimal(absolute) + "$";
+        }
+        if (absolute < 1_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000D) + "k";
+        }
+        if (absolute < 1_000_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000_000D) + "m";
+        }
+        if (absolute < 1_000_000_000_000D) {
+            return sign + trimOneDecimal(absolute / 1_000_000_000D) + "b";
+        }
+        return sign + trimOneDecimal(absolute / 1_000_000_000_000D) + "t";
+    }
+
+    private String trimOneDecimal(double value) {
+        double rounded = Math.round(value * 10D) / 10D;
+        if (rounded == Math.rint(rounded)) {
+            return String.format(java.util.Locale.US, "%.0f", rounded);
+        }
+        return String.format(java.util.Locale.US, "%.1f", rounded);
+    }
+
     @Override public boolean hasAccount(OfflinePlayer player) { return service.hasAccount(player.getUniqueId()); }
     @Override public boolean hasAccount(OfflinePlayer player, String world) { return hasAccount(player); }
 
