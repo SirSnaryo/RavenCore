@@ -14,7 +14,7 @@ public final class RtpDimensionMenu extends KMenu {
     private final MenuItem end;
 
     public RtpDimensionMenu(RavenCore plugin, RtpModule module) {
-        super(plugin, "rtp/gui/dimension-menu.yml");
+        super(plugin, "rtp/gui/rtp.yml");
         this.module = module;
         this.overworld = ItemReader.readMenuItem(config.getConfigurationSection("Items.Overworld"));
         this.nether = ItemReader.readMenuItem(config.getConfigurationSection("Items.Nether"));

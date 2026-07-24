@@ -4,6 +4,8 @@ import com.google.inject.Inject;
 import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
+import com.kammoun.raven.library.redis.event.CombatTagEvent;
+import com.kammoun.raven.library.redis.event.CombatUntagEvent;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.command.RavenCoreVelocityCommand;
@@ -15,6 +17,9 @@ import com.kammoun.raven.velocity.proxycommandfilter.ProxyCommandFilterModule;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.event.player.ServerPreConnectEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -31,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 @Plugin(
@@ -60,6 +66,7 @@ public class RavenVelocity {
     private PrivateMessageModule privateMessageModule;
     private LobbyModule lobbyModule;
     private BorderTransferModule borderTransferModule;
+    private final Map<UUID, Long> combatTags = new ConcurrentHashMap<>();
 
     @Inject
     public RavenVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -93,6 +100,8 @@ public class RavenVelocity {
                 this, server, redisMessenger.getConnection().getPool(), serverId, networkEventBus
         );
         networkEventBus.subscribe(CrossServerTeleportEvent.class, this::onTeleportTransfer);
+        networkEventBus.subscribe(CombatTagEvent.class, this::onCombatTag);
+        networkEventBus.subscribe(CombatUntagEvent.class, this::onCombatUntag);
 
         infoModule = new InfoModule();
         infoModule.onEnable(this, server, dataDirectory);
@@ -132,6 +141,8 @@ public class RavenVelocity {
         }
         if (networkEventBus != null) {
             networkEventBus.unsubscribe(CrossServerTeleportEvent.class);
+            networkEventBus.unsubscribe(CombatTagEvent.class);
+            networkEventBus.unsubscribe(CombatUntagEvent.class);
         }
         if (redisMessenger != null) {
             redisMessenger.close();
@@ -150,6 +161,11 @@ public class RavenVelocity {
             logger.warning("[Teleport] Invalid transfer UUID: " + event.getPlayerUuid());
             return;
         }
+        if (isInCombat(playerUuid)) {
+            server.getPlayer(playerUuid).ifPresent(player -> player.sendMessage(
+                    Component.text("You cannot change servers while in combat!", NamedTextColor.RED)));
+            return;
+        }
 
         server.getScheduler().buildTask(this, () ->
                 server.getPlayer(playerUuid).ifPresent(player -> server.getServer(event.getTargetServer()).ifPresentOrElse(
@@ -163,6 +179,39 @@ public class RavenVelocity {
                         () -> logger.warning("[Teleport] Unknown target server: " + event.getTargetServer())
                 ))
         ).schedule();
+    }
+
+    @Subscribe
+    public void onServerPreConnect(ServerPreConnectEvent event) {
+        if (event.getPlayer().getCurrentServer().isEmpty() || !isInCombat(event.getPlayer().getUniqueId())) return;
+        String current = event.getPlayer().getCurrentServer().get().getServerInfo().getName();
+        if (current.equalsIgnoreCase(event.getOriginalServer().getServerInfo().getName())) return;
+        event.setResult(ServerPreConnectEvent.ServerResult.denied());
+        event.getPlayer().sendMessage(Component.text(
+                "You cannot change servers while in combat!", NamedTextColor.RED));
+    }
+
+    private void onCombatTag(CombatTagEvent event) {
+        try {
+            UUID uuid = UUID.fromString(event.getPlayerUuid());
+            if (event.getExpiresAt() > System.currentTimeMillis()) combatTags.put(uuid, event.getExpiresAt());
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    private void onCombatUntag(CombatUntagEvent event) {
+        try {
+            combatTags.remove(UUID.fromString(event.getPlayerUuid()));
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    private boolean isInCombat(UUID uuid) {
+        Long expiry = combatTags.get(uuid);
+        if (expiry == null) return false;
+        if (expiry > System.currentTimeMillis()) return true;
+        combatTags.remove(uuid, expiry);
+        return false;
     }
 
     public String getVersion() {

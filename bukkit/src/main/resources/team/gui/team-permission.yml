@@ -1,0 +1,38 @@
+Title: '%player% permission'
+Size: 27
+Items:
+  back:
+    slot: 18
+    material: RED_STAINED_GLASS_PANE
+    name: '&#34eb9bʙᴀᴄᴋ'
+    lore: ['&fClick to return']
+  edit-home:
+    slot: 10
+    material: WHITE_BANNER
+    name: '&#34eb9bᴇᴅɪᴛ ʜᴏᴍᴇ'
+    lore: ['&fLet %player% set and remove the team home']
+  kick:
+    slot: 11
+    material: OAK_DOOR
+    name: '&#34eb9bᴋɪᴄᴋ'
+    lore: ['&fClick to kick %player%']
+  toggle-pvp:
+    slot: 12
+    material: IRON_SWORD
+    name: '&#34eb9bᴘᴠᴘ'
+    lore: ['&fLet %player% turn on and off team PvP']
+  manage-members:
+    slot: 13
+    material: IRON_HELMET
+    name: '&#34eb9bᴍᴀɴᴀɢᴇ ᴛᴇᴀᴍᴍᴀᴛᴇѕ'
+    lore: ['&fLet %player% invite and kick teammates']
+  visit-home:
+    slot: 14
+    material: ENDER_PEARL
+    name: '&#34eb9bᴠɪѕɪᴛ ᴛᴇᴀᴍ ʜᴏᴍᴇ'
+    lore: ['&fLet %player% go to team home']
+  team-chat:
+    slot: 15
+    material: FEATHER
+    name: '&#34eb9bᴛᴇᴀᴍ ᴄʜᴀᴛ'
+    lore: ['&fLet %player% speak in chat']

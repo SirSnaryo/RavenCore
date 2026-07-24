@@ -1,0 +1,22 @@
+Title: '&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ'
+Size: 27
+
+Items:
+  Overworld:
+    slot: 11
+    material: GRASS_BLOCK
+    name: '&bᴏᴠᴇʀᴡᴏʀʟᴅ'
+    lore:
+      - '&fClick to randomly teleport'
+  Nether:
+    slot: 13
+    material: NETHERRACK
+    name: '&bɴᴇᴛʜᴇʀ'
+    lore:
+      - '&fClick to randomly teleport'
+  End:
+    slot: 15
+    material: END_STONE
+    name: '&bᴇɴᴅ'
+    lore:
+      - '&fClick to randomly teleport'

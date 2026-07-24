@@ -1,0 +1,43 @@
+combat:
+  duration: 30
+  kill-on-logout: true
+  disable-elytra: true
+  disable-enderpearls: true
+  worldguard-block: true
+  ignore-op: false
+  actionbar:
+    enabled: true
+    message: '&c⚔ In combat for &e%time%s'
+
+blocked-commands:
+  - spawn
+  - home
+  - homes
+  - sethome
+  - delhome
+  - tpa
+  - tpahere
+  - tpaccept
+  - tp
+  - tphere
+  - rtp
+  - afk
+
+kill-money-steal:
+  enabled: true
+  percentage: 10.0
+  min-steal: 0.0
+  max-steal: 0.0
+
+messages:
+  prefix: ''
+  enter-combat: '&c⚔ You are now in combat!'
+  leave-combat: '&a✔ You are no longer in combat.'
+  blocked-command: '&cYou cannot use /%command% while in combat!'
+  transfer-blocked: '&cYou cannot change servers or dimensions while in combat!'
+  elytra-blocked: '&cYou cannot use Elytra during combat!'
+  enderpearl-blocked: '&cYou cannot use Ender Pearls during combat!'
+  region-blocked: '&cYou cannot enter protected areas while in combat!'
+  logout-death: '&4☠ %player% logged out during combat!'
+  money-stolen-killer: '&aYou stole &e$%amount% &afrom &e%victim%&a!'
+  money-stolen-victim: '&c%killer% stole &e$%amount% &cfrom you!'

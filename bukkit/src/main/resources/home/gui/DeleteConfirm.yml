@@ -1,0 +1,13 @@
+Title: '&7Confirm Deletion'
+Size: 27
+Items:
+  Confirm-Delete:
+    material: LIME_STAINED_GLASS_PANE
+    slot: 15
+    name: '&#00FF00ᴄᴏɴꜰɪʀᴍ'
+    lore: ['&fClick to delete']
+  Cancel-Delete:
+    material: RED_STAINED_GLASS_PANE
+    slot: 11
+    name: '&#FF0000ᴄᴀɴᴄᴇʟ'
+    lore: ['&fClick to cancel']

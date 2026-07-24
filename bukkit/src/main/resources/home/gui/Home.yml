@@ -1,0 +1,64 @@
+Title: 'ʜᴏᴍᴇѕ'
+Size: 36
+Home-Slots: [12, 13, 14, 15, 16]
+
+Homes:
+  Bed:
+    HAS_HOME:
+      material: LIGHT_BLUE_BED
+      name: '&#34eb9bHome %home_id%'
+      lore: ['&7Click to teleport to this home.']
+    NO_HOME:
+      material: GRAY_BED
+      name: '&#34eb9bSet Home'
+      lore: ['&7Click to set this home.']
+    NO_PERMISSION:
+      material: RED_BED
+      name: '&#34eb9bHome Locked'
+      lore: ['&cYou do not have permission to set this home.']
+  Dye:
+    HAS_HOME:
+      material: BLUE_DYE
+      name: '&#34eb9bDelete Home'
+      lore: ['&7Click to delete this home.']
+    NO_HOME:
+      material: GRAY_DYE
+      name: '&#34eb9bSet Home'
+      lore: ['&7Click to set this home.']
+    NO_PERMISSION:
+      material: RED_DYE
+      name: '&#34eb9bHome Locked'
+      lore: ['&cYou do not have permission to set this home.']
+
+Team:
+  HAS_HOME:
+    material: WHITE_BANNER
+    name: '&#34eb9bTeam Home'
+    slot: 10
+    lore: ['&7Click to teleport to team home.']
+  NO_HOME:
+    material: WHITE_BANNER
+    name: '&#34eb9bSet Team Home'
+    slot: 10
+    lore: ['&7Click to create a team home.']
+  NO_PERMISSION:
+    material: RED_BANNER
+    name: '&#34eb9bTeam Home Locked'
+    slot: 10
+    lore: ['&cYou do not have permission to access team home.']
+  Dye:
+    HAS_HOME:
+      material: BLUE_DYE
+      name: '&#34eb9bDelete Team Home'
+      slot: 19
+      lore: ['&7Click to delete this team home.']
+    NO_HOME:
+      material: GRAY_DYE
+      name: '&#34eb9bSet Team Home'
+      slot: 19
+      lore: ['&7Click to set this team home.']
+    NO_PERMISSION:
+      material: RED_DYE
+      name: '&#34eb9bTeam Home Locked'
+      slot: 19
+      lore: ['&cYou do not have permission to set this team home.']

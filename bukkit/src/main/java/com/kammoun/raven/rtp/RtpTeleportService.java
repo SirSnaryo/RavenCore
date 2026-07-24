@@ -65,6 +65,7 @@ public final class RtpTeleportService {
     }
 
     private void begin(Player player, Supplier<Optional<RtpLocation>> destination) {
+        if (plugin.getCombatModule() != null && !plugin.getCombatModule().canTransfer(player, true)) return;
         UUID uuid = player.getUniqueId();
         if (warmups.isActive(uuid) || resolving.contains(uuid)) {
             messages.send(player, RtpMessage.ALREADY_TELEPORTING);

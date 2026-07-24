@@ -156,6 +156,42 @@ commands:
     permission: raven.rtp
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
+  home:
+    description: Open your homes or teleport to a named home
+    usage: /home [name]
+    permission: raven.home
+    permission-message: You don't have permission to use homes.
+  homes:
+    description: Open your homes
+    usage: /homes
+    permission: raven.home
+    permission-message: You don't have permission to use homes.
+  sethome:
+    description: Set a network-wide home
+    usage: /sethome [name]
+    permission: raven.home.set
+    permission-message: You don't have permission to set homes.
+  delhome:
+    description: Delete a named home
+    usage: /delhome <name>
+    aliases: [deletehome, removehome]
+    permission: raven.home.delete
+    permission-message: You don't have permission to delete homes.
+
+  team:
+    description: Manage your network-wide team
+    usage: /team [create|invite|accept|deny|leave|kick|disband|home|sethome|deletehome|chat|invites|pvp]
+    aliases: [teams, clan]
+    permission: raven.team
+    permission-message: You don't have permission to use teams.
+
+  combatmanager:
+    description: Manage network combat tags
+    usage: /combatmanager <tag|untag> <player> [opponent]
+    aliases: [combatmgr, combatadmin]
+    permission: raven.combat.admin
+    permission-message: You don't have permission to manage combat tags.
+
   shop:
     description: Open the server shop
     usage: /shop [category|reload]
@@ -241,6 +277,24 @@ permissions:
   raven.rtp:
     description: Teleport to a random location
     default: true
+  raven.home:
+    description: Use and list network-wide homes
+    default: true
+  raven.home.set:
+    description: Set network-wide homes
+    default: true
+  raven.home.delete:
+    description: Delete network-wide homes
+    default: true
+  raven.home.max.1:
+    description: Allow one home
+    default: true
+  raven.team:
+    description: Use network-wide teams
+    default: true
+  raven.combat.admin:
+    description: Manage combat tags across the network
+    default: op
   raven.shop:
     description: Open the server shop
     default: true

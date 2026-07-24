@@ -120,6 +120,7 @@ public class LocationMenu extends KMenu {
 
     private void handleServerClick(Player player, NetworkLocation destination) {
         player.closeInventory();
+        if (api.getCombatModule() != null && !api.getCombatModule().canTransfer(player, true)) return;
         countdown.begin(player, destination.getServerName(), () -> teleport(player, destination));
     }
 

@@ -1,6 +1,7 @@
 package com.kammoun.raven.borders.listener;
 
 import com.kammoun.raven.borders.registery.BorderRegistry;
+import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.borders.utils.BorderTransferStore;
 import com.kammoun.raven.borders.utils.GridCell;
 import com.kammoun.raven.borders.config.BorderConfig;
@@ -18,7 +19,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Set;
 import java.util.UUID;
@@ -32,14 +32,16 @@ public class BorderMovementListener implements Listener {
     private final BorderTransferStore transferStore;
     private final NetworkEventBus eventBus;
     private final String sourceServer;
+    private final RavenCore plugin;
 
     /** Players currently being transferred — suppress duplicate triggers. */
     private final Set<UUID> inTransfer = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Long> suppressedUntil = new ConcurrentHashMap<>();
 
-    public BorderMovementListener(JavaPlugin plugin, BorderConfig config, BorderRegistry registry,
+    public BorderMovementListener(RavenCore plugin, BorderConfig config, BorderRegistry registry,
                                   BorderTransferStore transferStore, NetworkEventBus eventBus) {
         this.config = config;
+        this.plugin = plugin;
         this.registry = registry;
         this.transferStore = transferStore;
         this.eventBus = eventBus;
@@ -112,6 +114,11 @@ public class BorderMovementListener implements Listener {
 
         GridCell.Direction dir = cell.exitDirection(x, z);
         if (dir == null) return; // still inside
+
+        if (plugin.getCombatModule() != null && !plugin.getCombatModule().canTransfer(player, true)) {
+            event.setCancelled(true);
+            return;
+        }
 
         int neighborCellX = config.cellX() + dir.dx;
         int neighborCellZ = config.cellZ() + dir.dz;

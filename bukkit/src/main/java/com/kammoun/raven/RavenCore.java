@@ -3,9 +3,11 @@ package com.kammoun.raven;
 import com.kammoun.raven.billford.BillfordModule;
 import com.kammoun.raven.borders.BorderModule;
 import com.kammoun.raven.chat.ChatModule;
+import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
+import com.kammoun.raven.home.HomeModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
 import com.kammoun.raven.locationPool.LocationPoolModule;
 import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
@@ -18,6 +20,7 @@ import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.tpa.TeleportModule;
+import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
@@ -75,6 +78,9 @@ public final class RavenCore extends JavaPlugin {
     private RtpZoneModule rtpZoneModule;
     private RtpModule rtpModule;
     private RespawnModule respawnModule;
+    private HomeModule homeModule;
+    private TeamModule teamModule;
+    private CombatModule combatModule;
     private ShopModule shopModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
@@ -152,6 +158,20 @@ public final class RavenCore extends JavaPlugin {
         respawnModule = new RespawnModule();
         respawnModule.onEnable(this);
         enabledModules.add("Respawn");
+
+        homeModule = new HomeModule();
+        homeModule.onEnable(this);
+        enabledModules.add("Home");
+
+        teamModule = new TeamModule();
+        teamModule.onEnable(this);
+        enabledModules.add("Team");
+
+        if (serverRole != ServerRole.SPAWN) {
+            combatModule = new CombatModule();
+            combatModule.onEnable(this);
+            enabledModules.add("Combat");
+        }
 
         if (serverRole != ServerRole.SPAWN) {
             lastLocationModule = new LastLocationModule();
@@ -275,6 +295,9 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "locationpool", locationPoolModule);
         putModule(modules, "rtp", rtpModule);
         putModule(modules, "respawn", respawnModule);
+        putModule(modules, "home", homeModule);
+        putModule(modules, "team", teamModule);
+        putModule(modules, "combat", combatModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
         return modules;
@@ -665,6 +688,9 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (combatModule != null) combatModule.onDisable(this);
+        if (teamModule != null) teamModule.onDisable(this);
+        if (homeModule != null) homeModule.onDisable(this);
         if (respawnModule != null) respawnModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
         if (spawnModule != null) spawnModule.onDisable(this);

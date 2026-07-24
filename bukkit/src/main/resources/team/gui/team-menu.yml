@@ -1,0 +1,46 @@
+Title: 'ᴛᴇᴀᴍ (Page %page%/%max_page%)'
+Size: 54
+teammate-slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44]
+Navigation:
+  Next-Page:
+    material: ARROW
+    displayName: '&#00F986ɴᴇxᴛ'
+    slot: 50
+    lore: ['&fClick to go to the next page']
+  Prev-Page:
+    material: ARROW
+    displayName: '&#00F986ʙᴀᴄᴋ'
+    slot: 48
+    lore: ['&fClick to go to the previous page']
+Items:
+  invite:
+    material: GRAY_STAINED_GLASS_PANE
+    name: '&#34eb9bɪɴᴠɪᴛᴇ'
+    lore: ['&fClick to invite a new player']
+  search:
+    material: OAK_SIGN
+    name: '&#34eb9bѕᴇᴀʀᴄʜ'
+    slot: 45
+  team-home:
+    material: WHITE_BANNER
+    name: '&#34eb9bᴛᴇᴀᴍ ʜᴏᴍᴇ'
+    slot: 52
+  team:
+    material: IRON_HELMET
+    name: '&#34eb9bᴛᴇᴀᴍ %team_name%'
+    lore:
+      - '&fClick to refresh'
+      - '&7Add up to %max_players% members'
+    slot: 49
+  sort:
+    material: HOPPER
+    name: '&#34eb9bSort'
+    slot: 46
+  pvp-on:
+    material: DIAMOND_SWORD
+    name: '&#34eb9bᴘᴠᴘ &a&lON'
+    slot: 53
+  pvp-off:
+    material: DIAMOND_SWORD
+    name: '&#34eb9bᴘᴠᴘ &c&lOFF'
+    slot: 53
