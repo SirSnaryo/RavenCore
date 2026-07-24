@@ -12,10 +12,10 @@ Items:
     slot: 10
     name: "&#D90429ᴄᴀɴᴄᴇʟ"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#FFFFFF%amount%"
-      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFFFFF%player%"
+      - "&#7A7A7Aᴍᴏɴᴇʏ &#33FF66%amount_formatted%"
+      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFD447%player%"
       - ""
-      - "&#FFFFFFClose without sending money."
+      - "&#FFFFFFClose without sending Money."
 
   Player:
     material: PLAYER_HEAD
@@ -23,10 +23,10 @@ Items:
     skull-owner: "%player%"
     name: "&#FFD447%player%"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#33FF66%amount%"
-      - "&#7A7A7Aʙᴀʟᴀɴᴄᴇ &#FFFFFF%balance%"
-      - "&#7A7A7Aᴀғᴛᴇʀ &#FFFFFF%after%"
-      - "&#7A7A7Aʀᴇᴀsᴏɴ &#FFFFFF%reason%"
+      - "&#7A7A7Aᴍᴏɴᴇʏ &#33FF66%amount_formatted%"
+      - "&#7A7A7Aʙᴀʟᴀɴᴄᴇ &#33FF66%balance_formatted%"
+      - "&#7A7A7Aᴀғᴛᴇʀ &#33FF66%after_formatted%"
+      - "&#7A7A7Aʀᴇᴀѕᴏɴ &#FFFFFF%reason%"
       - "&#7A7A7Aᴇxᴘɪʀᴇs &#FFFFFF%expires%"
 
   Confirm:
@@ -34,7 +34,7 @@ Items:
     slot: 16
     name: "&#33FF66ᴄᴏɴғɪʀᴍ"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#FFFFFF%amount%"
-      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFFFFF%player%"
+      - "&#7A7A7Aᴍᴏɴᴇʏ &#33FF66%amount_formatted%"
+      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFD447%player%"
       - ""
-      - "&#FFFFFFSend this payment."
+      - "&#FFFFFFSend this Money."

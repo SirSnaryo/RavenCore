@@ -16,6 +16,7 @@ public class EconomyPlaceholders extends KPlaceholderExpansion {
         register("balance_compact", player -> compact(player, service, economy));
         register("balance", player -> balance(player, service, economy));
         register("balance_formatted", player -> balance(player, service, economy));
+        register("balance_full", player -> full(player, service, economy));
         register("balance_raw", player -> raw(player, service));
     }
 
@@ -25,6 +26,10 @@ public class EconomyPlaceholders extends KPlaceholderExpansion {
 
     private String balance(OfflinePlayer player, EconomyService service, RavenEconomy economy) {
         return economy.format(amount(player, service));
+    }
+
+    private String full(OfflinePlayer player, EconomyService service, RavenEconomy economy) {
+        return economy.formatFull(amount(player, service));
     }
 
     private String raw(OfflinePlayer player, EconomyService service) {

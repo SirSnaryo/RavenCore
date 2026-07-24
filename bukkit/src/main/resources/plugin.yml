@@ -320,8 +320,8 @@ permissions:
     description: Use the default admin chat format
     default: op
   raven.chat.bypass.toggle:
-    description: Receive public chat even when other players hide it
-    default: op
+    description: Optional receive-bypass for hidden public chat when enabled in chat/config.yml
+    default: false
   raven.chat.bypass.cooldown:
     description: Bypass chat cooldown checks
     default: op

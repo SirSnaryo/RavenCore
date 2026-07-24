@@ -1,27 +1,41 @@
 # Raven chat module.
 #
-# Chat lines are formatted on the sender server, published over Redis, then
-# delivered by every Bukkit server to its local players. Per-player toggles are
-# stored in Redis hashes so the state follows the player across the network.
+# Chat is formatted once on the sender Bukkit server, published over Redis, then
+# delivered by every Bukkit server to its local players. Personal toggles are
+# stored in Redis so they follow the player across the network.
 
 # Permission required to send network chat.
 permission: raven.chat
 
-# Placeholders: %server%, %player%, %message%.
-# PlaceholderAPI placeholders like %luckperms_prefix% are resolved on sender server.
-format: "%luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
-
-# Optional permission formats. Higher priority wins.
-formats:
-  - permission: "raven.chat.format.admin"
-    priority: 100
-    format: "&#D90429&lADMIN &#7A7A7A| %luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
-  - permission: ""
-    priority: 0
-    format: "%luckperms_prefix%&#FFFFFF%player%&#7A7A7A: &#FFFFFF%message%"
+# Leave blank so /chattoggle hides public chat even for admins/OPs.
+# Set to "raven.chat.bypass.toggle" only if you want a real receive-bypass permission.
+bypass-toggle-permission: ""
 
 # Leave blank to use network.server-display-name from the core config.
+# This is only available through %server% if you add it to a custom format.
 server-tag: ""
+
+# Chat format with permissions.
+#
+# Use https://webui.advntr.dev/ to build MiniMessage formats quickly.
+#
+# Available placeholders:
+# %player% - Player name
+# %displayName% - Player display name as plain text
+# <message> - Player message. Use this tag, not %message%.
+# %moderator_action% - Reserved for moderation addons, empty by default
+# %server% - Current server display name, if you choose to show it
+#
+# PlaceholderAPI placeholders are supported. Useful Raven defaults:
+# %ravencore_money% - Compact Money value, such as 1$, 1.1k, 10m
+# %ravs_balance_formatted% - Ravs balance if your Ravs plugin provides it
+# %statistic_player_kills%, %statistic_deaths%
+# %statistic_days_played%, %statistic_hours_played%
+chat-formats: []
+
+# Default chat format.
+# Name click suggests /stats, message click suggests /msg. Nothing is executed.
+default-chat-format: "<shadow:#000000:1><hover:show_text:'<#5555FF>/discord<newline><#FFFFFF>Click to join'><click:suggest_command:'/discord'>%luckperms_prefix%</click></hover><#FFFFFF><hover:show_text:'<#33FF66>$ <#FFFFFF>Money <#33FF66>%ravencore_money%<newline><#D90429>\u2726 <#FFFFFF>Ravs <#D90429>%ravs_balance_formatted%<newline><#FF5555>\u2694 <#FFFFFF>Kills <#FF5555>%statistic_player_kills%<newline><#FF9F1C>\u2620 <#FFFFFF>Deaths <#FF9F1C>%statistic_deaths%<newline><#FFD447>\u263B <#FFFFFF>Playtime <#FFD447>%statistic_days_played%d %statistic_hours_played%h'><click:suggest_command:'/stats %player%'>%player%</click></hover> <#FFFFFF>\u00BB <white><click:suggest_command:'/msg %player% '><hover:show_text:'<#FCD05C>Send a private message'><message></hover></click></shadow>"
 
 limits:
   # Maximum raw message length. Set <= 0 to disable.
@@ -46,32 +60,12 @@ links:
   enabled: true
   clickable: true
   # Applied only to players with raven.chat.link.
-  format: "&#4CC9F0%url%"
+  format: "<#4CC9F0>%url%"
 
 mentions:
   # %player% is the matched @Name.
-  self-format: "&#FFD447&l%player%"
-  other-format: "&#4CC9F0%player%"
-
-rich-chat:
-  enabled: true
-  # Hover the sender name in chat.
-  sender-hover:
-    enabled: true
-    lines:
-      - "&#FF2B2B&l%player%"
-      - "&#7A7A7AServer: &#FFFFFF%server%"
-      - "&#7A7A7AClick to message this player."
-  sender-click:
-    enabled: true
-    # Bukkit/Bungee actions: SUGGEST_COMMAND, RUN_COMMAND, OPEN_URL.
-    action: SUGGEST_COMMAND
-    value: "/msg %player% "
-  # Optional whole-message hover. Disabled by default so sender/link hovers stay clean.
-  message-hover:
-    enabled: false
-    lines:
-      - "&#7A7A7AFrom &#FFFFFF%player% &#7A7A7Aon &#FFFFFF%server%"
+  self-format: "<#FFD447><bold>%player%</bold>"
+  other-format: "<#4CC9F0>%player%"
 
 sounds:
   toggle:
@@ -92,15 +86,16 @@ sounds:
     volume: 0.8
 
 auto-messages:
+  # Disabled by default. /broadcasttoggle only controls receiving these messages.
   enabled: false
   # One server wins this Redis lock each interval, then publishes to all servers.
   redis-lock-key: "raven:chat:auto:lock"
   lock-ttl-seconds: 8
   interval-ticks: 2400
   messages:
-    - message: "&#FF2B2B&lRaven SMP &#7A7A7AUse &#FFFFFF/settings &#7A7A7Ato control chat and broadcasts."
-      action-bar: "&#4CC9F0Raven &#7A7A7Asettings are synced across the network."
+    - message: "<shadow:#000000:1><#FF2B2B><bold>Raven SMP</bold> <#7A7A7A>Use <#FFFFFF>/settings <#7A7A7A>to control chat and broadcasts.</shadow>"
+      action-bar: "<#4CC9F0>Raven <#7A7A7A>settings sync across the network."
       sound: broadcast
-    - message: "&#FFD447&lTip &#7A7A7AMention a player with &#FFFFFF@name &#7A7A7Ato ping them."
+    - message: "<shadow:#000000:1><#FFD447><bold>Tip</bold> <#7A7A7A>Mention a player with <#FFFFFF>@name <#7A7A7A>to ping them.</shadow>"
       action-bar: ""
       sound: broadcast

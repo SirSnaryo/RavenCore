@@ -42,7 +42,7 @@ public class EconomyLogsMenu {
     }
 
     public void open(Player player, boolean biggest) {
-        player.sendMessage(ChatFormatter.color("&#7A7A7ALoading economy logs..."));
+        player.sendMessage(ChatFormatter.color("&#4CC9F0Loading economy logs..."));
         SchedulerUtil.runAsync(() -> {
             try {
                 List<EconomyTransactionLog> logs = repository.latest(PAGE_SIZE, biggest);
@@ -55,7 +55,7 @@ public class EconomyLogsMenu {
     }
 
     public void open(Player player, UUID uuid) {
-        player.sendMessage(ChatFormatter.color("&#7A7A7ALoading player economy logs..."));
+        player.sendMessage(ChatFormatter.color("&#4CC9F0Loading player economy logs..."));
         SchedulerUtil.runAsync(() -> {
             try {
                 List<EconomyTransactionLog> logs = repository.byPlayer(uuid, PAGE_SIZE);
@@ -77,11 +77,11 @@ public class EconomyLogsMenu {
         }
 
         inventory.setItem(45, new ItemBuilder(Material.CLOCK)
-                .name("&#4CC9F0Newest")
+                .name("&#4CC9F0ɴᴇᴡᴇѕᴛ")
                 .lore("&#7A7A7ALeft click to show newest transactions.")
                 .build());
         inventory.setItem(53, new ItemBuilder(Material.GOLD_BLOCK)
-                .name("&#FFD447Biggest")
+                .name("&#FFD447ʙɪɢɢᴇѕᴛ")
                 .lore("&#7A7A7ALeft click to show biggest transfers.")
                 .build());
         player.openInventory(inventory);
@@ -114,14 +114,15 @@ public class EconomyLogsMenu {
         player.sendMessage(ChatFormatter.color("&#7A7A7A&m                                                "));
         player.sendMessage(ChatFormatter.color("&#FF2B2BTransaction &#FFFFFF" + log.transactionId()));
         player.sendMessage(ChatFormatter.color("&#7A7A7AType: &#FFFFFF" + log.type().name()));
-        player.sendMessage(ChatFormatter.color("&#7A7A7AAmount: &#33FF66" + economy.format(log.amount())));
-        player.sendMessage(ChatFormatter.color("&#7A7A7ABefore: &#FFFFFF" + economy.format(log.balanceBefore())
-                + " &#7A7A7AAfter: &#FFFFFF" + economy.format(log.balanceAfter())));
-        player.sendMessage(ChatFormatter.color("&#7A7A7AActor: &#FFFFFF" + safe(log.actorName())
-                + " &#7A7A7ATarget: &#FFFFFF" + safe(log.targetName())));
+        player.sendMessage(ChatFormatter.color("&#7A7A7AMoney: &#33FF66" + economy.format(log.amount())
+                + " &#7A7A7A(&#FFFFFF" + economy.formatFull(log.amount()) + "&#7A7A7A)"));
+        player.sendMessage(ChatFormatter.color("&#7A7A7ABefore: &#33FF66" + economy.format(log.balanceBefore())
+                + " &#7A7A7AAfter: &#33FF66" + economy.format(log.balanceAfter())));
+        player.sendMessage(ChatFormatter.color("&#7A7A7AActor: &#FFD447" + safe(log.actorName())
+                + " &#7A7A7ATarget: &#FFD447" + safe(log.targetName())));
         player.sendMessage(ChatFormatter.color("&#7A7A7AReason: &#FFFFFF" + safe(log.reason())));
-        player.sendMessage(ChatFormatter.color("&#7A7A7ARaw: &#FFFFFF" + safe(log.rawCommand())));
-        player.sendMessage(ChatFormatter.color("&#7A7A7AServer: &#FFFFFF" + safe(log.serverDisplayName())));
+        player.sendMessage(ChatFormatter.color("&#7A7A7ACommand: &#FFFFFF" + safe(log.rawCommand())));
+        player.sendMessage(ChatFormatter.color("&#7A7A7AServer: &#4CC9F0" + safe(log.serverDisplayName())));
     }
 
     private ItemStack item(EconomyTransactionLog log) {
@@ -133,14 +134,15 @@ public class EconomyLogsMenu {
         }
 
         List<String> lore = new ArrayList<>();
-        lore.add("&#7A7A7Aᴀᴍᴏᴜɴᴛ &#33FF66" + economy.format(log.amount()));
-        lore.add("&#7A7A7Aʙᴇғᴏʀᴇ &#FFFFFF" + economy.format(log.balanceBefore()));
-        lore.add("&#7A7A7Aᴀғᴛᴇʀ &#FFFFFF" + economy.format(log.balanceAfter()));
-        lore.add("&#7A7A7Aᴀᴄᴛᴏʀ &#FFFFFF" + safe(log.actorName()));
-        lore.add("&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFFFFF" + safe(log.targetName()));
-        lore.add("&#7A7A7Aʀᴇᴀsᴏɴ &#FFFFFF" + safe(log.reason()));
+        lore.add("&#7A7A7Aᴍᴏɴᴇʏ &#33FF66" + economy.format(log.amount()));
+        lore.add("&#7A7A7Aғᴜʟʟ &#FFFFFF" + economy.formatFull(log.amount()));
+        lore.add("&#7A7A7Aʙᴇғᴏʀᴇ &#33FF66" + economy.format(log.balanceBefore()));
+        lore.add("&#7A7A7Aᴀғᴛᴇʀ &#33FF66" + economy.format(log.balanceAfter()));
+        lore.add("&#7A7A7Aᴀᴄᴛᴏʀ &#FFD447" + safe(log.actorName()));
+        lore.add("&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFD447" + safe(log.targetName()));
+        lore.add("&#7A7A7Aʀᴇᴀѕᴏɴ &#FFFFFF" + safe(log.reason()));
         lore.add("&#7A7A7Aᴄᴏᴍᴍᴀɴᴅ &#FFFFFF" + safe(log.rawCommand()));
-        lore.add("&#7A7A7Asᴇʀᴠᴇʀ &#FFFFFF" + safe(log.serverDisplayName()));
+        lore.add("&#7A7A7Aѕᴇʀᴠᴇʀ &#4CC9F0" + safe(log.serverDisplayName()));
         lore.add("&#7A7A7Aᴛɪᴍᴇ &#FFFFFF" + dateFormat.format(new Date(log.createdAt())));
         lore.add("");
         lore.add("&#4CC9F0Left click &#7A7A7Afull details");

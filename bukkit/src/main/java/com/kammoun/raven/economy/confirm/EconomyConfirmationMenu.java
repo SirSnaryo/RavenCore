@@ -30,8 +30,11 @@ public class EconomyConfirmationMenu extends KMenu {
         super.open(player,
                 "%player%", action.targetName(),
                 "%amount%", formattedAmount,
+                "%amount_formatted%", formattedAmount,
                 "%balance%", currentBalance,
+                "%balance_formatted%", currentBalance,
                 "%after%", afterBalance,
+                "%after_formatted%", afterBalance,
                 "%reason%", action.reason(),
                 "%expires%", secondsLeft(action) + "s");
     }

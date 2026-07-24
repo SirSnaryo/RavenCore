@@ -15,7 +15,7 @@ public class EconomyMessages {
      * Fetches a message by dot-path, translates &-color codes, and replaces
      * any number of %key% placeholders.
      *
-     * Usage: messages.format("pay.sent", "amount", "100 Coins", "player", "Steve")
+     * Usage: messages.format("pay.sent", "amount", "100k", "player", "Steve")
      */
     public String format(String key, Object... kvPairs) {
         String raw = config.getString(key, "&#D90429[Missing message: " + key + "]");
