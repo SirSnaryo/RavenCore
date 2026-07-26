@@ -53,7 +53,7 @@ public class BillfordGui implements InventoryHolder {
         String title = ChatFormatter.menuTitle(config.getGuiTitle());
         inventory = Bukkit.createInventory(this, config.getGuiSize(), title);
 
-        FileConfiguration cfg = config.getConfig();
+        FileConfiguration cfg = config.getGuiConfig();
 
         List<Integer> requiredSlots = config.getRequiredSlots();
         List<ItemStack> requiredItems = preset.getRequiredItems();
@@ -73,16 +73,22 @@ public class BillfordGui implements InventoryHolder {
             inventory.setItem(info.getSlot(), buildInfoItem(cfg.getConfigurationSection("gui.info-item")));
         }
 
-        applyFiller(cfg);
+        applyFiller(cfg, confirm == null ? -1 : confirm.getSlot(), info == null ? -1 : info.getSlot());
         player.openInventory(inventory);
     }
 
-    private void applyFiller(FileConfiguration cfg) {
+    private void applyFiller(FileConfiguration cfg, int confirmSlot, int infoSlot) {
         ItemBuilder builder = ItemReader.readItem(cfg.getConfigurationSection("gui.filler.item"), plugin);
         if (builder == null) return;
         ItemStack filler = builder.build();
+        java.util.Set<Integer> reserved = new java.util.HashSet<>(config.getRequiredSlots());
+        reserved.add(config.getTradeSlot());
+        if (confirmSlot >= 0) reserved.add(confirmSlot);
+        if (infoSlot >= 0) reserved.add(infoSlot);
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (inventory.getItem(slot) == null) inventory.setItem(slot, filler);
+            if (!reserved.contains(slot) && inventory.getItem(slot) == null) {
+                inventory.setItem(slot, filler);
+            }
         }
     }
 
@@ -146,7 +152,8 @@ public class BillfordGui implements InventoryHolder {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return;
 
-        MenuItem confirm = ItemReader.readMenuItem(config.getConfig().getConfigurationSection("gui.confirm-item"), plugin);
+        MenuItem confirm = ItemReader.readMenuItem(
+                config.getGuiConfig().getConfigurationSection("gui.confirm-item"), plugin);
         if (confirm != null && event.getSlot() == confirm.getSlot()) {
             handleTradeConfirm(player);
         }

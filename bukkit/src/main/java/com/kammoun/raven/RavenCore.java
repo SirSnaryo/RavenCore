@@ -23,6 +23,7 @@ import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
+import com.kammoun.raven.stats.StatsModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
 import com.kammoun.raven.library.platform.ServerRole;
@@ -86,6 +87,7 @@ public final class RavenCore extends JavaPlugin {
     private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
     private BillfordModule billfordModule;
+    private StatsModule statsModule;
     private BorderModule borderModule;
 
     @Override
@@ -192,6 +194,10 @@ public final class RavenCore extends JavaPlugin {
         billfordModule.onEnable(this);
         enabledModules.add("Billford");
 
+        statsModule = new StatsModule();
+        statsModule.onEnable(this);
+        enabledModules.add("Stats");
+
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
         enabledModules.add("ClearInventory");
@@ -284,6 +290,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "economy", economyModule);
         putModule(modules, "shop", shopModule);
         putModule(modules, "billford", billfordModule);
+        putModule(modules, "stats", statsModule);
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
@@ -715,6 +722,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (billfordModule != null) {
             billfordModule.onDisable(this);
+        }
+        if (statsModule != null) {
+            statsModule.onDisable(this);
         }
 
 

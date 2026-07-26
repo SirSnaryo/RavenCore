@@ -33,19 +33,31 @@ public final class RespawnTransferStore {
                 location.x(), location.y(), location.z(), location.yaw(), location.pitch()));
     }
 
-    public Payload consume(UUID playerUuid) {
-        if (pool == null) return null;
+    public ConsumeResult consume(UUID playerUuid) {
+        if (pool == null) return ConsumeResult.unavailable();
         try (Jedis jedis = pool.getResource()) {
+            boolean pending = jedis.exists(MARKER_PREFIX + playerUuid);
             String json = jedis.getDel(PAYLOAD_PREFIX + playerUuid);
             jedis.del(MARKER_PREFIX + playerUuid);
-            if (json == null) return null;
-            return GSON.fromJson(json, Payload.class);
+            if (json == null) {
+                return pending ? ConsumeResult.invalid() : ConsumeResult.none();
+            }
+            Payload payload = GSON.fromJson(json, Payload.class);
+            if (payload == null || (!"BED".equals(payload.type()) && !"RANDOM".equals(payload.type()))
+                    || payload.serverId() == null
+                    || payload.world() == null || payload.serverId().isBlank() || payload.world().isBlank()
+                    || !Double.isFinite(payload.x()) || !Double.isFinite(payload.y())
+                    || !Double.isFinite(payload.z()) || !Float.isFinite(payload.yaw())
+                    || !Float.isFinite(payload.pitch())) {
+                return ConsumeResult.invalid();
+            }
+            return ConsumeResult.payload(payload);
         } catch (JsonSyntaxException e) {
             plugin.getLogger().warning("[Respawn] Malformed transfer payload for " + playerUuid);
-            return null;
+            return ConsumeResult.invalid();
         } catch (Exception e) {
             plugin.getLogger().warning("[Respawn] Failed to consume transfer payload: " + e.getMessage());
-            return null;
+            return ConsumeResult.unavailable();
         }
     }
 
@@ -74,6 +86,31 @@ public final class RespawnTransferStore {
                           double x, double y, double z, float yaw, float pitch) {
         public boolean isBed() {
             return "BED".equals(type);
+        }
+    }
+
+    public enum ConsumeStatus {
+        NONE,
+        PAYLOAD,
+        INVALID,
+        UNAVAILABLE
+    }
+
+    public record ConsumeResult(ConsumeStatus status, Payload payload) {
+        public static ConsumeResult none() {
+            return new ConsumeResult(ConsumeStatus.NONE, null);
+        }
+
+        public static ConsumeResult payload(Payload payload) {
+            return new ConsumeResult(ConsumeStatus.PAYLOAD, payload);
+        }
+
+        public static ConsumeResult invalid() {
+            return new ConsumeResult(ConsumeStatus.INVALID, null);
+        }
+
+        public static ConsumeResult unavailable() {
+            return new ConsumeResult(ConsumeStatus.UNAVAILABLE, null);
         }
     }
 }

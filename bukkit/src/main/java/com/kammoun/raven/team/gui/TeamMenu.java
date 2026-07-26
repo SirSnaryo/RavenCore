@@ -117,7 +117,10 @@ public final class TeamMenu extends KMenu {
         }
         MenuItem pvp = item(team.pvpEnabled() ? "Items.pvp-on" : "Items.pvp-off");
         if (pvp != null) {
-            pvp.onClick(event -> module.getService().togglePvp(player));
+            pvp.onClick(event ->{
+                        module.getService().togglePvp(player);
+                        module.openMenu(player, page, sort, filter);
+            } );
             setItem(pvp);
         }
         if (getPrevPage() != null && page > 1) {

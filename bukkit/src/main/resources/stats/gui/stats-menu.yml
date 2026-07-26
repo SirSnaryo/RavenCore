@@ -1,0 +1,75 @@
+Title: "&8%player% Stats"
+Size: 36
+
+Navigation:
+  Filler-Item:
+    material: GRAY_STAINED_GLASS_PANE
+    name: " "
+
+Items:
+  money:
+    slot: 10
+    material: EMERALD
+    name: "&#6BF18DMoney"
+    lore: ["&7%money%"]
+  shards:
+    slot: 11
+    material: AMETHYST_SHARD
+    name: "&#6BF18DShards"
+    lore: ["&7%shards%"]
+  kills:
+    slot: 12
+    material: DIAMOND_SWORD
+    flags: [HIDE_ATTRIBUTES]
+    name: "&#6BF18DKills"
+    lore: ["&7%kills%", "&8K/D: &7%kd%"]
+  deaths:
+    slot: 13
+    material: SKELETON_SKULL
+    name: "&#6BF18DDeaths"
+    lore: ["&7%deaths%"]
+  play-time:
+    slot: 14
+    material: CLOCK
+    name: "&#6BF18DPlay Time"
+    lore: ["&7%play_time%"]
+  blocks-placed:
+    slot: 15
+    material: STONE
+    name: "&#6BF18DBlocks Placed"
+    lore: ["&7%blocks_placed%"]
+  blocks-broken:
+    slot: 16
+    material: COBBLESTONE
+    name: "&#6BF18DBlocks Broken"
+    lore: ["&7%blocks_broken%"]
+  mobs-killed:
+    slot: 19
+    material: ZOMBIE_HEAD
+    name: "&#6BF18DMobs Killed"
+    lore: ["&7%mob_kills%"]
+  money-spent:
+    slot: 20
+    material: GOLD_NUGGET
+    name: "&#6BF18DMoney Spent"
+    lore: ["&7%money_spent%"]
+  money-made:
+    slot: 21
+    material: IRON_NUGGET
+    name: "&#6BF18DMoney Made"
+    lore: ["&7%money_made%"]
+  crafted:
+    slot: 22
+    material: CRAFTING_TABLE
+    name: "&#6BF18DItems Crafted"
+    lore: ["&7%items_crafted%"]
+  jumps:
+    slot: 23
+    material: RABBIT_FOOT
+    name: "&#6BF18DJumps"
+    lore: ["&7%jumps%"]
+  chat:
+    slot: 24
+    material: WRITABLE_BOOK
+    name: "&#6BF18DChat Messages"
+    lore: ["&7%chat_messages%"]

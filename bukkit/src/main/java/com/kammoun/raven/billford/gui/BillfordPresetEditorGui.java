@@ -55,7 +55,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
         this.plugin = plugin;
         this.preset = preset;
 
-        FileConfiguration cfg = config.getConfig();
+        FileConfiguration cfg = config.getGuiConfig();
         this.size = cfg.getInt("editor.size", 54);
         this.requiredSlots = cfg.getIntegerList("editor.required-items-slots");
         this.tradeSlot = cfg.getInt("editor.trade-slot", 25);
@@ -66,7 +66,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
     }
 
     public void open(Player player) {
-        FileConfiguration cfg = config.getConfig();
+        FileConfiguration cfg = config.getGuiConfig();
         String title = ChatFormatter.menuTitle(config.getEditorTitle().replace("%preset%", preset.getName()));
         inventory = Bukkit.createInventory(this, size, title);
 

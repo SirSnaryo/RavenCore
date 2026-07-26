@@ -222,6 +222,18 @@ commands:
     permission: raven.billford.admin
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
+  stats:
+    description: View network-wide player statistics
+    usage: /stats [player]
+    permission: raven.stats
+    permission-message: You don't have permission to view stats.
+  statsmanager:
+    description: Manage network-wide player statistics
+    usage: /statsmanager <set|add|remove|reset|reload> [player] [stat] [amount]
+    aliases: [statsadmin]
+    permission: raven.stats.admin
+    permission-message: You don't have permission to manage stats.
+
   ravencore:
     description: RavenCore version and safe module reload
     usage: /ravencore <version|modules|reload>
@@ -354,5 +366,14 @@ permissions:
     default: true
   raven.billford.admin:
     description: Manage Billford trade presets
+    default: op
+  raven.stats:
+    description: View your own player statistics
+    default: true
+  raven.stats.others:
+    description: View another player's statistics
+    default: true
+  raven.stats.admin:
+    description: Manage player statistics
     default: op
 

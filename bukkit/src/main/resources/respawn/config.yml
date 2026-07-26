@@ -3,6 +3,19 @@ clusters:
   - na
   - eu
 
+# Guaranteed local floor used immediately while MySQL/Redis resolution runs.
+# This world must exist on this server and have World.Environment.NORMAL.
+default-spawn:
+  world: world
+  x: 0.5
+  y: 100.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+
+# Border suppression and destination resolution are force-released after this.
+resolution-timeout-seconds: 5
+
 messages:
   no-location: "&cNo safe respawn location is available right now."
   transfer-failed: "&cCould not send you to your respawn server."

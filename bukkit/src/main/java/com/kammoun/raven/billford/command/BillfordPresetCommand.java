@@ -40,6 +40,7 @@ public class BillfordPresetCommand extends KCommand {
             case "switch" -> handleSwitch(sender, args);
             case "list"   -> handleList(sender);
             case "info"   -> handleInfo(sender);
+            case "interval" -> handleInterval(sender, args);
             case "reload" -> handleReload(sender);
             default       -> sendHelp(sender);
         }
@@ -136,6 +137,24 @@ public class BillfordPresetCommand extends KCommand {
         messages().send(sender, "preset.info-name", "preset", current.getName());
         messages().send(sender, "preset.info-required", "count", current.getRequiredItemsCount());
         messages().send(sender, "preset.info-next", "time", BillfordConfig.formatDuration(manager().timeUntilNextChange()));
+        messages().send(sender, "preset.info-interval", "time",
+                BillfordConfig.formatDuration(manager().getRotationIntervalMillis()));
+    }
+
+    private void handleInterval(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            messages().send(sender, "preset.usage-interval");
+            return;
+        }
+        var parsed = BillfordConfig.tryParseInterval(args[1]);
+        if (parsed.isEmpty()) {
+            messages().send(sender, "preset.interval-invalid");
+            return;
+        }
+        long interval = parsed.getAsLong();
+        manager().setRotationInterval(interval, ok ->
+                messages().send(sender, ok ? "preset.interval-updated" : "preset.interval-failed",
+                        "time", BillfordConfig.formatDuration(interval)));
     }
 
     private void handleReload(CommandSender sender) {
@@ -150,7 +169,8 @@ public class BillfordPresetCommand extends KCommand {
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("create", "edit", "delete", "switch", "list", "info", "reload"), args[0]);
+            return filter(List.of("create", "edit", "delete", "switch", "list", "info", "interval", "reload"),
+                    args[0]);
         }
         if (args.length == 2) {
             String sub = args[0].toLowerCase();

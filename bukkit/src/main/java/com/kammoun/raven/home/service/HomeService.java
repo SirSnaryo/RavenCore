@@ -42,6 +42,10 @@ public final class HomeService implements HomeTeleportGateway {
     }
 
     public void set(Player player, String rawName) {
+        set(player, rawName, null);
+    }
+
+    public void set(Player player, String rawName, Runnable afterSuccess) {
         String name = normalize(rawName);
         if (name == null) {
             messages.send(player, "invalid-name");
@@ -59,7 +63,11 @@ public final class HomeService implements HomeTeleportGateway {
                     return;
                 }
                 repository.upsert(HomeRecord.from(uuid, name, plugin.getServerId(), snapshot));
-                SchedulerUtil.execute(player, () -> messages.send(player, "set", "%home%", name));
+                SchedulerUtil.execute(player, () -> {
+                    if (!player.isOnline()) return;
+                    messages.send(player, "set", "%home%", name);
+                    if (afterSuccess != null) afterSuccess.run();
+                });
             } catch (SQLException | RuntimeException e) {
                 fail(player, e);
             }

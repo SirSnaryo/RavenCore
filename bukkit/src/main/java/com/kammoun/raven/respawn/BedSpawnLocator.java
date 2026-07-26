@@ -1,14 +1,18 @@
 package com.kammoun.raven.respawn;
 
+import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public final class BedSpawnLocator {
     private BedSpawnLocator() {
@@ -29,12 +33,38 @@ public final class BedSpawnLocator {
         return Optional.of(head);
     }
 
-    public static Optional<Location> safeSpawn(BedSpawnRecord record) {
-        org.bukkit.World world = org.bukkit.Bukkit.getWorld(record.world());
-        if (world == null) return Optional.empty();
+    public static void resolveAsync(RavenCore plugin, BedSpawnRecord record,
+                                    Consumer<BedSpawnResolution> callback) {
+        World world = plugin.getServer().getWorld(record.world());
+        if (world == null) {
+            callback.accept(BedSpawnResolution.unverifiable());
+            return;
+        }
+
+        Location anchor = new Location(world, record.x(), record.y(), record.z());
+        world.getChunkAtAsync(record.x() >> 4, record.z() >> 4).whenComplete((chunk, error) -> {
+            if (error != null || chunk == null) {
+                callback.accept(BedSpawnResolution.unverifiable());
+                return;
+            }
+            SchedulerUtil.execute(anchor, () -> {
+                try {
+                    callback.accept(inspect(record, world));
+                } catch (RuntimeException errorDuringInspection) {
+                    plugin.getLogger().warning("[Respawn] Could not verify bed at "
+                            + record.serverId() + "/" + record.world() + " "
+                            + record.x() + "," + record.y() + "," + record.z() + ": "
+                            + errorDuringInspection.getMessage());
+                    callback.accept(BedSpawnResolution.unverifiable());
+                }
+            });
+        });
+    }
+
+    private static BedSpawnResolution inspect(BedSpawnRecord record, World world) {
         Block stored = world.getBlockAt(record.x(), record.y(), record.z());
         Optional<Block> canonical = canonicalBed(stored);
-        if (canonical.isEmpty()) return Optional.empty();
+        if (canonical.isEmpty()) return BedSpawnResolution.invalid();
 
         Block head = canonical.get();
         Bed data = (Bed) head.getBlockData();
@@ -44,11 +74,11 @@ public final class BedSpawnLocator {
         addNeighbors(candidates, foot);
         for (Block feet : candidates) {
             if (isSafe(feet)) {
-                return Optional.of(new Location(world, feet.getX() + 0.5, feet.getY(),
+                return BedSpawnResolution.valid(new Location(world, feet.getX() + 0.5, feet.getY(),
                         feet.getZ() + 0.5, 0.0f, 0.0f));
             }
         }
-        return Optional.empty();
+        return BedSpawnResolution.invalid();
     }
 
     private static void addNeighbors(List<Block> candidates, Block bed) {
@@ -69,5 +99,25 @@ public final class BedSpawnLocator {
         Material floorType = floor.getType();
         return floorType != Material.MAGMA_BLOCK && floorType != Material.CACTUS
                 && floorType != Material.CAMPFIRE && floorType != Material.SOUL_CAMPFIRE;
+    }
+
+    public enum BedSpawnStatus {
+        VALID,
+        INVALID,
+        UNVERIFIABLE
+    }
+
+    public record BedSpawnResolution(BedSpawnStatus status, Location location) {
+        public static BedSpawnResolution valid(Location location) {
+            return new BedSpawnResolution(BedSpawnStatus.VALID, location);
+        }
+
+        public static BedSpawnResolution invalid() {
+            return new BedSpawnResolution(BedSpawnStatus.INVALID, null);
+        }
+
+        public static BedSpawnResolution unverifiable() {
+            return new BedSpawnResolution(BedSpawnStatus.UNVERIFIABLE, null);
+        }
     }
 }

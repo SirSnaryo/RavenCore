@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * All Billford MySQL access. Presets are read/written wholesale; rotation state is
@@ -18,7 +19,8 @@ import java.util.List;
  */
 public class BillfordRepository {
 
-    public record State(String currentPreset, long lastChange) {}
+    public record State(String currentPreset, long lastChange,
+                        long rotationIntervalMillis, long version) {}
 
     private final MySQLDBManager db;
     private final JavaPlugin plugin;
@@ -66,38 +68,60 @@ public class BillfordRepository {
 
     public State loadState() throws SQLException {
         try (Connection c = db.getConnection();
-             PreparedStatement ps = c.prepareStatement("SELECT current_preset, last_change FROM ravencore_billford_state WHERE id = 1");
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT current_preset, last_change, rotation_interval, state_version "
+                             + "FROM ravencore_billford_state WHERE id = 1");
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
-                return new State(rs.getString("current_preset"), rs.getLong("last_change"));
+                return new State(rs.getString("current_preset"), rs.getLong("last_change"),
+                        rs.getLong("rotation_interval"), rs.getLong("state_version"));
             }
         }
-        return new State(null, 0L);
+        return new State(null, 0L, 0L, 0L);
     }
 
     /** Unconditional state write, used by an explicit admin switch (last writer wins). */
-    public void setState(String currentPreset, long lastChange) throws SQLException {
+    public State setState(String currentPreset, long lastChange) throws SQLException {
         try (Connection c = db.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                     "UPDATE ravencore_billford_state SET current_preset = ?, last_change = ? WHERE id = 1")) {
+                     "UPDATE ravencore_billford_state SET current_preset = ?, last_change = ?, "
+                             + "state_version = state_version + 1 WHERE id = 1")) {
             ps.setString(1, currentPreset);
             ps.setLong(2, lastChange);
-            ps.executeUpdate();
+            if (ps.executeUpdate() != 1) throw new SQLException("Billford state row is missing");
         }
+        return loadState();
+    }
+
+    public State setRotationInterval(long intervalMillis) throws SQLException {
+        try (Connection c = db.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "UPDATE ravencore_billford_state SET rotation_interval = ?, "
+                             + "state_version = state_version + 1 WHERE id = 1")) {
+            ps.setLong(1, intervalMillis);
+            if (ps.executeUpdate() != 1) {
+                throw new SQLException("Billford state row is missing");
+            }
+        }
+        return loadState();
     }
 
     /**
      * Compare-and-set used by the rotation task: advances to {@code newPreset} only if the
-     * row still carries {@code expectedLastChange}. Returns true if this call won the race.
+     * row still carries {@code expectedLastChange}. Returns the resulting authoritative state
+     * if this call won the race.
      */
-    public boolean tryAdvance(String newPreset, long expectedLastChange, long newLastChange) throws SQLException {
+    public Optional<State> tryAdvance(String newPreset, long expectedLastChange,
+                                      long newLastChange) throws SQLException {
         try (Connection c = db.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                     "UPDATE ravencore_billford_state SET current_preset = ?, last_change = ? WHERE id = 1 AND last_change = ?")) {
+                     "UPDATE ravencore_billford_state SET current_preset = ?, last_change = ?, "
+                             + "state_version = state_version + 1 WHERE id = 1 AND last_change = ?")) {
             ps.setString(1, newPreset);
             ps.setLong(2, newLastChange);
             ps.setLong(3, expectedLastChange);
-            return ps.executeUpdate() == 1;
+            if (ps.executeUpdate() != 1) return Optional.empty();
         }
+        return Optional.of(loadState());
     }
 }

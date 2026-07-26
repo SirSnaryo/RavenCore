@@ -77,3 +77,17 @@ border:
   particle: DUST_PLUME
   # Sent when a player tries to break or place a block past the border.
   deny-message: ""
+
+# Native, unpassable border used only by survival servers on the true outer
+# ring of the complete map. Interior servers leave this disabled.
+world-border:
+  enabled: false
+  huge-size: 2000000
+  damage-amount: 0.2
+  damage-buffer: 5.0
+  warning-distance: 5
+  warning-time: 15
+  # Ring servers add only the edges their cell actually touches:
+  # true-edges:
+  #   north: -225000
+  #   west: -225000
