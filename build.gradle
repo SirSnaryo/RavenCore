@@ -122,6 +122,10 @@ subprojects {
     version = '1.0.12'
 
     repositories {
+        // Must come first: our SignGUI fork (github.com/MrKammounYT/SignGUI) is installed here with
+        // the Folia scheduler fix under the same version as the upstream release.
+        // Build it with: mvn -pl api clean install
+        mavenLocal()
         mavenCentral()
         maven {
             name = 'papermc'

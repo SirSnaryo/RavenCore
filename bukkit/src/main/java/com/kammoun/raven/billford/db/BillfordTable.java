@@ -4,8 +4,6 @@ import com.kammoun.raven.library.database.KTables;
 import com.kammoun.raven.library.database.MySQLDBManager;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -44,8 +42,6 @@ public class BillfordTable implements KTables {
         try (Connection c = db.getConnection(); Statement s = c.createStatement()) {
             s.executeUpdate(presets);
             s.executeUpdate(state);
-            ensureColumn(c, s, "rotation_interval", "BIGINT NULL");
-            ensureColumn(c, s, "state_version", "BIGINT NOT NULL DEFAULT 0");
             // First backend to initialize the network wins the bootstrap value. After this row
             // exists, the interval is changed only through the network-wide admin command.
             s.executeUpdate("INSERT IGNORE INTO ravencore_billford_state "
@@ -55,23 +51,6 @@ public class BillfordTable implements KTables {
                     + bootstrapIntervalMillis + " WHERE id = 1 AND rotation_interval IS NULL");
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create Billford tables", e);
-        }
-    }
-
-    private void ensureColumn(Connection connection, Statement statement,
-                              String column, String definition) throws SQLException {
-        DatabaseMetaData metadata = connection.getMetaData();
-        try (ResultSet columns = metadata.getColumns(connection.getCatalog(), null,
-                "ravencore_billford_state", column)) {
-            if (columns.next()) return;
-        }
-        try {
-            statement.executeUpdate("ALTER TABLE ravencore_billford_state "
-                    + "ADD COLUMN " + column + " " + definition);
-        } catch (SQLException error) {
-            // Multiple backends can start together. If another server added the column between
-            // the metadata check and ALTER, the duplicate-column result means migration succeeded.
-            if (error.getErrorCode() != 1060 && !"42S21".equals(error.getSQLState())) throw error;
         }
     }
 

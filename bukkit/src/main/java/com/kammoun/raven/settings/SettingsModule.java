@@ -9,7 +9,14 @@ import com.kammoun.raven.settings.model.PlayerSettingRegistry;
 import com.kammoun.raven.tpa.model.TeleportPreference;
 import lombok.Getter;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Getter
@@ -24,6 +31,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
+        saveDefaultConfig("settings-menu.yml");
+        ensureEditableMenuItems();
         menu = new SettingsMenu(api, this);
         registerBuiltInSettings();
         registerCommand(new SettingsCommand(this), "settings");
@@ -40,6 +49,7 @@ public class SettingsModule extends KModule<RavenCore> {
     public void reload() {
         reloadConfig();
         registry.clear();
+        ensureEditableMenuItems();
         menu = new SettingsMenu(api, this);
         registerBuiltInSettings();
     }
@@ -58,8 +68,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("teleport.tpa")
                 .category("Teleport")
-                .displayName("&#33FF66ᴛᴘᴀ ʀᴇǫᴜᴇsᴛs")
-                .description(List.of("&#FFFFFFAllow players to teleport to you.", "&#7A7A7AControls incoming /tpa requests."))
+                .displayName("TPA Requests")
+                .description(List.of("Allow players to teleport to you.", "Controls incoming /tpa requests."))
                 .material(Material.ENDER_PEARL)
                 .priority(10)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).acceptsTpa())
@@ -68,8 +78,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("teleport.tpahere")
                 .category("Teleport")
-                .displayName("&#4CC9F0ᴛᴘᴀʜᴇʀᴇ ʀᴇǫᴜᴇsᴛs")
-                .description(List.of("&#FFFFFFAllow players to pull you to them.", "&#7A7A7AControls incoming /tpahere requests."))
+                .displayName("TPAHere Requests")
+                .description(List.of("Allow players to pull you to them.", "Controls incoming /tpahere requests."))
                 .material(Material.CLOCK)
                 .priority(11)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).acceptsTpaHere())
@@ -78,8 +88,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("teleport.auto")
                 .category("Teleport")
-                .displayName("&#FFD447ᴛᴘᴀᴜᴛᴏ")
-                .description(List.of("&#FFFFFFAutomatically accept TPA requests.", "&#D90429Use carefully near unknown players."))
+                .displayName("TPAuto")
+                .description(List.of("Automatically accept TPA requests.", "Use carefully near unknown players."))
                 .material(Material.REDSTONE_TORCH)
                 .priority(12)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).autoAccept())
@@ -88,8 +98,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("teleport.confirm-menu")
                 .category("Teleport")
-                .displayName("&#FF2B2Bᴛᴘᴀ ᴄᴏɴꜰɪʀᴍ ᴍᴇɴᴜ")
-                .description(List.of("&#FFFFFFShow a menu before sending/accepting.", "&#7A7A7ARecommended for safer teleports."))
+                .displayName("TPA Confirm Menu")
+                .description(List.of("Show a menu before sending/accepting.", "Recommended for safer teleports."))
                 .material(Material.ENDER_EYE)
                 .priority(13)
                 .getter(player -> api.getTeleportModule().getSettingsService().get(player.getUniqueId()).confirmMenu())
@@ -104,8 +114,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("chat.public")
                 .category("Chat")
-                .displayName("&#4CC9F0ᴘᴜʙʟɪᴄ ᴄʜᴀᴛ")
-                .description(List.of("&#FFFFFFShow or hide member chat.", "&#7A7A7AYou can still send messages."))
+                .displayName("Public Chat")
+                .description(List.of("Show or hide member chat.", "You can still send messages."))
                 .material(Material.OAK_SIGN)
                 .priority(20)
                 .getter(player -> api.getChatModule().getSettingsService().canReceiveChat(player.getUniqueId()))
@@ -114,8 +124,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("chat.broadcast")
                 .category("Chat")
-                .displayName("&#FFD447ʙʀᴏᴀᴅᴄᴀsᴛs")
-                .description(List.of("&#FFFFFFShow or hide auto messages.", "&#7A7A7ARaven broadcasts still run on Redis."))
+                .displayName("Broadcasts")
+                .description(List.of("Show or hide auto messages.", "Raven broadcasts still run on Redis."))
                 .material(Material.BELL)
                 .priority(21)
                 .getter(player -> api.getChatModule().getSettingsService().canReceiveBroadcast(player.getUniqueId()))
@@ -130,8 +140,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("scoreboard.enabled")
                 .category("Visual")
-                .displayName("&#3A86FFsᴄᴏʀᴇʙᴏᴀʀᴅ")
-                .description(List.of("&#FFFFFFShow or hide your sidebar.", "&#7A7A7ASaved per player."))
+                .displayName("Scoreboard")
+                .description(List.of("Show or hide your sidebar.", "Saved per player."))
                 .material(Material.NAME_TAG)
                 .priority(30)
                 .getter(player -> api.getScoreboardModule().getService().isEnabled(player))
@@ -146,8 +156,8 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("economy.payments")
                 .category("Economy")
-                .displayName("&#33FF66ᴘᴀʏᴍᴇɴᴛs")
-                .description(List.of("&#FFFFFFAllow players to send you money.", "&#7A7A7AAdmins with bypass can still pay you."))
+                .displayName("Payments")
+                .description(List.of("Allow players to send you money.", "Admins with bypass can still pay you."))
                 .material(Material.EMERALD)
                 .priority(40)
                 .getter(player -> api.getEconomyModule().getSettingsService().acceptsPayments(player.getUniqueId()))
@@ -156,12 +166,44 @@ public class SettingsModule extends KModule<RavenCore> {
 
         registry.register(PlayerSettingDefinition.builder("economy.messages")
                 .category("Economy")
-                .displayName("&#FFD447ᴘᴀʏ ᴍᴇssᴀɢᴇs")
-                .description(List.of("&#FFFFFFShow pay and shop economy messages.", "&#7A7A7ATransactions still log normally."))
+                .displayName("Pay Messages")
+                .description(List.of("Show pay and shop economy messages.", "Transactions still log normally."))
                 .material(Material.PAPER)
                 .priority(41)
                 .getter(player -> api.getEconomyModule().getSettingsService().paymentMessages(player.getUniqueId()))
                 .setter((player, enabled) -> api.getEconomyModule().getSettingsService().setMessages(player.getUniqueId(), enabled))
                 .build());
+    }
+
+    private void ensureEditableMenuItems() {
+        File file = new File(getDataFolder(), "settings-menu.yml");
+        if (!file.isFile()) return;
+        YamlConfiguration current = YamlConfiguration.loadConfiguration(file);
+        if (current.isConfigurationSection("Items")) return;
+
+        try (InputStream input = api.getResource("settings/settings-menu.yml")) {
+            if (input == null) return;
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(input, StandardCharsets.UTF_8));
+            ConfigurationSection items = defaults.getConfigurationSection("Items");
+            if (items == null) return;
+            ConfigurationSection targetItems = current.createSection("Items");
+            copySection(items, targetItems);
+            current.set("Setting-Slots", null);
+            current.save(file);
+            getLogger().info("[Settings] Added editable setting item templates to settings-menu.yml.");
+        } catch (IOException e) {
+            getLogger().warning("[Settings] Could not update settings-menu.yml: " + e.getMessage());
+        }
+    }
+
+    private void copySection(ConfigurationSection source, ConfigurationSection target) {
+        for (String key : source.getKeys(false)) {
+            if (source.isConfigurationSection(key)) {
+                copySection(source.getConfigurationSection(key), target.createSection(key));
+            } else {
+                target.set(key, source.get(key));
+            }
+        }
     }
 }

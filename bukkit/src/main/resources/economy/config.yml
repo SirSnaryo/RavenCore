@@ -17,6 +17,11 @@ logs:
   enabled: true
   gui-page-size: 45
 
+balance-mirror:
+  # Coalesces many balance changes into one async MySQL upsert per player.
+  flush-interval-seconds: 10
+  batch-size: 250
+
 sounds:
   confirm-open:
     sound: BLOCK_NOTE_BLOCK_PLING

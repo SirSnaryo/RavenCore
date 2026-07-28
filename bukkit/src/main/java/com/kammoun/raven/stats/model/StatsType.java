@@ -9,9 +9,6 @@ public enum StatsType {
     BLOCKS_PLACED("blocks_placed", false),
     MOB_KILLS("mob_kills", false),
     PLAY_TIME("play_time", false),
-    ITEMS_CRAFTED("items_crafted", false),
-    JUMPS("jumps", false),
-    CHAT_MESSAGES("chat_messages", false),
     MONEY_SPENT("money_spent", true),
     MONEY_MADE("money_made", true);
 

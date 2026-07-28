@@ -6,6 +6,7 @@ import com.kammoun.raven.economy.command.EcoCommand;
 import com.kammoun.raven.economy.command.PayMessageCommand;
 import com.kammoun.raven.economy.command.PayCommand;
 import com.kammoun.raven.economy.command.PayToggleCommand;
+import com.kammoun.raven.economy.balance.EconomyBalanceMirror;
 import com.kammoun.raven.economy.confirm.EconomyConfirmationMenu;
 import com.kammoun.raven.economy.confirm.EconomyConfirmationService;
 import com.kammoun.raven.economy.config.EconomyMessages;
@@ -45,6 +46,7 @@ public class EconomyModule extends KModule<RavenCore> {
     private EconomyConfirmationService confirmationService;
     private EconomyLogsMenu logsMenu;
     private EconomyLogRepository logRepository;
+    private EconomyBalanceMirror balanceMirror;
 
     public EconomyModule() {
         super("economy");
@@ -75,8 +77,18 @@ public class EconomyModule extends KModule<RavenCore> {
                 logRepository = null;
                 getLogger().warning("[Economy] Failed to initialize transaction logs; logs GUI disabled: " + e.getMessage());
             }
+            try {
+                balanceMirror = new EconomyBalanceMirror(api, api.getMySqlManager(),
+                        Math.max(1, getConfig().getInt("balance-mirror.flush-interval-seconds", 10)) * 20,
+                        getConfig().getInt("balance-mirror.batch-size", 250));
+                balanceMirror.start();
+            } catch (Exception e) {
+                balanceMirror = null;
+                getLogger().warning("[Economy] Balance leaderboard mirror disabled: " + e.getMessage());
+            }
         } else {
             getLogger().warning("[Economy] MySQL unavailable; transaction logs GUI will be disabled.");
+            getLogger().warning("[Economy] Balance leaderboard mirror will be disabled.");
         }
 
         economyService = new EconomyService(
@@ -86,7 +98,8 @@ public class EconomyModule extends KModule<RavenCore> {
                 api.getServerId(),
                 api.getServerDisplayName(),
                 startingBalance,
-                logRepository
+                logRepository,
+                balanceMirror
         );
         economy = new RavenEconomy(economyService, singular, plural, digits);
         settingsService = new EconomySettingsService(api.getRedisMessenger().getConnection().getPool());
@@ -116,12 +129,12 @@ public class EconomyModule extends KModule<RavenCore> {
         Bukkit.getServicesManager().register(Economy.class, economy, api, ServicePriority.Highest);
 
         Bukkit.getOnlinePlayers().forEach(p ->
-                Bukkit.getAsyncScheduler().runNow(api, task -> economyService.loadPlayer(p.getUniqueId()))
+                Bukkit.getAsyncScheduler().runNow(api, task -> economyService.loadPlayer(p.getUniqueId(), p.getName()))
         );
 
         onEvent(AsyncPlayerPreLoginEvent.class, event -> {
             if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-                economyService.loadPlayer(event.getUniqueId());
+                economyService.loadPlayer(event.getUniqueId(), event.getName());
             }
         });
 
@@ -163,6 +176,9 @@ public class EconomyModule extends KModule<RavenCore> {
                     economyService.unloadPlayer(p.getUniqueId())
             );
             economyService.shutdown();
+        }
+        if (balanceMirror != null) {
+            balanceMirror.shutdown();
         }
         if (economy != null) {
             Bukkit.getServicesManager().unregister(Economy.class, economy);

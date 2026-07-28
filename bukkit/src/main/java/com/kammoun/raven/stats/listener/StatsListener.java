@@ -2,8 +2,6 @@ package com.kammoun.raven.stats.listener;
 
 import com.kammoun.raven.stats.model.StatsType;
 import com.kammoun.raven.stats.service.StatsService;
-import io.papermc.paper.event.player.AsyncChatEvent;
-import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,10 +10,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerStatisticIncrementEvent;
 
 public final class StatsListener implements Listener {
     private final StatsService service;
@@ -57,24 +53,5 @@ public final class StatsListener implements Listener {
         if (event.getEntity() instanceof Player) return;
         Player killer = event.getEntity().getKiller();
         if (killer != null) service.increment(killer, StatsType.MOB_KILLS);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onCraft(CraftItemEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        int crafted = Math.max(1, event.getCurrentItem() == null ? 1 : event.getCurrentItem().getAmount());
-        service.increment(player.getUniqueId(), StatsType.ITEMS_CRAFTED, crafted);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onStatistic(PlayerStatisticIncrementEvent event) {
-        if (event.getStatistic() == Statistic.JUMP) {
-            service.increment(event.getPlayer(), StatsType.JUMPS);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onChat(AsyncChatEvent event) {
-        service.increment(event.getPlayer(), StatsType.CHAT_MESSAGES);
     }
 }

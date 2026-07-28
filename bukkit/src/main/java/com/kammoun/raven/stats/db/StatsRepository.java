@@ -18,7 +18,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public final class StatsRepository {
-    private static final String SELECT = "SELECT * FROM ravencore_player_stats";
+    private static final String SELECT = "SELECT uuid, player_name, kills, deaths, blocks_broken, blocks_placed, mob_kills,"
+            + "play_time, money_spent, money_made FROM ravencore_player_stats";
     private final MySQLDBManager database;
 
     public StatsRepository(MySQLDBManager database) {
@@ -129,15 +130,11 @@ public final class StatsRepository {
 
     private String deltaSql() {
         return "INSERT INTO ravencore_player_stats (uuid, player_name, kills, deaths,"
-                + "blocks_broken, blocks_placed, mob_kills, play_time, items_crafted, jumps,"
-                + "chat_messages, money_spent, money_made) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                + "blocks_broken, blocks_placed, mob_kills, play_time, money_spent, money_made) VALUES (?,?,?,?,?,?,?,?,?,?) "
                 + "ON DUPLICATE KEY UPDATE player_name=VALUES(player_name),"
                 + "kills=kills+VALUES(kills), deaths=deaths+VALUES(deaths),"
-                + "blocks_broken=blocks_broken+VALUES(blocks_broken),"
-                + "blocks_placed=blocks_placed+VALUES(blocks_placed),"
+                + "blocks_broken=blocks_broken+VALUES(blocks_broken), blocks_placed=blocks_placed+VALUES(blocks_placed),"
                 + "mob_kills=mob_kills+VALUES(mob_kills), play_time=play_time+VALUES(play_time),"
-                + "items_crafted=items_crafted+VALUES(items_crafted), jumps=jumps+VALUES(jumps),"
-                + "chat_messages=chat_messages+VALUES(chat_messages),"
                 + "money_spent=money_spent+VALUES(money_spent), money_made=money_made+VALUES(money_made)";
     }
 
@@ -151,11 +148,8 @@ public final class StatsRepository {
         statement.setLong(6, delta.blocksPlaced());
         statement.setLong(7, delta.mobKills());
         statement.setLong(8, delta.playTime());
-        statement.setLong(9, delta.itemsCrafted());
-        statement.setLong(10, delta.jumps());
-        statement.setLong(11, delta.chatMessages());
-        statement.setDouble(12, delta.moneySpent());
-        statement.setDouble(13, delta.moneyMade());
+        statement.setDouble(9, delta.moneySpent());
+        statement.setDouble(10, delta.moneyMade());
     }
 
     public boolean mutate(UUID uuid, StatsType type, String operation, double amount) throws SQLException {
@@ -178,9 +172,9 @@ public final class StatsRepository {
     public boolean reset(UUID uuid) throws SQLException {
         try (Connection connection = database.getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "UPDATE ravencore_player_stats SET kills=0,deaths=0,blocks_broken=0,"
-                             + "blocks_placed=0,mob_kills=0,play_time=0,items_crafted=0,jumps=0,"
-                             + "chat_messages=0,money_spent=0,money_made=0 WHERE uuid=?")) {
+                     "UPDATE ravencore_player_stats SET kills=0,deaths=0,mob_kills=0,"
+                             + "blocks_broken=0,blocks_placed=0,play_time=0,"
+                             + "money_spent=0,money_made=0 WHERE uuid=?")) {
             statement.setString(1, uuid.toString());
             return statement.executeUpdate() > 0;
         }
@@ -188,9 +182,9 @@ public final class StatsRepository {
 
     private StatsSnapshot read(ResultSet result) throws SQLException {
         return new StatsSnapshot(UUID.fromString(result.getString("uuid")), result.getString("player_name"),
-                result.getLong("kills"), result.getLong("deaths"), result.getLong("blocks_broken"),
-                result.getLong("blocks_placed"), result.getLong("mob_kills"), result.getLong("play_time"),
-                result.getLong("items_crafted"), result.getLong("jumps"), result.getLong("chat_messages"),
+                result.getLong("kills"), result.getLong("deaths"),
+                result.getLong("blocks_broken"), result.getLong("blocks_placed"),
+                result.getLong("mob_kills"), result.getLong("play_time"),
                 result.getDouble("money_spent"), result.getDouble("money_made"));
     }
 }

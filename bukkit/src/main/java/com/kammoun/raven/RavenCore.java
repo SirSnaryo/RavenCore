@@ -9,7 +9,9 @@ import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.home.HomeModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
+import com.kammoun.raven.leaderboard.LeaderboardModule;
 import com.kammoun.raven.locationPool.LocationPoolModule;
+import com.kammoun.raven.mythictools.MythicToolsModule;
 import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
@@ -30,6 +32,7 @@ import com.kammoun.raven.library.platform.ServerRole;
 import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
+import com.kammoun.raven.library.skin.api.SkinCacheAPI;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
@@ -39,6 +42,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -83,11 +87,13 @@ public final class RavenCore extends JavaPlugin {
     private TeamModule teamModule;
     private CombatModule combatModule;
     private ShopModule shopModule;
+    private MythicToolsModule mythicToolsModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
     private BillfordModule billfordModule;
     private StatsModule statsModule;
+    private LeaderboardModule leaderboardModule;
     private BorderModule borderModule;
 
     @Override
@@ -149,6 +155,8 @@ public final class RavenCore extends JavaPlugin {
             getLogger().warning("MySQL connection failed. Persistent data will not be saved.");
         }
 
+        initializeSkinCache();
+
         locationPoolModule = new LocationPoolModule();
         locationPoolModule.onEnable(this);
         enabledModules.add("LocationPool");
@@ -189,6 +197,10 @@ public final class RavenCore extends JavaPlugin {
         shopModule.onEnable(this);
         enabledModules.add("Shop");
 
+        mythicToolsModule = new MythicToolsModule();
+        mythicToolsModule.onEnable(this);
+        enabledModules.add("MythicTools");
+
 
         billfordModule = new BillfordModule();
         billfordModule.onEnable(this);
@@ -197,6 +209,10 @@ public final class RavenCore extends JavaPlugin {
         statsModule = new StatsModule();
         statsModule.onEnable(this);
         enabledModules.add("Stats");
+
+        leaderboardModule = new LeaderboardModule();
+        leaderboardModule.onEnable(this);
+        enabledModules.add("Leaderboard");
 
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
@@ -289,8 +305,10 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "core", null);
         putModule(modules, "economy", economyModule);
         putModule(modules, "shop", shopModule);
+        putModule(modules, "mythictools", mythicToolsModule);
         putModule(modules, "billford", billfordModule);
         putModule(modules, "stats", statsModule);
+        putModule(modules, "leaderboard", leaderboardModule);
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
@@ -561,6 +579,28 @@ public final class RavenCore extends JavaPlugin {
         );
     }
 
+    private void initializeSkinCache() {
+        SkinCacheAPI.init(this, mySqlManager != null && mySqlManager.isConnected() ? mySqlManager : null)
+                .thenAccept(api -> {
+                    getLogger().info("[SkinCache] Initialized "
+                            + (mySqlManager != null && mySqlManager.isConnected() ? "with MySQL storage." : "with SQLite fallback."));
+                    Bukkit.getOnlinePlayers().forEach(api::cacheOnlinePlayer);
+                })
+                .exceptionally(error -> {
+                    getLogger().warning("[SkinCache] Failed to initialize: " + error.getMessage());
+                    return null;
+                });
+
+        Bukkit.getPluginManager().registerEvent(
+                PlayerJoinEvent.class, new Listener() {}, EventPriority.MONITOR,
+                (listener, event) -> {
+                    if (SkinCacheAPI.isInitialized()) {
+                        SkinCacheAPI.getInstance().cacheOnlinePlayer(((PlayerJoinEvent) event).getPlayer());
+                    }
+                }, this
+        );
+    }
+
     /** Lobby servers have no gameplay dimensions; cancel any portal use outright. */
     private void blockPortals() {
         Bukkit.getPluginManager().registerEvent(
@@ -720,11 +760,17 @@ public final class RavenCore extends JavaPlugin {
         if (shopModule != null) {
             shopModule.onDisable(this);
         }
+        if (mythicToolsModule != null) {
+            mythicToolsModule.onDisable(this);
+        }
         if (billfordModule != null) {
             billfordModule.onDisable(this);
         }
         if (statsModule != null) {
             statsModule.onDisable(this);
+        }
+        if (leaderboardModule != null) {
+            leaderboardModule.onDisable(this);
         }
 
 
@@ -740,6 +786,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (redisMessenger != null) {
             redisMessenger.close();
+        }
+        if (SkinCacheAPI.isInitialized()) {
+            SkinCacheAPI.shutdown().join();
         }
         if (mySqlManager != null) {
             mySqlManager.disconnect();

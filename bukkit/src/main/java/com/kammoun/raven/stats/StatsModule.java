@@ -13,15 +13,23 @@ import com.kammoun.raven.stats.gui.StatsMenu;
 import com.kammoun.raven.stats.listener.StatsListener;
 import com.kammoun.raven.stats.model.StatsType;
 import com.kammoun.raven.stats.papi.StatsPlaceholders;
+import com.kammoun.raven.stats.ravs.RavsBalanceProvider;
+import com.kammoun.raven.stats.ravs.RavsBalanceResolver;
 import com.kammoun.raven.stats.service.StatsService;
 import lombok.Getter;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.UUID;
 
 @Getter
 public final class StatsModule extends KModule<RavenCore> {
     private StatsConfig statsConfig;
     private StatsService service;
+    private RavsBalanceResolver ravs;
 
     public StatsModule() {
         super("stats");
@@ -34,13 +42,19 @@ public final class StatsModule extends KModule<RavenCore> {
             return;
         }
         saveDefaultConfig("gui/stats-menu.yml");
+        removeObsoleteShardsConfig();
+        removeRemovedStatsConfig();
+        migrateStatsMenuToRavs();
+        restoreBlockStatsConfig();
+        restoreBlockStatsMenuItems();
+        removeRemovedStatsMenuItems();
         statsConfig = new StatsConfig(getConfig());
         new StatsTable(api.getMySqlManager()).createTable();
         service = new StatsService(api, new StatsRepository(api.getMySqlManager()), statsConfig);
+        ravs = new RavsBalanceResolver(loadRavsProvider());
         service.start();
         registerEvent(new StatsListener(service));
-        registerCommand(new StatsCommand(service,
-                () -> new StatsMenu(api, statsConfig.shardsPlaceholder())), "stats");
+        registerCommand(new StatsCommand(service, ravs, () -> new StatsMenu(api)), "stats");
         registerCommand(new StatsManagerCommand(service, this::reload), "statsmanager");
 
         api.getNetworkEventBus().subscribe(BalanceUpdateEvent.class, event -> {
@@ -53,7 +67,7 @@ public final class StatsModule extends KModule<RavenCore> {
             }
         });
         if (KPlaceholderExpansion.isAvailable()) {
-            new StatsPlaceholders(api, service, statsConfig.shardsPlaceholder()).register();
+            new StatsPlaceholders(api, service, ravs).register();
         }
         getLogger().info("[Stats] Enabled with shared MySQL persistence.");
     }
@@ -61,6 +75,7 @@ public final class StatsModule extends KModule<RavenCore> {
     @Override
     public void onModuleDisable() {
         if (service != null) service.shutdown();
+        if (ravs != null) ravs.clear();
         getLogger().info("[Stats] Disabled.");
     }
 
@@ -70,5 +85,143 @@ public final class StatsModule extends KModule<RavenCore> {
         reloadConfig();
         statsConfig = new StatsConfig(getConfig());
         service.updateConfig(statsConfig);
+    }
+
+    private RavsBalanceProvider loadRavsProvider() {
+        if (!api.getServer().getPluginManager().isPluginEnabled("Ravs")) {
+            getLogger().warning("[Stats] Ravs is unavailable; Ravs balances will display as 0.");
+            return RavsBalanceProvider.unavailable();
+        }
+        try {
+            return (RavsBalanceProvider) Class.forName(
+                    "com.kammoun.raven.stats.ravs.RavsApiBalanceProvider").getConstructor().newInstance();
+        } catch (ReflectiveOperationException | LinkageError e) {
+            getLogger().warning("[Stats] Ravs API could not be loaded; balances will display as 0: "
+                    + e.getMessage());
+            return RavsBalanceProvider.unavailable();
+        }
+    }
+
+    private void removeObsoleteShardsConfig() {
+        if (!getConfig().contains("shards-placeholder")) return;
+        getConfig().set("shards-placeholder", null);
+        saveConfig();
+        getLogger().info("[Stats] Removed obsolete shards-placeholder configuration.");
+    }
+
+    private void removeRemovedStatsConfig() {
+        String[] removed = {
+                "tracking.items-crafted",
+                "tracking.jumps",
+                "tracking.chat-messages"
+        };
+        boolean changed = false;
+        for (String path : removed) {
+            if (!getConfig().contains(path)) continue;
+            getConfig().set(path, null);
+            changed = true;
+        }
+        if (changed) {
+            saveConfig();
+            getLogger().info("[Stats] Removed obsolete tracking options.");
+        }
+    }
+
+    private void restoreBlockStatsConfig() {
+        boolean changed = false;
+        if (!getConfig().contains("tracking.blocks-broken")) {
+            getConfig().set("tracking.blocks-broken", true);
+            changed = true;
+        }
+        if (!getConfig().contains("tracking.blocks-placed")) {
+            getConfig().set("tracking.blocks-placed", true);
+            changed = true;
+        }
+        if (changed) {
+            saveConfig();
+            getLogger().info("[Stats] Restored blocks broken/placed tracking options.");
+        }
+    }
+
+    private void migrateStatsMenuToRavs() {
+        File file = new File(getDataFolder(), "gui/stats-menu.yml");
+        if (!file.isFile()) return;
+        try {
+            String current = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            String updated = current
+                    .replace("  shards:", "  ravs:")
+                    .replace("%shards%", "%ravs%")
+                    .replace("Shards", "Ravs")
+                    .replace("material: AMETHYST_SHARD", "material: FEATHER");
+            if (!updated.equals(current)) {
+                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
+                getLogger().info("[Stats] Migrated the stats menu from Shards to Ravs.");
+            }
+        } catch (IOException e) {
+            getLogger().warning("[Stats] Could not migrate stats-menu.yml to Ravs: " + e.getMessage());
+        }
+    }
+
+    private void removeRemovedStatsMenuItems() {
+        File file = new File(getDataFolder(), "gui/stats-menu.yml");
+        if (!file.isFile()) return;
+        YamlConfiguration menu = YamlConfiguration.loadConfiguration(file);
+        String[] removed = {
+                "Items.crafted",
+                "Items.jumps",
+                "Items.chat"
+        };
+        boolean changed = false;
+        for (String path : removed) {
+            if (!menu.contains(path)) continue;
+            menu.set(path, null);
+            changed = true;
+        }
+        if (!changed) return;
+        try {
+            menu.save(file);
+            getLogger().info("[Stats] Removed obsolete stats menu items.");
+        } catch (IOException e) {
+            getLogger().warning("[Stats] Could not remove obsolete stats menu items: " + e.getMessage());
+        }
+    }
+
+    private void restoreBlockStatsMenuItems() {
+        File file = new File(getDataFolder(), "gui/stats-menu.yml");
+        if (!file.isFile()) return;
+        YamlConfiguration menu = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration defaults;
+        try (java.io.InputStream stream = api.getResource("stats/gui/stats-menu.yml")) {
+            if (stream == null) return;
+            defaults = YamlConfiguration.loadConfiguration(
+                    new java.io.InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().warning("[Stats] Could not read bundled stats-menu.yml: " + e.getMessage());
+            return;
+        }
+
+        boolean changed = false;
+        for (String key : new String[]{"blocks-placed", "blocks-broken"}) {
+            String path = "Items." + key;
+            if (menu.contains(path) || !defaults.contains(path)) continue;
+            copyConfigurationSection(defaults, menu, path);
+            changed = true;
+        }
+        if (!changed) return;
+        try {
+            menu.save(file);
+            getLogger().info("[Stats] Restored blocks broken/placed stats menu items.");
+        } catch (IOException e) {
+            getLogger().warning("[Stats] Could not restore stats menu items: " + e.getMessage());
+        }
+    }
+
+    private void copyConfigurationSection(YamlConfiguration source, YamlConfiguration target, String path) {
+        org.bukkit.configuration.ConfigurationSection section = source.getConfigurationSection(path);
+        if (section == null) return;
+        for (String key : section.getKeys(true)) {
+            if (section.isConfigurationSection(key)) continue;
+            target.set(path + "." + key, section.get(key));
+        }
     }
 }

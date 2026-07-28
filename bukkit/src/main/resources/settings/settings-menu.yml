@@ -1,20 +1,5 @@
-Title: "&8sᴇᴛᴛɪɴɢs"
+Title: "&8Settings"
 Size: 54
-
-# Settings are centered in row 4 (slots 20-26), grouped left-to-right:
-# 20 = TPA requests, 21 = TPAHere requests, 22 = TPAuto, 23 = TPA confirm menu,
-# 24 = Public chat, 25 = Broadcasts, 26 = Scoreboard,
-# 29 = Economy payments, 33 = Economy messages.
-Setting-Slots:
-  - 20
-  - 21
-  - 22
-  - 23
-  - 24
-  - 25
-  - 26
-  - 29
-  - 33
 
 Status:
   Enabled: "&#33FF66&lON"
@@ -37,3 +22,202 @@ Navigation:
   Filler-Item:
     material: BLACK_STAINED_GLASS_PANE
     name: " "
+
+Items:
+  tpa-requests:
+    setting: teleport.tpa
+    slot: 20
+    enabled:
+      material: ENDER_PEARL
+      name: "&#33FF66TPA Requests"
+      lore:
+        - "&#7A7A7AAllow players to teleport to you."
+        - "&#7A7A7AControls incoming /tpa requests."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429TPA Requests"
+      lore:
+        - "&#7A7A7AAllow players to teleport to you."
+        - "&#7A7A7AControls incoming /tpa requests."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  tpahere-requests:
+    setting: teleport.tpahere
+    slot: 21
+    enabled:
+      material: CLOCK
+      name: "&#4CC9F0TPAHere Requests"
+      lore:
+        - "&#7A7A7AAllow players to pull you to them."
+        - "&#7A7A7AControls incoming /tpahere requests."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429TPAHere Requests"
+      lore:
+        - "&#7A7A7AAllow players to pull you to them."
+        - "&#7A7A7AControls incoming /tpahere requests."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  tpauto:
+    setting: teleport.auto
+    slot: 22
+    enabled:
+      material: REDSTONE_TORCH
+      name: "&#FFD447TPAuto"
+      lore:
+        - "&#7A7A7AAutomatically accept TPA requests."
+        - "&#D90429Use carefully near unknown players."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429TPAuto"
+      lore:
+        - "&#7A7A7AAutomatically accept TPA requests."
+        - "&#D90429Use carefully near unknown players."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  tpa-confirm-menu:
+    setting: teleport.confirm-menu
+    slot: 23
+    enabled:
+      material: ENDER_EYE
+      name: "&#FF2B2BTPA Confirm Menu"
+      lore:
+        - "&#7A7A7AShow a menu before sending or accepting."
+        - "&#7A7A7ARecommended for safer teleports."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429TPA Confirm Menu"
+      lore:
+        - "&#7A7A7AShow a menu before sending or accepting."
+        - "&#7A7A7ARecommended for safer teleports."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  public-chat:
+    setting: chat.public
+    slot: 24
+    enabled:
+      material: OAK_SIGN
+      name: "&#4CC9F0Public Chat"
+      lore:
+        - "&#7A7A7AShow or hide member chat."
+        - "&#7A7A7AYou can still send messages."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429Public Chat"
+      lore:
+        - "&#7A7A7AShow or hide member chat."
+        - "&#7A7A7AYou can still send messages."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  broadcasts:
+    setting: chat.broadcast
+    slot: 25
+    enabled:
+      material: BELL
+      name: "&#FFD447Broadcasts"
+      lore:
+        - "&#7A7A7AShow or hide auto messages."
+        - "&#7A7A7ARaven broadcasts still run on Redis."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429Broadcasts"
+      lore:
+        - "&#7A7A7AShow or hide auto messages."
+        - "&#7A7A7ARaven broadcasts still run on Redis."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  scoreboard:
+    setting: scoreboard.enabled
+    slot: 26
+    enabled:
+      material: NAME_TAG
+      name: "&#3A86FFScoreboard"
+      lore:
+        - "&#7A7A7AShow or hide your sidebar."
+        - "&#7A7A7ASaved per player."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429Scoreboard"
+      lore:
+        - "&#7A7A7AShow or hide your sidebar."
+        - "&#7A7A7ASaved per player."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  payments:
+    setting: economy.payments
+    slot: 29
+    enabled:
+      material: EMERALD
+      name: "&#33FF66Payments"
+      lore:
+        - "&#7A7A7AAllow players to send you money."
+        - "&#7A7A7AAdmins with bypass can still pay you."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429Payments"
+      lore:
+        - "&#7A7A7AAllow players to send you money."
+        - "&#7A7A7AAdmins with bypass can still pay you."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+
+  pay-messages:
+    setting: economy.messages
+    slot: 33
+    enabled:
+      material: PAPER
+      name: "&#FFD447Pay Messages"
+      lore:
+        - "&#7A7A7AShow pay and shop economy messages."
+        - "&#7A7A7ATransactions still log normally."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."
+    disabled:
+      material: GRAY_DYE
+      name: "&#D90429Pay Messages"
+      lore:
+        - "&#7A7A7AShow pay and shop economy messages."
+        - "&#7A7A7ATransactions still log normally."
+        - ""
+        - "&#FFFFFFStatus: %status%"
+        - "&#7A7A7AClick to toggle."

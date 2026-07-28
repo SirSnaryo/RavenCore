@@ -1,0 +1,27 @@
+# Leaderboard Configuration
+
+# How often (in seconds) to refresh the leaderboard cache.
+# Minimum value is 60 seconds.
+refresh-rate: 300
+
+# Number of players shown per page.
+players-per-page: 45
+
+# How many players to cache per leaderboard type.
+cache-size: 100
+
+enabled-types:
+  - money
+  - kills
+  - deaths
+  - mob_kills
+  - blocks_broken
+  - blocks_placed
+  - play_time
+  - money_spent
+  - money_made
+
+sounds:
+  click-inventory: BLOCK_TRIPWIRE_CLICK_ON
+  success: ENTITY_PLAYER_LEVELUP
+  error: ENTITY_VILLAGER_NO

@@ -1,0 +1,4 @@
+timer-lore:
+  delayed: "&#FFD447Timer starts on first use"
+  duration: "&#7A7A7ADuration: &#33FF66%time%"
+  expires: "&#7A7A7AExpires in: &#FF2B2B%time%"

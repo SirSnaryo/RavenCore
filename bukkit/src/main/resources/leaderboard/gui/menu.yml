@@ -1,0 +1,66 @@
+Title: '&8ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅs'
+Size: 36
+
+Items:
+  money:
+    material: EMERALD
+    slot: 10
+    display-name: '&aᴍᴏɴᴇʏ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the money leaderboard'
+
+  kills:
+    material: DIAMOND_SWORD
+    slot: 11
+    display-name: '&aᴋɪʟʟs ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the kills leaderboard'
+
+  deaths:
+    material: SKELETON_SKULL
+    slot: 12
+    display-name: '&aᴅᴇᴀᴛʜs ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the deaths leaderboard'
+
+  mobs-killed:
+    material: ZOMBIE_HEAD
+    slot: 13
+    display-name: '&aᴍᴏʙs ᴋɪʟʟᴇᴅ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the mobs killed leaderboard'
+
+  blocks-broken:
+    material: COBBLESTONE
+    slot: 14
+    display-name: '&aʙʟᴏᴄᴋs ʙʀᴏᴋᴇɴ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the blocks broken leaderboard'
+
+  blocks-placed:
+    material: STONE
+    slot: 15
+    display-name: '&aʙʟᴏᴄᴋs ᴘʟᴀᴄᴇᴅ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the blocks placed leaderboard'
+
+  play-time:
+    material: CLOCK
+    slot: 16
+    display-name: '&aᴘʟᴀʏ ᴛɪᴍᴇ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the playtime leaderboard'
+
+  money-spent:
+    material: GOLD_NUGGET
+    slot: 19
+    display-name: '&aᴍᴏɴᴇʏ sᴘᴇɴᴛ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the money spent leaderboard'
+
+  sells-made:
+    material: IRON_NUGGET
+    slot: 20
+    display-name: '&asᴇʟʟs ᴍᴀᴅᴇ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ'
+    lore:
+      - '&fClick to view the sells made leaderboard'

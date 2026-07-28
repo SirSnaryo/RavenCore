@@ -15,9 +15,6 @@ public final class StatsSession {
     private long blocksPlaced;
     private long mobKills;
     private long playTime;
-    private long itemsCrafted;
-    private long jumps;
-    private long chatMessages;
     private double moneySpent;
     private double moneyMade;
 
@@ -46,7 +43,7 @@ public final class StatsSession {
 
     public synchronized StatsSnapshot snapshot() {
         return new StatsSnapshot(uuid, playerName, kills, deaths, blocksBroken, blocksPlaced,
-                mobKills, playTime, itemsCrafted, jumps, chatMessages, moneySpent, moneyMade);
+                mobKills, playTime, moneySpent, moneyMade);
     }
 
     public synchronized String playerName() {
@@ -75,9 +72,6 @@ public final class StatsSession {
         blocksPlaced = persisted.blocksPlaced() + pending.blocksPlaced();
         mobKills = persisted.mobKills() + pending.mobKills();
         playTime = persisted.playTime() + pending.playTime();
-        itemsCrafted = persisted.itemsCrafted() + pending.itemsCrafted();
-        jumps = persisted.jumps() + pending.jumps();
-        chatMessages = persisted.chatMessages() + pending.chatMessages();
         moneySpent = persisted.moneySpent() + pending.moneySpent();
         moneyMade = persisted.moneyMade() + pending.moneyMade();
     }
@@ -90,9 +84,6 @@ public final class StatsSession {
         blocksPlaced = snapshot.blocksPlaced();
         mobKills = snapshot.mobKills();
         playTime = snapshot.playTime();
-        itemsCrafted = snapshot.itemsCrafted();
-        jumps = snapshot.jumps();
-        chatMessages = snapshot.chatMessages();
         moneySpent = snapshot.moneySpent();
         moneyMade = snapshot.moneyMade();
     }
@@ -105,9 +96,6 @@ public final class StatsSession {
             case BLOCKS_PLACED -> blocksPlaced += (long) amount;
             case MOB_KILLS -> mobKills += (long) amount;
             case PLAY_TIME -> playTime += (long) amount;
-            case ITEMS_CRAFTED -> itemsCrafted += (long) amount;
-            case JUMPS -> jumps += (long) amount;
-            case CHAT_MESSAGES -> chatMessages += (long) amount;
             case MONEY_SPENT -> moneySpent += amount;
             case MONEY_MADE -> moneyMade += amount;
         }

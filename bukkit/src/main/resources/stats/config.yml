@@ -14,9 +14,6 @@ database-queue-capacity: 4096
 # Maximum rows per JDBC executeBatch / bulk-refresh query.
 database-batch-size: 250
 
-# External PlaceholderAPI placeholder used for the live shards value.
-shards-placeholder: "%shards_value%"
-
 tracking:
   kills: true
   deaths: true
@@ -24,7 +21,4 @@ tracking:
   blocks-placed: true
   mob-kills: true
   play-time: true
-  items-crafted: true
-  jumps: true
-  chat-messages: true
   money-changes: true

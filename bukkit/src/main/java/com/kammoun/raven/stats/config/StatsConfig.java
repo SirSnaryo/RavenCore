@@ -9,7 +9,6 @@ import java.util.Set;
 public final class StatsConfig {
     private final long flushIntervalTicks;
     private final long refreshIntervalTicks;
-    private final String shardsPlaceholder;
     private final int databaseWorkers;
     private final int databaseQueueCapacity;
     private final int batchSize;
@@ -18,7 +17,6 @@ public final class StatsConfig {
     public StatsConfig(FileConfiguration config) {
         flushIntervalTicks = Math.max(20L, config.getLong("flush-interval-seconds", 10L) * 20L);
         refreshIntervalTicks = Math.max(200L, config.getLong("refresh-interval-seconds", 60L) * 20L);
-        shardsPlaceholder = config.getString("shards-placeholder", "%shards_value%");
         databaseWorkers = Math.max(1, Math.min(4, config.getInt("database-workers", 2)));
         databaseQueueCapacity = Math.max(1000, config.getInt("database-queue-capacity", 4096));
         batchSize = Math.max(50, Math.min(500, config.getInt("database-batch-size", 250)));
@@ -35,7 +33,6 @@ public final class StatsConfig {
     public boolean tracks(StatsType type) { return tracked.contains(type); }
     public long flushIntervalTicks() { return flushIntervalTicks; }
     public long refreshIntervalTicks() { return refreshIntervalTicks; }
-    public String shardsPlaceholder() { return shardsPlaceholder; }
     public int databaseWorkers() { return databaseWorkers; }
     public int databaseQueueCapacity() { return databaseQueueCapacity; }
     public int batchSize() { return batchSize; }

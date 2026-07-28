@@ -1,8 +1,8 @@
 # Raven player settings module.
 #
 # Other modules add options to /settings by registering PlayerSettingDefinition
-# entries in SettingsModule's registry. The GUI renders all registered settings
-# automatically by priority, so adding a new setting does not require editing the
-# menu code.
+# entries in SettingsModule's registry. The visible GUI item, slot, name, lore,
+# enabled item, and disabled item are configured in settings-menu.yml under
+# Items.<setting-id>. A registered setting only appears if it has a menu entry.
 
 enabled: true

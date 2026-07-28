@@ -11,14 +11,11 @@ public record StatsSnapshot(
         long blocksPlaced,
         long mobKills,
         long playTime,
-        long itemsCrafted,
-        long jumps,
-        long chatMessages,
         double moneySpent,
         double moneyMade
 ) {
     public static StatsSnapshot empty(UUID uuid, String playerName) {
-        return new StatsSnapshot(uuid, playerName, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0D, 0D);
+        return new StatsSnapshot(uuid, playerName, 0, 0, 0, 0, 0, 0, 0D, 0D);
     }
 
     public double kd() {
@@ -33,9 +30,6 @@ public record StatsSnapshot(
             case BLOCKS_PLACED -> blocksPlaced;
             case MOB_KILLS -> mobKills;
             case PLAY_TIME -> playTime;
-            case ITEMS_CRAFTED -> itemsCrafted;
-            case JUMPS -> jumps;
-            case CHAT_MESSAGES -> chatMessages;
             case MONEY_SPENT -> moneySpent;
             case MONEY_MADE -> moneyMade;
         };

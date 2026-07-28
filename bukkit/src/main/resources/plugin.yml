@@ -3,10 +3,16 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI, WorldGuard]
+softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs]
 depend: [Vault]
 load: POSTWORLD
 commands:
+  mythictools:
+    description: Manage Mythic Tools
+    usage: /mythictools <give|selfdestruct|list|reload>
+    aliases: [mythictool]
+    permission: raven.mythictools.admin
+    permission-message: You don't have permission to use this command.
   balance:
     description: Check your balance or another player's balance
     usage: /balance [player]
@@ -233,6 +239,12 @@ commands:
     aliases: [statsadmin]
     permission: raven.stats.admin
     permission-message: You don't have permission to manage stats.
+  leaderboard:
+    description: Open cached network leaderboards
+    usage: /leaderboard [type|refresh]
+    aliases: [leaderboards, lb, top]
+    permission: raven.leaderboard
+    permission-message: You don't have permission to view leaderboards.
 
   ravencore:
     description: RavenCore version and safe module reload
@@ -241,6 +253,9 @@ commands:
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
 permissions:
+  raven.mythictools.admin:
+    description: Manage Mythic Tools
+    default: op
   raven.teleport:
     description: Teleport yourself or others across the network
     default: op
@@ -375,5 +390,11 @@ permissions:
     default: true
   raven.stats.admin:
     description: Manage player statistics
+    default: op
+  raven.leaderboard:
+    description: View cached network leaderboards
+    default: true
+  raven.leaderboard.admin:
+    description: Refresh leaderboard caches manually
     default: op
 

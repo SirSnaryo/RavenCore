@@ -34,6 +34,10 @@ public final class NBTHelper {
         return new NBTItem(item).getBoolean(key);
     }
 
+    public static long getLong(ItemStack item, String key) {
+        return new NBTItem(item).getLong(key);
+    }
+
     public static ItemStack setString(ItemStack item, String key, String value) {
         NBTItem nbt = new NBTItem(item);
         nbt.setString(key, value);
@@ -55,6 +59,12 @@ public final class NBTHelper {
     public static ItemStack setBoolean(ItemStack item, String key, boolean value) {
         NBTItem nbt = new NBTItem(item);
         nbt.setBoolean(key, value);
+        return nbt.getItem();
+    }
+
+    public static ItemStack setLong(ItemStack item, String key, long value) {
+        NBTItem nbt = new NBTItem(item);
+        nbt.setLong(key, value);
         return nbt.getItem();
     }
 

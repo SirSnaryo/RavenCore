@@ -12,11 +12,11 @@ Items:
     material: EMERALD
     name: "&#6BF18DMoney"
     lore: ["&7%money%"]
-  shards:
+  ravs:
     slot: 11
-    material: AMETHYST_SHARD
-    name: "&#6BF18DShards"
-    lore: ["&7%shards%"]
+    material: FEATHER
+    name: "&#6BF18DRavs"
+    lore: ["&7%ravs%"]
   kills:
     slot: 12
     material: DIAMOND_SWORD
@@ -58,18 +58,3 @@ Items:
     material: IRON_NUGGET
     name: "&#6BF18DMoney Made"
     lore: ["&7%money_made%"]
-  crafted:
-    slot: 22
-    material: CRAFTING_TABLE
-    name: "&#6BF18DItems Crafted"
-    lore: ["&7%items_crafted%"]
-  jumps:
-    slot: 23
-    material: RABBIT_FOOT
-    name: "&#6BF18DJumps"
-    lore: ["&7%jumps%"]
-  chat:
-    slot: 24
-    material: WRITABLE_BOOK
-    name: "&#6BF18DChat Messages"
-    lore: ["&7%chat_messages%"]

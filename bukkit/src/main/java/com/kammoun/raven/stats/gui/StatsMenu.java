@@ -8,8 +8,6 @@ import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.util.NumberUtils;
 import com.kammoun.raven.library.util.PlaceholderHelper;
 import com.kammoun.raven.stats.model.StatsSnapshot;
-import me.clip.placeholderapi.PlaceholderAPI;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,14 +19,11 @@ import java.util.concurrent.TimeUnit;
 
 public final class StatsMenu extends KMenu {
     private final RavenCore api;
-    private final String shardsPlaceholder;
     private final List<MenuItem> templates = new ArrayList<>();
-    private StatsSnapshot target;
 
-    public StatsMenu(RavenCore api, String shardsPlaceholder) {
+    public StatsMenu(RavenCore api) {
         super(api, "stats/gui/stats-menu.yml");
         this.api = api;
-        this.shardsPlaceholder = shardsPlaceholder;
         ConfigurationSection items = config.getConfigurationSection("Items");
         if (items != null) {
             for (String key : items.getKeys(false)) {
@@ -38,9 +33,8 @@ public final class StatsMenu extends KMenu {
         }
     }
 
-    public void open(Player viewer, StatsSnapshot target) {
-        this.target = target;
-        super.open(viewer, placeholders(viewer, target));
+    public void open(Player viewer, StatsSnapshot target, long ravs) {
+        super.open(viewer, placeholders(target, ravs));
     }
 
     @Override
@@ -51,14 +45,9 @@ public final class StatsMenu extends KMenu {
         }
     }
 
-    private String[] placeholders(Player viewer, StatsSnapshot stats) {
+    private String[] placeholders(StatsSnapshot stats, long ravs) {
         double money = api.getEconomyModule() == null ? 0D
                 : api.getEconomyModule().getEconomyService().getBalance(stats.uuid());
-        String shards = "0";
-        Player targetPlayer = Bukkit.getPlayer(stats.uuid());
-        if (targetPlayer != null && Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            shards = PlaceholderAPI.setPlaceholders(targetPlayer, shardsPlaceholder);
-        }
         return new String[]{
                 "%player%", stats.playerName(),
                 "%kills%", NumberUtils.format(stats.kills()),
@@ -68,11 +57,8 @@ public final class StatsMenu extends KMenu {
                 "%blocks_placed%", NumberUtils.format(stats.blocksPlaced()),
                 "%mob_kills%", NumberUtils.format(stats.mobKills()),
                 "%play_time%", formatDuration(stats.playTime()),
-                "%items_crafted%", NumberUtils.format(stats.itemsCrafted()),
-                "%jumps%", NumberUtils.format(stats.jumps()),
-                "%chat_messages%", NumberUtils.format(stats.chatMessages()),
                 "%money%", NumberUtils.format(money),
-                "%shards%", shards,
+                "%ravs%", NumberUtils.format(ravs),
                 "%money_spent%", NumberUtils.format(stats.moneySpent()),
                 "%money_made%", NumberUtils.format(stats.moneyMade())
         };

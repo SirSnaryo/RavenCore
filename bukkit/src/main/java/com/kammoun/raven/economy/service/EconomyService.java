@@ -6,6 +6,7 @@ import com.kammoun.raven.economy.model.EconomyReason;
 import com.kammoun.raven.economy.model.EconomyTransactionLog;
 import com.kammoun.raven.economy.model.EconomyTransactionResult;
 import com.kammoun.raven.economy.model.EconomyTransactionType;
+import com.kammoun.raven.economy.balance.EconomyBalanceMirror;
 import com.kammoun.raven.library.redis.event.BalanceUpdateEvent;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import org.bukkit.Bukkit;
@@ -81,11 +82,13 @@ public class EconomyService {
     private final String serverDisplayName;
     private final double startingBalance;
     private final EconomyLogRepository logRepository;
+    private final EconomyBalanceMirror balanceMirror;
     private final Map<UUID, Double> cache = new ConcurrentHashMap<>();
+    private final Map<UUID, String> names = new ConcurrentHashMap<>();
 
     public EconomyService(RavenCore plugin, JedisPool jedisPool, NetworkEventBus eventBus,
                           String serverId, String serverDisplayName, double startingBalance,
-                          EconomyLogRepository logRepository) {
+                          EconomyLogRepository logRepository, EconomyBalanceMirror balanceMirror) {
         this.plugin = plugin;
         this.jedisPool = jedisPool;
         this.eventBus = eventBus;
@@ -93,23 +96,33 @@ public class EconomyService {
         this.serverDisplayName = serverDisplayName;
         this.startingBalance = startingBalance;
         this.logRepository = logRepository;
+        this.balanceMirror = balanceMirror;
 
         eventBus.subscribe(BalanceUpdateEvent.class, this::onRemoteBalanceUpdate);
     }
 
     // Called on AsyncPlayerPreLoginEvent — already on an async thread
     public void loadPlayer(UUID uuid) {
+        loadPlayer(uuid, null);
+    }
+
+    public void loadPlayer(UUID uuid, String playerName) {
+        rememberName(uuid, playerName);
         try (Jedis jedis = jedisPool.getResource()) {
             String val = jedis.get(KEY_PREFIX + uuid);
             if (val == null) {
                 jedis.set(KEY_PREFIX + uuid, String.valueOf(startingBalance));
                 cache.put(uuid, startingBalance);
+                mirror(uuid, startingBalance);
             } else {
-                cache.put(uuid, Double.parseDouble(val));
+                double balance = Double.parseDouble(val);
+                cache.put(uuid, balance);
+                mirror(uuid, balance);
             }
         } catch (Exception e) {
             plugin.getLogger().warning("[Economy] Failed to load balance for " + uuid + ": " + e.getMessage());
             cache.put(uuid, startingBalance);
+            mirror(uuid, startingBalance);
         }
     }
 
@@ -117,6 +130,7 @@ public class EconomyService {
     // stale local cache during cross-server movement can duplicate or erase money.
     public void unloadPlayer(UUID uuid) {
         cache.remove(uuid);
+        names.remove(uuid);
     }
 
     public double getBalance(UUID uuid) {
@@ -201,6 +215,10 @@ public class EconomyService {
             if (success) {
                 cache.put(senderUuid, senderAfter);
                 cache.put(targetUuid, targetAfter);
+                rememberName(senderUuid, senderName);
+                rememberName(targetUuid, targetName);
+                mirror(senderUuid, senderAfter);
+                mirror(targetUuid, targetAfter);
                 publish(senderUuid, senderAfter, -amount);
                 publish(targetUuid, targetAfter, amount);
                 logPay(result, reason, senderName, targetName, rawCommand);
@@ -241,6 +259,8 @@ public class EconomyService {
                     amount, before, after, 0D, 0D, success ? null : status);
             if (success) {
                 cache.put(uuid, after);
+                rememberName(uuid, targetName);
+                mirror(uuid, after);
                 publish(uuid, after, delta);
             }
             log(transactionId, reason.type(), uuid, targetName, actorUuid, actorName, delta == 0 ? amount : delta,
@@ -258,6 +278,17 @@ public class EconomyService {
         event.setNewBalance(newBalance);
         event.setDelta(delta);
         eventBus.publish(event);
+    }
+
+    private void rememberName(UUID uuid, String name) {
+        if (uuid == null || name == null || name.isBlank()) return;
+        names.put(uuid, name);
+    }
+
+    private void mirror(UUID uuid, double balance) {
+        if (balanceMirror != null) {
+            balanceMirror.enqueue(uuid, names.get(uuid), balance);
+        }
     }
 
     private void logPay(EconomyTransactionResult result, EconomyReason reason, String senderName, String targetName, String rawCommand) {
