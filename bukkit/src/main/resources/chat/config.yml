@@ -26,16 +26,16 @@ server-tag: ""
 # %moderator_action% - Reserved for moderation addons, empty by default
 # %server% - Current server display name, if you choose to show it
 #
-# PlaceholderAPI placeholders are supported. Useful Raven defaults:
-# %ravencore_money% - Compact Money value, such as 1$, 1.1k, 10m
-# %ravs_balance_formatted% - Ravs balance if your Ravs plugin provides it
-# %statistic_player_kills%, %statistic_deaths%
-# %statistic_days_played%, %statistic_hours_played%
+# PlaceholderAPI placeholders are supported. Useful Raven Stats placeholders:
+# %stats_money% - Compact Money value from Raven economy
+# %stats_ravs% - Ravs balance through the Stats Ravs bridge, or 0 if Ravs is unavailable
+# %stats_kills%, %stats_deaths%, %stats_kd%
+# %stats_play_time%, %stats_blocks_broken%, %stats_blocks_placed%, %stats_mob_kills%
 chat-formats: []
 
 # Default chat format.
 # Name click suggests /stats, message click suggests /msg. Nothing is executed.
-default-chat-format: "<shadow:#000000:1><hover:show_text:'<#5555FF>/discord<newline><#FFFFFF>Click to join'><click:suggest_command:'/discord'>%luckperms_prefix%</click></hover><#FFFFFF><hover:show_text:'<#33FF66>$ <#FFFFFF>Money <#33FF66>%ravencore_money%<newline><#D90429>\u2726 <#FFFFFF>Ravs <#D90429>%ravs_balance_formatted%<newline><#FF5555>\u2694 <#FFFFFF>Kills <#FF5555>%statistic_player_kills%<newline><#FF9F1C>\u2620 <#FFFFFF>Deaths <#FF9F1C>%statistic_deaths%<newline><#FFD447>\u263B <#FFFFFF>Playtime <#FFD447>%statistic_days_played%d %statistic_hours_played%h'><click:suggest_command:'/stats %player%'>%player%</click></hover> <#FFFFFF>\u00BB <white><click:suggest_command:'/msg %player% '><hover:show_text:'<#FCD05C>Send a private message'><message></hover></click></shadow>"
+default-chat-format: "<shadow:#000000:1><hover:show_text:'<#5555FF>/discord<newline><#FFFFFF>Click to join'><click:suggest_command:'/discord'>%luckperms_prefix%</click></hover><#FFFFFF><hover:show_text:'<#33FF66>$ <#FFFFFF>Money <#33FF66>%stats_money%<newline><#D90429>\u2726 <#FFFFFF>Ravs <#D90429>%stats_ravs%<newline><#FF5555>\u2694 <#FFFFFF>Kills <#FF5555>%stats_kills%<newline><#FF9F1C>\u2620 <#FFFFFF>Deaths <#FF9F1C>%stats_deaths%<newline><#FFD447>\u263B <#FFFFFF>Playtime <#FFD447>%stats_play_time%'><click:suggest_command:'/stats %player%'>%player%</click></hover> <#FFFFFF>\u00BB <white><click:suggest_command:'/msg %player% '><hover:show_text:'<#FCD05C>Send a private message'><message></hover></click></shadow>"
 
 limits:
   # Maximum raw message length. Set <= 0 to disable.
@@ -49,6 +49,40 @@ rules:
     enabled: true
     # 0.75 means 75% of letters are uppercase.
     threshold: 0.75
+  lag-test:
+    # Blocks Minecraft lag-test spam such as "t tttttt ttttttttt".
+    # Rejection message points players to /ping.
+    enabled: true
+    min-tokens: 3
+    min-repeated-token-length: 4
+    min-repeated-tokens: 2
+  advertising:
+    # Blocks IPs, domains, Discord invites, and common "dot" bypasses.
+    # Permission raven.chat.bypass.filter bypasses this for staff.
+    enabled: true
+    block-ips: true
+    block-domains: true
+    block-discord-invites: true
+    allowed-domains:
+      - ravenmc.live
+  profanity:
+    # Global word filtering is config-driven because every community has a
+    # different language/culture list. Raven normalizes leetspeak, symbols,
+    # separators, and repeated letters before matching these words.
+    # Permission raven.chat.bypass.filter bypasses this for staff.
+    enabled: true
+    words:
+      - fuck
+      - shit
+      - bitch
+      - asshole
+      - dick
+      - pussy
+      - cunt
+      - كسمك
+      - كس
+      - قحبة
+      - شرموط
   flood:
     enabled: true
     # Cancels repeated-character spam such as "hellooooo".
@@ -64,7 +98,7 @@ links:
 
 mentions:
   # %player% is the matched @Name.
-  self-format: "<#FFD447><bold>%player%</bold>"
+  self-format: "<#FFD447>%player%"
   other-format: "<#4CC9F0>%player%"
 
 sounds:
@@ -93,9 +127,9 @@ auto-messages:
   lock-ttl-seconds: 8
   interval-ticks: 2400
   messages:
-    - message: "<shadow:#000000:1><#FF2B2B><bold>Raven SMP</bold> <#7A7A7A>Use <#FFFFFF>/settings <#7A7A7A>to control chat and broadcasts.</shadow>"
+    - message: "<shadow:#000000:1><#FF2B2B>Raven SMP <#7A7A7A>Use <#FFFFFF>/settings <#7A7A7A>to control chat and broadcasts.</shadow>"
       action-bar: "<#4CC9F0>Raven <#7A7A7A>settings sync across the network."
       sound: broadcast
-    - message: "<shadow:#000000:1><#FFD447><bold>Tip</bold> <#7A7A7A>Mention a player with <#FFFFFF>@name <#7A7A7A>to ping them.</shadow>"
+    - message: "<shadow:#000000:1><#FFD447>Tip <#7A7A7A>Mention a player with <#FFFFFF>@name <#7A7A7A>to ping them.</shadow>"
       action-bar: ""
       sound: broadcast

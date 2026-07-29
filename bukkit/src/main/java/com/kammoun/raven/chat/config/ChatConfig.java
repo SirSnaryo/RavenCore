@@ -1,6 +1,7 @@
 package com.kammoun.raven.chat.config;
 
 import com.kammoun.raven.chat.model.AutoMessage;
+import com.kammoun.raven.chat.model.ChatFilterSettings;
 import com.kammoun.raven.chat.model.ChatFormat;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -22,6 +23,7 @@ public record ChatConfig(
         boolean floodEnabled,
         Pattern floodPattern,
         List<Pattern> blockedPatterns,
+        ChatFilterSettings filterSettings,
         boolean linksEnabled,
         boolean linkClickEnabled,
         String linkFormat,
@@ -38,6 +40,11 @@ public record ChatConfig(
 
     private static final String DEFAULT_FORMAT =
             "%luckperms_prefix%<#FFFFFF>%player% <#7A7A7A>\u00BB <#FFFFFF><message>";
+    private static final List<String> DEFAULT_PROFANITY_WORDS = List.of(
+            "fuck", "shit", "bitch", "asshole", "dick", "pussy", "cunt",
+            "كسمك", "كس", "قحبة", "شرموط"
+    );
+    private static final List<String> DEFAULT_ALLOWED_DOMAINS = List.of("ravenmc.live");
 
     public static ChatConfig from(FileConfiguration config, String defaultServerTag) {
         String defaultFormat = normalizeFormat(config.getString(
@@ -57,10 +64,11 @@ public record ChatConfig(
                 config.getBoolean("rules.flood.enabled", true),
                 compile(config.getString("rules.flood.regex", "(.)\\1{4,}")),
                 compileAll(config.getStringList("rules.blocked-patterns")),
+                loadFilterSettings(config),
                 config.getBoolean("links.enabled", true),
                 config.getBoolean("links.clickable", true),
                 config.getString("links.format", "<#4CC9F0>%url%"),
-                config.getString("mentions.self-format", "<#FFD447><bold>%player%</bold>"),
+                config.getString("mentions.self-format", "<#FFD447>%player%"),
                 config.getString("mentions.other-format", "<#4CC9F0>%player%"),
                 defaultFormat,
                 loadFormats(config, defaultFormat),
@@ -70,6 +78,26 @@ public record ChatConfig(
                 Math.max(20L, config.getLong("auto-messages.interval-ticks", 2400L)),
                 loadAutoMessages(config)
         );
+    }
+
+    private static ChatFilterSettings loadFilterSettings(FileConfiguration config) {
+        return new ChatFilterSettings(
+                config.getBoolean("rules.profanity.enabled", true),
+                stringListOrDefault(config, "rules.profanity.words", DEFAULT_PROFANITY_WORDS),
+                config.getBoolean("rules.advertising.enabled", true),
+                config.getBoolean("rules.advertising.block-ips", true),
+                config.getBoolean("rules.advertising.block-domains", true),
+                config.getBoolean("rules.advertising.block-discord-invites", true),
+                stringListOrDefault(config, "rules.advertising.allowed-domains", DEFAULT_ALLOWED_DOMAINS),
+                config.getBoolean("rules.lag-test.enabled", true),
+                Math.max(2, config.getInt("rules.lag-test.min-tokens", 3)),
+                Math.max(2, config.getInt("rules.lag-test.min-repeated-token-length", 4)),
+                Math.max(1, config.getInt("rules.lag-test.min-repeated-tokens", 2))
+        );
+    }
+
+    private static List<String> stringListOrDefault(FileConfiguration config, String path, List<String> fallback) {
+        return config.contains(path) ? List.copyOf(config.getStringList(path)) : fallback;
     }
 
     public String resolvedServerTag(String fallback) {

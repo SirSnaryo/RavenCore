@@ -1,6 +1,7 @@
 package com.kammoun.raven.stats;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.command.UnavailableCommand;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.platform.placeholder.KPlaceholderExpansion;
 import com.kammoun.raven.library.redis.event.BalanceUpdateEvent;
@@ -39,6 +40,7 @@ public final class StatsModule extends KModule<RavenCore> {
     public void onModuleEnable() {
         if (!api.getMySqlManager().isConnected()) {
             getLogger().warning("[Stats] MySQL is unavailable. Module disabled.");
+            registerUnavailableCommands("&#D90429Stats are unavailable because MySQL is not connected.");
             return;
         }
         saveDefaultConfig("gui/stats-menu.yml");
@@ -48,14 +50,24 @@ public final class StatsModule extends KModule<RavenCore> {
         restoreBlockStatsConfig();
         restoreBlockStatsMenuItems();
         removeRemovedStatsMenuItems();
-        statsConfig = new StatsConfig(getConfig());
-        new StatsTable(api.getMySqlManager()).createTable();
-        service = new StatsService(api, new StatsRepository(api.getMySqlManager()), statsConfig);
-        ravs = new RavsBalanceResolver(loadRavsProvider());
-        service.start();
-        registerEvent(new StatsListener(service));
-        registerCommand(new StatsCommand(service, ravs, () -> new StatsMenu(api)), "stats");
-        registerCommand(new StatsManagerCommand(service, this::reload), "statsmanager");
+        try {
+            statsConfig = new StatsConfig(getConfig());
+            new StatsTable(api.getMySqlManager()).createTable();
+            service = new StatsService(api, new StatsRepository(api.getMySqlManager()), statsConfig);
+            ravs = new RavsBalanceResolver(loadRavsProvider());
+            service.start();
+            registerEvent(new StatsListener(service));
+            registerCommand(new StatsCommand(service, ravs, () -> new StatsMenu(api)), "stats");
+            registerCommand(new StatsManagerCommand(service, this::reload), "statsmanager");
+        } catch (Exception e) {
+            if (service != null) {
+                service.shutdown();
+                service = null;
+            }
+            getLogger().warning("[Stats] Failed to initialize: " + e.getMessage());
+            registerUnavailableCommands("&#D90429Stats are unavailable right now.");
+            return;
+        }
 
         api.getNetworkEventBus().subscribe(BalanceUpdateEvent.class, event -> {
             try {
@@ -100,6 +112,11 @@ public final class StatsModule extends KModule<RavenCore> {
                     + e.getMessage());
             return RavsBalanceProvider.unavailable();
         }
+    }
+
+    private void registerUnavailableCommands(String message) {
+        registerCommand(new UnavailableCommand("stats", "raven.stats", true, message), "stats");
+        registerCommand(new UnavailableCommand("statsmanager", "raven.stats.admin", false, message), "statsmanager");
     }
 
     private void removeObsoleteShardsConfig() {

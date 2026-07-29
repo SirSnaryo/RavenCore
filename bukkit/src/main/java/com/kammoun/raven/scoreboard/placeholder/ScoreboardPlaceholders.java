@@ -1,13 +1,18 @@
 package com.kammoun.raven.scoreboard.placeholder;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.util.NumberUtils;
 import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
+import com.kammoun.raven.stats.StatsModule;
+import com.kammoun.raven.stats.model.StatsSnapshot;
+import com.kammoun.raven.team.TeamModule;
+import com.kammoun.raven.team.model.TeamSnapshot;
 import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @Getter
@@ -37,10 +42,17 @@ public class ScoreboardPlaceholders {
         resolved = replace(resolved, "%raven_network_online%", () -> String.valueOf(plugin.getNetworkPlayerManager().getNetworkPlayerNames().size()));
         resolved = replace(resolved, "%raven_balance%", () -> balance(player));
         resolved = replace(resolved, "%raven_money%", () -> compactMoney(player));
-        resolved = replace(resolved, "%raven_ravs%", () -> "0");
-        resolved = replace(resolved, "%raven_kills%", () -> String.valueOf(stats.kills(player)));
-        resolved = replace(resolved, "%raven_deaths%", () -> String.valueOf(stats.deaths(player)));
-        resolved = replace(resolved, "%raven_playtime%", () -> formatPlaytimeSeconds(stats.playtimeSeconds(player)));
+        resolved = replace(resolved, "%raven_ravs%", () -> compactRavs(player));
+        resolved = replace(resolved, "%raven_kills%", () -> NumberUtils.compact(kills(player)));
+        resolved = replace(resolved, "%raven_deaths%", () -> NumberUtils.compact(deaths(player)));
+        resolved = replace(resolved, "%raven_blocks_broken%", () -> NumberUtils.compact(snapshot(player).map(StatsSnapshot::blocksBroken).orElse(0L)));
+        resolved = replace(resolved, "%raven_blocks_placed%", () -> NumberUtils.compact(snapshot(player).map(StatsSnapshot::blocksPlaced).orElse(0L)));
+        resolved = replace(resolved, "%raven_mob_kills%", () -> NumberUtils.compact(snapshot(player).map(StatsSnapshot::mobKills).orElse(0L)));
+        resolved = replace(resolved, "%raven_kd%", () -> snapshot(player).map(value -> String.format(java.util.Locale.US, "%.2f", value.kd())).orElse("0.00"));
+        resolved = replace(resolved, "%raven_money_spent%", () -> NumberUtils.compactMoney(snapshot(player).map(StatsSnapshot::moneySpent).orElse(0D)));
+        resolved = replace(resolved, "%raven_money_made%", () -> NumberUtils.compactMoney(snapshot(player).map(StatsSnapshot::moneyMade).orElse(0D)));
+        resolved = replace(resolved, "%raven_playtime%", () -> formatPlaytimeSeconds(playtimeSeconds(player)));
+        resolved = replace(resolved, "%raven_team%", () -> teamName(player));
         resolved = replace(resolved, "%raven_ping%", () -> formatPing(player.getPing()));
         resolved = replace(resolved, "%raven_tps%", metrics::tps);
         resolved = replace(resolved, "%raven_mspt%", metrics::mspt);
@@ -75,34 +87,45 @@ public class ScoreboardPlaceholders {
             return "0$";
         }
         double balance = plugin.getEconomyModule().getEconomyService().getBalance(player.getUniqueId());
-        return formatCompactMoney(balance);
+        return NumberUtils.compactMoney(balance);
     }
 
-    static String formatCompactMoney(double amount) {
-        double absolute = Math.abs(amount);
-        String sign = amount < 0 ? "-" : "";
-
-        if (absolute < 1_000D) {
-            return sign + trimOneDecimal(absolute) + "$";
+    private String compactRavs(Player player) {
+        StatsModule statsModule = plugin.getStatsModule();
+        if (statsModule == null || statsModule.getRavs() == null) {
+            return "0";
         }
-        if (absolute < 1_000_000D) {
-            return sign + trimOneDecimal(absolute / 1_000D) + "k";
-        }
-        if (absolute < 1_000_000_000D) {
-            return sign + trimOneDecimal(absolute / 1_000_000D) + "m";
-        }
-        if (absolute < 1_000_000_000_000D) {
-            return sign + trimOneDecimal(absolute / 1_000_000_000D) + "b";
-        }
-        return sign + trimOneDecimal(absolute / 1_000_000_000_000D) + "t";
+        return NumberUtils.compact(statsModule.getRavs().current(player.getUniqueId()));
     }
 
-    private static String trimOneDecimal(double value) {
-        double rounded = Math.round(value * 10D) / 10D;
-        if (rounded == Math.rint(rounded)) {
-            return String.format(Locale.US, "%.0f", rounded);
+    private long kills(Player player) {
+        return snapshot(player).map(StatsSnapshot::kills).orElse((long) stats.kills(player));
+    }
+
+    private long deaths(Player player) {
+        return snapshot(player).map(StatsSnapshot::deaths).orElse((long) stats.deaths(player));
+    }
+
+    private long playtimeSeconds(Player player) {
+        return snapshot(player).map(StatsSnapshot::playTime).orElseGet(() -> stats.playtimeSeconds(player));
+    }
+
+    private Optional<StatsSnapshot> snapshot(Player player) {
+        StatsModule statsModule = plugin.getStatsModule();
+        if (statsModule == null || statsModule.getService() == null) {
+            return Optional.empty();
         }
-        return String.format(Locale.US, "%.1f", rounded);
+        return statsModule.getService().cached(player.getUniqueId());
+    }
+
+    private String teamName(Player player) {
+        TeamModule teamModule = plugin.getTeamModule();
+        if (teamModule == null || teamModule.getService() == null) {
+            return "None";
+        }
+        return teamModule.getService().cached(player.getUniqueId())
+                .map(TeamSnapshot::name)
+                .orElse("None");
     }
 
     static String formatPlaytime(long ticks) {

@@ -8,6 +8,7 @@ import com.kammoun.raven.leaderboard.gui.LeaderboardMenu;
 import com.kammoun.raven.leaderboard.gui.LeaderboardPage;
 import com.kammoun.raven.leaderboard.model.LeaderboardType;
 import com.kammoun.raven.leaderboard.service.LeaderboardService;
+import com.kammoun.raven.library.command.UnavailableCommand;
 import com.kammoun.raven.library.module.KModule;
 import lombok.Getter;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -32,6 +33,7 @@ public final class LeaderboardModule extends KModule<RavenCore> {
     public void onModuleEnable() {
         if (!api.getMySqlManager().isConnected()) {
             getLogger().warning("[Leaderboard] MySQL is unavailable. Module disabled.");
+            registerUnavailableCommand("&#D90429Leaderboards are unavailable because MySQL is not connected.");
             return;
         }
         saveDefaultConfig("gui/menu.yml");
@@ -45,6 +47,7 @@ public final class LeaderboardModule extends KModule<RavenCore> {
             service.start();
         } catch (Exception e) {
             getLogger().warning("[Leaderboard] Failed to initialize: " + e.getMessage());
+            registerUnavailableCommand("&#D90429Leaderboards are unavailable right now.");
             return;
         }
         registerCommand(new LeaderboardCommand(this), "leaderboard");
@@ -80,6 +83,10 @@ public final class LeaderboardModule extends KModule<RavenCore> {
         restoreEnabledTypes();
         restoreGuiSection("gui/menu.yml", "Items.blocks-broken", "Items.blocks-placed");
         restoreGuiSection("gui/page.yml", "Titles.blocks-broken", "Titles.blocks-placed");
+    }
+
+    private void registerUnavailableCommand(String message) {
+        registerCommand(new UnavailableCommand("leaderboard", "raven.leaderboard", true, message), "leaderboard");
     }
 
     private void restoreEnabledTypes() {

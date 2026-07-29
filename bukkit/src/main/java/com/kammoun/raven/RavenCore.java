@@ -7,6 +7,7 @@ import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.economy.EconomyModule;
+import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.home.HomeModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
 import com.kammoun.raven.leaderboard.LeaderboardModule;
@@ -88,6 +89,7 @@ public final class RavenCore extends JavaPlugin {
     private CombatModule combatModule;
     private ShopModule shopModule;
     private MythicToolsModule mythicToolsModule;
+    private GlobalModule globalModule;
     private ChatModule chatModule;
     private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
@@ -218,6 +220,10 @@ public final class RavenCore extends JavaPlugin {
         clearInventoryModule.onEnable(this);
         enabledModules.add("ClearInventory");
 
+        globalModule = new GlobalModule();
+        globalModule.onEnable(this);
+        enabledModules.add("Global");
+
         chatModule = new ChatModule();
         chatModule.onEnable(this);
         enabledModules.add("Chat");
@@ -310,6 +316,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "stats", statsModule);
         putModule(modules, "leaderboard", leaderboardModule);
         putModule(modules, "clearinventory", clearInventoryModule);
+        putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
         putModule(modules, "settings", settingsModule);
@@ -750,6 +757,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (clearInventoryModule != null) {
             clearInventoryModule.onDisable(this);
+        }
+        if (globalModule != null) {
+            globalModule.onDisable(this);
         }
         if (chatModule != null) {
             chatModule.onDisable(this);

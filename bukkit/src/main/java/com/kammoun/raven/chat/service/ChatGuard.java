@@ -12,6 +12,7 @@ public class ChatGuard {
 
     private final Map<UUID, Long> lastChatAt = new ConcurrentHashMap<>();
     private final Map<UUID, String> lastMessages = new ConcurrentHashMap<>();
+    private final ChatContentFilter contentFilter = new ChatContentFilter();
 
     public String validate(Player player, String message, ChatConfig config) {
         if (config.maxLength() > 0
@@ -37,6 +38,11 @@ public class ChatGuard {
         if (config.capsEnabled() && hasTooManyCaps(message, config.capsThreshold())
                 && !player.hasPermission("raven.chat.bypass.caps")) {
             return "caps";
+        }
+
+        String contentRejection = contentFilter.validate(message, config.filterSettings());
+        if (contentRejection != null && !player.hasPermission("raven.chat.bypass.filter")) {
+            return contentRejection;
         }
 
         if (config.floodEnabled()

@@ -1,7 +1,8 @@
 ﻿# Raven scoreboard module.
 #
-# The module is powered by FastBoard packets, and each line can refresh on its
-# own interval or event. FastBoard hides sidebar score numbers on modern clients.
+# The module uses Raven's native Paper sidebar renderer inspired by TAB:
+# one private objective per player, one team per line, and blank score numbers
+# on modern clients through Paper NumberFormat.blank().
 
 # Master switch. Set false to fully disable this module without removing files.
 enabled: true
@@ -58,10 +59,17 @@ scoreboards:
     # - %raven_network_online%
     # - %raven_balance% full economy format, for example 1.00 Coin.
     # - %raven_money% compact money format, for example 1$, 1k, 1.1m.
-    # - %raven_ravs% reserved for a future Ravs module, currently returns 0.
+    # - %raven_ravs% compact Ravs format from the Stats Ravs bridge, for example 1k.
     # - %raven_kills%
     # - %raven_deaths%
+    # - %raven_blocks_broken%
+    # - %raven_blocks_placed%
+    # - %raven_mob_kills%
+    # - %raven_kd%
+    # - %raven_money_spent%
+    # - %raven_money_made%
     # - %raven_playtime%
+    # - %raven_team%
     # - %raven_ping%
     # - %raven_tps% global server TPS, 1 minute average.
     # - %raven_mspt% global average MSPT.
@@ -71,12 +79,19 @@ scoreboards:
     #
     # You can also use PlaceholderAPI placeholders like %player_name%.
     # Use \n inside text if you want one configured line to become multiple lines.
+    #
+    # Advanced TAB-style line syntax:
+    # text||numberFormat||score
+    # - numberFormat empty/blank/hide hides the right-side number.
+    # - numberFormat default/vanilla lets the client show the score.
+    # - any other numberFormat becomes fixed text on the right side.
+    # - score overrides the line ordering score. Leave it empty for automatic order.
     lines:
       - text: ""
       - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
         update: 40
       - text: "<shadow:#000000FF><#D90429>✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>"
-        update: event:balance
+        update: 40
       - text: "<shadow:#000000FF><#FF5555>⚔ <#FFFFFF>Kills <#FF5555>%raven_kills%</shadow>"
         update: 40
       - text: "<shadow:#000000FF><#FF9F1C>☠ <#FFFFFF>Deaths <#FF9F1C>%raven_deaths%</shadow>"
@@ -85,8 +100,8 @@ scoreboards:
         update: 60
       - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
-      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF></shadow>"
-        update: static
+      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>"
+        update: 60
       - text: ""
       - text: "<shadow:#000000FF><#7A7A7A>%raven_server_display% <#4CC9F0>(%raven_ping%)</shadow>"
         update: 40
@@ -115,10 +130,14 @@ scoreboards:
       - text: ""
       - text: "<shadow:#000000FF><#33FF66>$ <#FFFFFF>Money <#33FF66>%raven_money%</shadow>"
         update: 40
+      - text: "<shadow:#000000FF><#D90429>✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>"
+        update: 40
       - text: "<shadow:#000000FF><#00D5FF>⌛ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
         update: 60
       - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
+      - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>"
+        update: 60
       - text: ""
       - text: "<shadow:#000000FF><#7A7A7A>%raven_server_display% <#4CC9F0>(%raven_ping%)</shadow>"
         update: 40

@@ -29,7 +29,7 @@ public class RavenCoreCommand extends KCommand {
             return;
         }
 
-        if (args[0].equalsIgnoreCase("modules")) {
+        if (isModules(args[0])) {
             send(sender, "&#FFD447Modules: &#FFFFFF" + String.join("&#7A7A7A, &#FFFFFF", plugin.reloadableModuleNames()));
             return;
         }
@@ -68,7 +68,7 @@ public class RavenCoreCommand extends KCommand {
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return List.of("version", "modules", "reload").stream()
+            return List.of("version", "modules", "module", "mods", "reload").stream()
                     .filter(value -> value.startsWith(args[0].toLowerCase(Locale.ROOT)))
                     .toList();
         }
@@ -81,6 +81,13 @@ public class RavenCoreCommand extends KCommand {
                     .toList();
         }
         return List.of();
+    }
+
+    private boolean isModules(String input) {
+        return input.equalsIgnoreCase("modules")
+                || input.equalsIgnoreCase("module")
+                || input.equalsIgnoreCase("modles")
+                || input.equalsIgnoreCase("mods");
     }
 
     private void send(CommandSender sender, String message) {

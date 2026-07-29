@@ -23,9 +23,9 @@ public final class StatsPlaceholders extends KPlaceholderExpansion {
         stat("play_time", service, s -> StatsMenu.formatDuration(s.playTime()));
         stat("money_spent", service, s -> NumberUtils.format(s.moneySpent()));
         stat("money_made", service, s -> NumberUtils.format(s.moneyMade()));
-        register("money", player -> NumberUtils.format(
+        register("money", player -> NumberUtils.compactMoney(
                 plugin.getEconomyModule().getEconomyService().getBalance(player.getUniqueId())));
-        register("ravs", player -> NumberUtils.format(ravs.current(player.getUniqueId())));
+        register("ravs", player -> NumberUtils.compact(ravs.current(player.getUniqueId())));
     }
 
     private void stat(String key, StatsService service, Function<StatsSnapshot, String> formatter) {

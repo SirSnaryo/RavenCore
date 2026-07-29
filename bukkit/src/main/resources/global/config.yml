@@ -1,0 +1,68 @@
+# Raven global module.
+#
+# Owns vanilla/global noise that should not spam the whole server:
+# join/quit broadcasts, advancement announcements, vanilla death messages,
+# sleep actionbar cleanup, and global boss death sounds.
+
+enabled: true
+
+suppression:
+  # Removes vanilla "<player> joined the game".
+  join-message: true
+
+  # Removes vanilla "<player> left the game".
+  quit-message: true
+
+  # Removes advancement/achievement announcements.
+  # Raven also writes the announceAdvancements gamerule below.
+  advancement-announcements: true
+
+  # Removes vanilla death messages so Raven can send local custom messages.
+  vanilla-death-messages: true
+
+game-rules:
+  # Apply gamerules to already loaded worlds during enable/reload.
+  apply-on-enable: true
+
+  # Apply gamerules to worlds loaded after RavenCore.
+  apply-on-world-load: true
+
+  # Written when advancement-announcements is true.
+  announce-advancements: false
+
+  # Written when vanilla-death-messages is true.
+  show-death-messages: false
+
+sleep-actionbar:
+  # Bukkit/Paper does not expose a direct cancel hook for the vanilla sleep
+  # status actionbar. Raven clears it for a short window around bed events.
+  clear: true
+  duration-ticks: 100
+  every-ticks: 1
+
+death-messages:
+  enabled: true
+
+  # Only players inside this radius from the death location see the message.
+  radius-blocks: 500
+
+  # Placeholders:
+  # - %victim%
+  # - %killer%
+  # - %cause%
+  #
+  # Supports MiniMessage, & colors, and &#RRGGBB hex colors.
+  player-kill-format: "<shadow:#000000:1><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>was killed by <#FF5555>%killer%</shadow>"
+  generic-format: "<shadow:#000000:1><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>died.</shadow>"
+
+boss-sounds:
+  # Stops the default boss death sound, then replays it only nearby.
+  restrict-global-death-sounds: true
+
+  entities:
+    - WITHER
+    - ENDER_DRAGON
+
+  radius-blocks: 128
+  replay-local-sound: true
+  volume-scale: 1.0
