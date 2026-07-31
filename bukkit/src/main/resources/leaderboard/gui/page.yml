@@ -4,15 +4,15 @@ Size: 54
 # Short titles used to fill %type% in the Title above.
 # These are independent from the display-name of the icons in menu.yml.
 Titles:
-  money: '&aMoney'
-  kills: '&aKills'
-  deaths: '&aDeaths'
-  mobs-killed: '&aMobs Killed'
-  blocks-broken: '&aBlocks Broken'
-  blocks-placed: '&aBlocks Placed'
-  play-time: '&aPlay Time'
-  money-spent: '&aMoney Spent'
-  sells-made: '&aSells Made'
+  money: 'MONEY'
+  kills: 'KILLS'
+  deaths: 'DEATHS'
+  mobs-killed: 'MOBS KILLED'
+  blocks-broken: 'BLOCKS BROKEN'
+  blocks-placed: 'BLOCKS PLACED'
+  play-time: 'PLAY TIME'
+  money-spent: 'MONEY SPENT'
+  sells-made: 'SELLS MADE'
 
 # Slots where player heads are displayed.
 # Should have at least as many entries as players-per-page in config.yml.
@@ -64,44 +64,70 @@ Display-Slots:
   - 44
 
 Head:
-  display-name: '&e#%rank% &f%name%'
+  display-name: '&#FFAA00&l#%rank% &#FFCC00%name%'
   lore:
-    - '&7Value: &f%value%'
+    - '&#FFAA00▌ &#AAAAAAValue: &#FFCC00%value%'
 
 Items:
   Position:
     material: PLAYER_HEAD
     slot: 48
-    display-name: '&e%player%'
+    display-name: '&#FFAA00&l%player%'
     lore:
-      - '&f%stats_type%: &a%value%'
-      - '&fRank: &a#%position%'
+      - '&#FFAA00Information'
+      - ''
+      - '&#FFAA00▌ &#AAAAAARank: &#FFCC00#%position%'
+      - '&#FFAA00▌ &#AAAAAA%stats_type%: &#FFCC00%value%'
 
   Search:
     material: OAK_SIGN
     slot: 50
-    display-name: '&aSearch Leaderboard'
+    display-name: '&#00FFFF&lSEARCH LEADERBOARD'
     lore:
-      - '&fClick to search for a player'
+      - '&fLook up a specific player on this board.'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Search'
+
+  # Replaces Items.Search while a search is active.
+  # %filter% is the current search text, %results% the number of matches.
+  Search-Active:
+    material: WRITABLE_BOOK
+    slot: 50
+    glow: true
+    display-name: '&#33FF66&lSEARCH ACTIVE'
+    lore:
+      - '&fA name filter is currently applied to this board.'
+      - ''
+      - '&#55FF55✔ &#AAAAAASearching: &#55FF55%filter%'
+      - '&#55FF55✔ &#AAAAAAMatches: &#55FF55%results%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nLEFT-CLICK&r &#55FF55to Search Again'
+      - '&#FFFF55▸ &#FFFF55&nRIGHT-CLICK&r &#55FF55to Clear Filter'
 
   Refresh:
     material: ANVIL
     slot: 49
-    display-name: '&aRefresh'
+    display-name: '&#33FF66&lREFRESH'
     lore:
-      - '&fClick to refresh the leaderboard'
+      - '&fPull the newest leaderboard entries.'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Refresh'
 
 Navigation:
   Prev:
     material: ARROW
     slot: 45
-    display-name: '&aʙᴀᴄᴋ'
+    display-name: '&#00FFFF&lBACK'
     lore:
-      - '&fClick to go to the previous page'
+      - '&fReturn to the previous page.'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFfor Previous Page'
 
   Next:
     material: ARROW
     slot: 53
-    display-name: '&aɴᴇxᴛ'
+    display-name: '&#00FFFF&lNEXT'
     lore:
-      - '&fClick to go to the next page'
+      - '&fContinue to the next page.'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFfor Next Page'

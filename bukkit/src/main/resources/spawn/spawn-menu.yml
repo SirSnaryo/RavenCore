@@ -1,19 +1,24 @@
-Title: "&8ꜱᴘᴀᴡɴ ᴀʀᴇᴀꜱ"
-Size: 54
+Title: "&8SPAWN AREAS"
+Size: 27
 
 
-Item-Slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,
-             38,39,40,41,42,43,44]
+Item-Slots: [12, 14]
+
 Items:
   Available:
     material: ITEM_FRAME
-    name: "&#FF2B2Bꜱᴘᴀᴡɴ %number%"
+    name: "&#33FF66&lSPAWN %number%"
     lore:
-      - "&#7A7A7Aᴘʟᴀʏᴇʀs &#FFFFFF%count%&#7A7A7A/&#FFFFFF%max%"
-      - "&#4CC9F0Click to go."
+      - "&fThis spawn area has room for more players."
+      - ""
+      - "&#55FF55✔ &#AAAAAAPlayers: &#55FF55%count% &#AAAAAA/ &#55FF55%max%"
+      - ""
+      - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Teleport"
   Full:
     material: REDSTONE_BLOCK
-    name: "&#FF2B2Bꜱᴘᴀᴡɴ %number%"
+    name: "&#FF4D4D&lSPAWN %number%"
     lore:
-      - "&#7A7A7Aᴘʟᴀʏᴇʀs &#FFFFFF%count%&#7A7A7A/&#FFFFFF%max%"
-      - "&#D90429This area is full."
+      - "&fThis spawn area has reached its player limit."
+      - ""
+      - "&#FF4D4D✕ &#AAAAAAPlayers: &#FF4D4D%count% &#AAAAAA/ &#FF4D4D%max%"
+      - "&#FF4D4D✕ &#AAAAAAStatus: &fThis area is full"

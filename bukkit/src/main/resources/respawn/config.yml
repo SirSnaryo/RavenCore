@@ -17,5 +17,5 @@ default-spawn:
 resolution-timeout-seconds: 5
 
 messages:
-  no-location: "&cNo safe respawn location is available right now."
-  transfer-failed: "&cCould not send you to your respawn server."
+  no-location: "&#FF4D4D✕ No safe respawn location is available right now."
+  transfer-failed: "&#FF4D4D✕ Could not send you to your respawn server."

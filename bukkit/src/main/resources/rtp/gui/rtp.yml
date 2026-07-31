@@ -1,22 +1,36 @@
-Title: '&8ʀᴀɴᴅᴏᴍ ᴛᴇʟᴇᴘᴏʀᴛ'
+Title: '&8RANDOM TELEPORT'
 Size: 27
 
 Items:
   Overworld:
     slot: 11
     material: GRASS_BLOCK
-    name: '&bᴏᴠᴇʀᴡᴏʀʟᴅ'
+    name: '&#33FF66&lOVERWORLD'
     lore:
-      - '&fClick to randomly teleport'
+      - '&fDrops you at a random safe surface location.'
+      - ''
+      - '&#55FF55⚑ &#AAAAAADimension: &fOverworld'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Teleport'
+
   Nether:
     slot: 13
     material: NETHERRACK
-    name: '&bɴᴇᴛʜᴇʀ'
+    name: '&#FF4D4D&lNETHER'
     lore:
-      - '&fClick to randomly teleport'
+      - '&fDrops you at a random spot in the Nether.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAADimension: &fNether'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Teleport'
+
   End:
     slot: 15
     material: END_STONE
-    name: '&bᴇɴᴅ'
+    name: '&#B466DF&lEND'
     lore:
-      - '&fClick to randomly teleport'
+      - '&fDrops you at a random spot in the End.'
+      - ''
+      - '&#B466DF★ &#AAAAAADimension: &fThe End'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#B466DFto Teleport'

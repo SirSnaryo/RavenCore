@@ -25,3 +25,11 @@ sounds:
   click-inventory: BLOCK_TRIPWIRE_CLICK_ON
   success: ENTITY_PLAYER_LEVELUP
   error: ENTITY_VILLAGER_NO
+
+messages:
+  # %query% is the text the player typed on the search sign.
+  search-no-results: "&#FF4D4D✕ No player on this leaderboard matches &f%query%&#FF4D4D."
+  search-cleared: "&#55FF55✔ Search cleared."
+  search-unavailable: "&#FF4D4D✕ Search is not available on this server version."
+  # Shown in the search item lore through %filter% while no search is active.
+  search-none: "&#AAAAAA&oNone"

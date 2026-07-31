@@ -1,80 +1,96 @@
-# Player-facing /billford menu.
 gui:
-  title: "&8Billford"
+  title: '&8BILLFORD'
   size: 54
-
-  # Reserved display positions for the preset's required items.
-  # Unused positions remain empty and are never covered by filler.
-  required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
+  required-items-slots:
+    - 10
+    - 11
+    - 12
+    - 19
+    - 20
+    - 21
+    - 28
+    - 29
+    - 30
   trade-slot: 25
-
   confirm-item:
     slot: 40
     material: LIME_CONCRETE
-    name: "&#33FF66&lConfirm Trade"
+    name: '&#33FF66&lCONFIRM TRADE'
     lore:
-      - "&#7A7A7AConfirm"
-      - "&#4CC9F0Hand in items and receive your reward."
+      - '&fHand in the required items to claim your reward.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAAction: &fComplete the trade'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Confirm'
     glow: true
-
   info-item:
-    slot: 4
+    slot: 49
     material: BOOK
-    name: "&#4CC9F0&lTrade Info"
+    name: '&#FFAA00&lTRADE INFO'
     lore:
-      - "&#7A7A7ATrade"
-      - "&#FFFFFFYou give:"
-      - "%required_item%"
-      - " "
-      - "&#FFFFFFYou receive:"
-      - "&#7A7A7A• &#FFFFFF%item%"
-
+      - '&#FFAA00Information'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAYou give:'
+      - '%required_item%'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAYou receive:'
+      - '&#FFCC00%item%'
   filler:
     item:
       material: BLACK_STAINED_GLASS_PANE
-      name: " "
+      name: ' '
 
-# Administrative /billfordpreset create|edit menu.
 editor:
-  title: "&8Editing: %preset%"
+  title: '&8EDITING: %preset%'
   size: 54
-  required-items-slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
+  required-items-slots:
+    - 10
+    - 11
+    - 12
+    - 19
+    - 20
+    - 21
+    - 28
+    - 29
+    - 30
   trade-slot: 25
   save-slot: 49
   info-slot: 4
-
   info-item:
     material: BOOK
-    name: "&#FFD447&lPreset Editor"
+    name: '&#00FFFF&lPRESET EDITOR'
     lore:
-      - "&#7A7A7AEditor"
-      - "&#7A7A7APlace the &#FFFFFFrequired items"
-      - " "
-      - "&#7A7A7APlace the &#FFFFFFreward item"
-      - "&#7A7A7Ain the right slot."
-      - " "
-      - "&#7A7A7AClick &#33FF66SAVE &#7A7A7Awhen done."
-
+      - '&fLay out the trade you want players to see.'
+      - ''
+      - '&#00FFFF✦ &#AAAAAAStep 1: &fPlace the required items'
+      - '&#00FFFF✦ &#AAAAAAStep 2: &fPlace the reward item'
+      - '&#00FFFF✦ &#AAAAAAStep 3: &fSave the preset'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Save when done'
   save-item:
     material: LIME_CONCRETE
-    name: "&#33FF66&lSAVE PRESET"
+    name: '&#33FF66&lSAVE PRESET'
     lore:
-      - "&#7A7A7ASave"
-      - "&#4CC9F0Save this preset network-wide."
+      - '&fStores this preset for every server.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAScope: &fNetwork-wide'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Save'
     glow: true
-
   required-placeholder:
     material: LIGHT_GRAY_STAINED_GLASS_PANE
-    name: "&#7A7A7ARequired Item Slot"
+    name: '&#FF4D4D&lREQUIRED ITEM SLOT'
     lore:
-      - "&#7A7A7ARequired"
-
+      - '&fThis slot is still waiting for an item.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAAStatus: &fEmpty'
   reward-placeholder:
     material: YELLOW_STAINED_GLASS_PANE
-    name: "&#FFD447Reward Item Slot"
+    name: '&#FFAA00&lREWARD ITEM SLOT'
     lore:
-      - "&#7A7A7AReward"
-
+      - '&fDrop the item players will receive here.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAStatus: &fEmpty'
   filler:
     material: BLACK_STAINED_GLASS_PANE
-    name: " "
+    name: ' '

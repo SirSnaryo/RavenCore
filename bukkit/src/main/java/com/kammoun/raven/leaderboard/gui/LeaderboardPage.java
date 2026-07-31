@@ -12,6 +12,9 @@ import com.kammoun.raven.library.skin.PlayerHeadUtil;
 import com.kammoun.raven.library.skin.api.SkinCacheAPI;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.util.PlaceholderHelper;
+import de.rapha149.signgui.SignGUI;
+import de.rapha149.signgui.SignGUIAction;
+import de.rapha149.signgui.exception.SignGUIVersionException;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -19,10 +22,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
+import java.util.Locale;
 
 public final class LeaderboardPage extends KMenu {
     private final LeaderboardModule module;
     private final LeaderboardType type;
+    private final String filter;
+    private final List<LeaderboardEntry> entries;
     private final int page;
     private final int maxPage;
     private final MenuItem entryTemplate;
@@ -32,17 +38,21 @@ public final class LeaderboardPage extends KMenu {
     private final MenuItem searchTemplate;
     private final List<Integer> entrySlots;
 
-    public LeaderboardPage(RavenCore plugin, LeaderboardModule module, LeaderboardType type, int page) {
+    public LeaderboardPage(RavenCore plugin, LeaderboardModule module, LeaderboardType type, int page, String filter) {
         super(plugin, "leaderboard/gui/page.yml");
         this.module = module;
         this.type = type;
-        this.page = Math.max(1, page);
-        this.maxPage = module.getService().maxPage(type);
+        this.filter = normalize(filter);
+        this.entries = match(module.getService().entries(type), this.filter);
+        this.maxPage = Math.max(1, (int) Math.ceil(entries.size() / (double) module.getService().playersPerPage()));
+        this.page = Math.min(Math.max(1, page), maxPage);
         this.entryTemplate = loadEntryTemplate();
         this.selfTemplate = firstItem("Self-Item", "Items.Position");
         this.backTemplate = ItemReader.readMenuItem(config.getConfigurationSection("Navigation.Back"), plugin);
         this.refreshTemplate = firstItem("Navigation.Refresh", "Items.Refresh");
-        this.searchTemplate = ItemReader.readMenuItem(config.getConfigurationSection("Items.Search"), plugin);
+        this.searchTemplate = this.filter == null
+                ? ItemReader.readMenuItem(config.getConfigurationSection("Items.Search"), plugin)
+                : firstItem("Items.Search-Active", "Items.Search");
         List<Integer> slots = config.getIntegerList("Display-Slots");
         this.entrySlots = slots.isEmpty() ? config.getIntegerList("Entry-Slots") : slots;
     }
@@ -52,7 +62,9 @@ public final class LeaderboardPage extends KMenu {
                 "%type%", typeTitle(),
                 "%stats_type%", typeTitle(),
                 "%page%", String.valueOf(page),
-                "%max_page%", String.valueOf(maxPage));
+                "%max_page%", String.valueOf(maxPage),
+                "%filter%", filterDisplay(),
+                "%results%", String.valueOf(entries.size()));
     }
 
     @Override
@@ -64,7 +76,6 @@ public final class LeaderboardPage extends KMenu {
 
     private void renderEntries(Player player) {
         if (entryTemplate == null || entrySlots.isEmpty()) return;
-        List<LeaderboardEntry> entries = module.getService().entries(type);
         int from = (page - 1) * module.getService().playersPerPage();
         for (int i = 0; i < entrySlots.size(); i++) {
             int index = from + i;
@@ -105,12 +116,58 @@ public final class LeaderboardPage extends KMenu {
                     .slot(refreshTemplate.getSlot())
                     .onClick(event -> {
                         module.getService().refresh();
-                        module.openPage(player, type, page);
+                        module.openPage(player, type, page, filter);
                     }));
         }
         if (searchTemplate != null) {
-            setItem(MenuItem.of(new ItemBuilder(searchTemplate.getItemStack())).slot(searchTemplate.getSlot()));
+            ItemStack rendered = PlaceholderHelper.parsePlaceholders(searchTemplate.getItemStack(),
+                    "%filter%", filterDisplay(),
+                    "%results%", String.valueOf(entries.size()));
+            setItem(MenuItem.of(new ItemBuilder(rendered))
+                    .slot(searchTemplate.getSlot())
+                    .onClick(event -> {
+                        if (filter != null && event.isRightClick()) {
+                            module.getMessages().send(player, "search-cleared");
+                            module.openPage(player, type, 1, null);
+                            return;
+                        }
+                        promptSearch(player);
+                    }));
         }
+    }
+
+    private void promptSearch(Player player) {
+        player.closeInventory();
+        try {
+            SignGUI.builder()
+                    .setType(Material.OAK_SIGN)
+                    .setLine(1, "↑↑↑↑↑↑↑↑↑↑↑↑")
+                    .setLine(2, "SEARCH")
+                    .setHandler((searchPlayer, result) -> {
+                        String input = result.getLineWithoutColor(0).trim();
+                        return List.of(SignGUIAction.run(() -> applySearch(searchPlayer, input)));
+                    })
+                    .callHandlerSynchronously(module.getApi())
+                    .build()
+                    .open(player);
+        } catch (SignGUIVersionException exception) {
+            module.getMessages().send(player, "search-unavailable");
+            module.openPage(player, type, page, filter);
+        }
+    }
+
+    private void applySearch(Player player, String input) {
+        String query = normalize(input);
+        if (query == null) {
+            module.openPage(player, type, 1, null);
+            return;
+        }
+        if (match(module.getService().entries(type), query).isEmpty()) {
+            module.getMessages().send(player, "search-no-results", "%query%", query);
+            module.openPage(player, type, page, filter);
+            return;
+        }
+        module.openPage(player, type, 1, query);
     }
 
     @Override
@@ -128,7 +185,7 @@ public final class LeaderboardPage extends KMenu {
         if (item == null) return null;
         return MenuItem.of(new ItemBuilder(item.getItemStack()))
                 .slot(item.getSlot())
-                .onClick(event -> module.openPage((Player) event.getWhoClicked(), type, targetPage));
+                .onClick(event -> module.openPage((Player) event.getWhoClicked(), type, targetPage, filter));
     }
 
     private MenuItem render(MenuItem template, int slot, LeaderboardEntry entry) {
@@ -187,6 +244,25 @@ public final class LeaderboardPage extends KMenu {
             case MONEY_MADE -> config.getString("Titles.sells-made", type.displayName());
             default -> type.displayName();
         };
+    }
+
+    private static String normalize(String filter) {
+        if (filter == null) return null;
+        String trimmed = filter.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static List<LeaderboardEntry> match(List<LeaderboardEntry> source, String filter) {
+        if (filter == null) return source;
+        String needle = filter.toLowerCase(Locale.ROOT);
+        return source.stream()
+                .filter(entry -> entry.playerName() != null
+                        && entry.playerName().toLowerCase(Locale.ROOT).contains(needle))
+                .toList();
+    }
+
+    private String filterDisplay() {
+        return filter != null ? filter : module.getMessages().get("search-none");
     }
 
     private MenuItem firstItem(String firstPath, String secondPath) {

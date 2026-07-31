@@ -1,38 +1,81 @@
-Title: '%player% permission'
+Title: '&8%player% PERMISSIONS'
 Size: 27
+
+Status:
+  Enabled: '&#55FF55ON'
+  Disabled: '&#FF4D4DOFF'
+
 Items:
   back:
     slot: 18
     material: RED_STAINED_GLASS_PANE
-    name: '&#34eb9bʙᴀᴄᴋ'
-    lore: ['&fClick to return']
+    name: '&#00FFFF&lBACK'
+    lore:
+      - '&fReturn to the team member list.'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Return'
   edit-home:
     slot: 10
     material: WHITE_BANNER
-    name: '&#34eb9bᴇᴅɪᴛ ʜᴏᴍᴇ'
-    lore: ['&fLet %player% set and remove the team home']
+    name: '&#33FF66&lEDIT HOME'
+    lore:
+      - '&fControls who may move the shared team home.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAGrants: &fSet and remove the team home'
+      - '&#55FF55✔ &#AAAAAAStatus: %status%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle'
   kick:
     slot: 11
     material: OAK_DOOR
-    name: '&#34eb9bᴋɪᴄᴋ'
-    lore: ['&fClick to kick %player%']
+    name: '&#FF4D4D&lKICK'
+    lore:
+      - '&fRemoves this member from your team.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAATarget: &#FF4D4D%player%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Kick'
   toggle-pvp:
     slot: 12
     material: IRON_SWORD
-    name: '&#34eb9bᴘᴠᴘ'
-    lore: ['&fLet %player% turn on and off team PvP']
+    name: '&#33FF66&lPVP'
+    lore:
+      - '&fControls who may switch friendly fire.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAGrants: &fTurn team PvP on and off'
+      - '&#55FF55✔ &#AAAAAAStatus: %status%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle'
   manage-members:
     slot: 13
     material: IRON_HELMET
-    name: '&#34eb9bᴍᴀɴᴀɢᴇ ᴛᴇᴀᴍᴍᴀᴛᴇѕ'
-    lore: ['&fLet %player% invite and kick teammates']
+    name: '&#33FF66&lMANAGE TEAMMATES'
+    lore:
+      - '&fControls who may change the roster.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAGrants: &fInvite and kick teammates'
+      - '&#55FF55✔ &#AAAAAAStatus: %status%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle'
   visit-home:
     slot: 14
     material: ENDER_PEARL
-    name: '&#34eb9bᴠɪѕɪᴛ ᴛᴇᴀᴍ ʜᴏᴍᴇ'
-    lore: ['&fLet %player% go to team home']
+    name: '&#33FF66&lVISIT TEAM HOME'
+    lore:
+      - '&fControls who may travel to the team home.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAGrants: &fTeleport to the team home'
+      - '&#55FF55✔ &#AAAAAAStatus: %status%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle'
   team-chat:
     slot: 15
     material: FEATHER
-    name: '&#34eb9bᴛᴇᴀᴍ ᴄʜᴀᴛ'
-    lore: ['&fLet %player% speak in chat']
+    name: '&#33FF66&lTEAM CHAT'
+    lore:
+      - '&fControls who may talk in the private channel.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAGrants: &fSpeak in team chat'
+      - '&#55FF55✔ &#AAAAAAStatus: %status%'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle'

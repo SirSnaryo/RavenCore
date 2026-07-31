@@ -209,12 +209,6 @@ commands:
     usage: /spawner <give|list|reload>
     permission: raven.spawner.admin
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
-  scoreboard:
-    description: Manage the Raven scoreboard
-    usage: /scoreboard [toggle|on|off|list|current|select|reset|set|clear|reload]
-    aliases: [sb]
-    permission: raven.scoreboard
-    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   billford:
     description: Open the Billford trade menu
@@ -366,12 +360,6 @@ permissions:
     default: op
   raven.chat.bypass.length:
     description: Bypass max chat length
-    default: op
-  raven.scoreboard:
-    description: Use personal scoreboard commands
-    default: true
-  raven.scoreboard.admin:
-    description: Manage scoreboard configuration and player board selection
     default: op
   raven.core.admin:
     description: Reload RavenCore modules

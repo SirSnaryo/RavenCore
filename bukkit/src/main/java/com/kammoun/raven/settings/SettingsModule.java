@@ -58,7 +58,6 @@ public class SettingsModule extends KModule<RavenCore> {
         registerTeleportSettings();
         registerChatSettings();
         registerEconomySettings();
-        registerScoreboardSettings();
     }
 
     private void registerTeleportSettings() {
@@ -130,22 +129,6 @@ public class SettingsModule extends KModule<RavenCore> {
                 .priority(21)
                 .getter(player -> api.getChatModule().getSettingsService().canReceiveBroadcast(player.getUniqueId()))
                 .setter((player, enabled) -> api.getChatModule().getSettingsService().setBroadcast(player, enabled))
-                .build());
-    }
-
-    private void registerScoreboardSettings() {
-        if (api.getScoreboardModule() == null || api.getScoreboardModule().getService() == null) {
-            return;
-        }
-
-        registry.register(PlayerSettingDefinition.builder("scoreboard.enabled")
-                .category("Visual")
-                .displayName("Scoreboard")
-                .description(List.of("Show or hide your sidebar.", "Saved per player."))
-                .material(Material.NAME_TAG)
-                .priority(30)
-                .getter(player -> api.getScoreboardModule().getService().isEnabled(player))
-                .setter((player, enabled) -> api.getScoreboardModule().getService().setEnabled(player, enabled))
                 .build());
     }
 

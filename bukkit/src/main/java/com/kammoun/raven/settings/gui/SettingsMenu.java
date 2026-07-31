@@ -30,8 +30,8 @@ public class SettingsMenu extends KMenu {
     public SettingsMenu(JavaPlugin plugin, SettingsModule module) {
         super(plugin, "settings/settings-menu.yml");
         this.module = module;
-        this.enabledText = config.getString("Status.Enabled", "&#33FF66ON");
-        this.disabledText = config.getString("Status.Disabled", "&#D90429OFF");
+        this.enabledText = config.getString("Status.Enabled", "&#33FF66&lON");
+        this.disabledText = config.getString("Status.Disabled", "&#FF4D4D&lOFF");
         this.updatedMessage = config.getString("Messages.Updated",
                 "&#FFFFFF%setting% &#7A7A7Aset to %status%&#7A7A7A.");
         ConfigurationSection soundSection = config.getConfigurationSection("Sounds.Toggle");
@@ -58,9 +58,9 @@ public class SettingsMenu extends KMenu {
         ItemStack rendered = PlaceholderHelper.parsePlaceholders(base.getItemStack(),
                 "%setting%", ChatFormatter.strip(definition.displayName()),
                 "%category%", definition.category(),
-                "%status%", enabled ? enabledText : disabledText,
-                "%enabled%", enabledText,
-                "%disabled%", disabledText);
+                "%status%", ChatFormatter.color(enabled ? enabledText : disabledText),
+                "%enabled%", ChatFormatter.color(enabledText),
+                "%disabled%", ChatFormatter.color(disabledText));
         return MenuItem.of(new ItemBuilder(rendered))
                 .slot(base.getSlot())
                 .permission(base.getPermission())
@@ -76,9 +76,9 @@ public class SettingsMenu extends KMenu {
         }
         player.sendMessage(ChatFormatter.color(PlaceholderHelper.parsePlaceholders(updatedMessage,
                 "%setting%", ChatFormatter.strip(definition.displayName()),
-                "%status%", newValue ? enabledText : disabledText,
-                "%enabled%", enabledText,
-                "%disabled%", disabledText)));
+                "%status%", ChatFormatter.color(newValue ? enabledText : disabledText),
+                "%enabled%", ChatFormatter.color(enabledText),
+                "%disabled%", ChatFormatter.color(disabledText))));
     }
 
     private void loadTemplates() {

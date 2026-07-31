@@ -206,7 +206,7 @@ public class ShopListener implements Listener {
         if (commandsOnly) {
             CommandHelper.executeCommand(player, action.commands());
         } else {
-            ItemStack give = shopItem.getIcon().getItemStack().clone();
+            ItemStack give = new ItemStack(shopItem.getIcon().getItemStack().getType());
             give.setAmount(amount);
             player.getInventory().addItem(give);
         }

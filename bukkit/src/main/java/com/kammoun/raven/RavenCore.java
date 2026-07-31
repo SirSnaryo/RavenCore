@@ -20,7 +20,6 @@ import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.respawn.RespawnModule;
 import com.kammoun.raven.shop.ShopModule;
-import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
@@ -91,7 +90,6 @@ public final class RavenCore extends JavaPlugin {
     private MythicToolsModule mythicToolsModule;
     private GlobalModule globalModule;
     private ChatModule chatModule;
-    private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
     private BillfordModule billfordModule;
     private StatsModule statsModule;
@@ -228,10 +226,6 @@ public final class RavenCore extends JavaPlugin {
         chatModule.onEnable(this);
         enabledModules.add("Chat");
 
-        scoreboardModule = new ScoreboardModule();
-        scoreboardModule.onEnable(this);
-        enabledModules.add("Scoreboard");
-
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
         enabledModules.add("Teleport");
@@ -318,7 +312,6 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
-        putModule(modules, "scoreboard", scoreboardModule);
         putModule(modules, "settings", settingsModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
@@ -763,9 +756,6 @@ public final class RavenCore extends JavaPlugin {
         }
         if (chatModule != null) {
             chatModule.onDisable(this);
-        }
-        if (scoreboardModule != null) {
-            scoreboardModule.onDisable(this);
         }
         if (shopModule != null) {
             shopModule.onDisable(this);
