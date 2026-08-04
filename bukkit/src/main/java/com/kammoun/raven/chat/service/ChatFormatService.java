@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 public class ChatFormatService {
 
     private static final Pattern LEGACY_HEX = Pattern.compile("(?i)[&\u00A7]#([0-9a-f]{6})");
+    private static final Pattern BARE_HEX = Pattern.compile("(?i)(?<![<&\u00A7A-Za-z0-9])#([0-9a-f]{6})(?![A-Za-z0-9])");
     private static final Pattern LEGACY_SECTION_HEX = Pattern.compile(
             "(?i)[&\u00A7]x[&\u00A7]([0-9a-f])[&\u00A7]([0-9a-f])[&\u00A7]([0-9a-f])" +
                     "[&\u00A7]([0-9a-f])[&\u00A7]([0-9a-f])[&\u00A7]([0-9a-f])"
@@ -224,7 +225,14 @@ public class ChatFormatService {
             matcher.appendReplacement(out, Matcher.quoteReplacement("<#" + matcher.group(1) + ">"));
         }
         matcher.appendTail(out);
-        return out.toString();
+
+        Matcher bareMatcher = BARE_HEX.matcher(out.toString());
+        StringBuffer bareOut = new StringBuffer();
+        while (bareMatcher.find()) {
+            bareMatcher.appendReplacement(bareOut, Matcher.quoteReplacement("<#" + bareMatcher.group(1) + ">"));
+        }
+        bareMatcher.appendTail(bareOut);
+        return bareOut.toString();
     }
 
     private String escape(String value) {

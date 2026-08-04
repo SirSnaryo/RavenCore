@@ -1,6 +1,7 @@
 package com.kammoun.raven.rtp;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.rtp.config.RtpConfig;
 import com.kammoun.raven.rtp.config.RtpMessage;
 import com.kammoun.raven.rtp.config.RtpMessages;
@@ -37,7 +38,7 @@ public final class RtpWarmupManager implements Listener {
     }
 
     public void begin(Player player, Runnable complete) {
-        player.closeInventory();
+        SchedulerUtil.execute(player, player::closeInventory);
         if (config.warmupSeconds() <= 0) {
             complete.run();
             return;

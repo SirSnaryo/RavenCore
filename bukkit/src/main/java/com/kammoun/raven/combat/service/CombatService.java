@@ -12,6 +12,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +22,7 @@ public final class CombatService {
     private final CombatStore store;
     private final Map<UUID, CombatTag> tags = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledTask> actionBars = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastUntags = new ConcurrentHashMap<>();
 
     public CombatService(RavenCore plugin, CombatConfig config, CombatStore store) {
         this.plugin = plugin;
@@ -45,6 +47,14 @@ public final class CombatService {
         return tag == null ? 0 : tag.remainingSeconds();
     }
 
+    public Optional<UUID> opponent(UUID uuid) {
+        CombatTag tag = tags.get(uuid);
+        if (tag == null || !tag.active() || tag.opponentUuid() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(tag.opponentUuid());
+    }
+
     public void tag(Player attacker, Player victim) {
         if (attacker.equals(victim)) return;
         long expiresAt = System.currentTimeMillis() + config.durationSeconds() * 1000L;
@@ -57,6 +67,7 @@ public final class CombatService {
     public void applyRemote(CombatTagEvent event) {
         try {
             UUID uuid = UUID.fromString(event.getPlayerUuid());
+            if (isStaleTag(uuid, event.getTimestamp())) return;
             Player player = plugin.getServer().getPlayer(uuid);
             if (player == null) return;
             UUID opponent = event.getOpponentUuid() == null ? null : UUID.fromString(event.getOpponentUuid());
@@ -68,6 +79,7 @@ public final class CombatService {
     public void removeRemote(CombatUntagEvent event) {
         try {
             UUID uuid = UUID.fromString(event.getPlayerUuid());
+            rememberUntag(uuid, event.getTimestamp());
             remove(uuid, event.isNotify(), false);
         } catch (RuntimeException ignored) {
         }
@@ -83,6 +95,7 @@ public final class CombatService {
     }
 
     public void remove(UUID uuid, boolean notify, boolean publish) {
+        rememberUntag(uuid, System.currentTimeMillis());
         tags.remove(uuid);
         ScheduledTask task = actionBars.remove(uuid);
         if (task != null) task.cancel();
@@ -104,10 +117,12 @@ public final class CombatService {
         actionBars.values().forEach(ScheduledTask::cancel);
         actionBars.clear();
         tags.clear();
+        lastUntags.clear();
     }
 
     private void apply(Player player, CombatTag tag, boolean announce) {
         if (config.ignoreOp() && player.isOp()) return;
+        if (player.isDead() || !player.isValid()) return;
         boolean fresh = !isTagged(player.getUniqueId());
         tags.put(player.getUniqueId(), tag);
         SchedulerUtil.runAsync(() -> {
@@ -115,6 +130,16 @@ public final class CombatService {
         });
         if (fresh && announce) config.send(player, "enter-combat");
         startActionBar(player);
+    }
+
+    private boolean isStaleTag(UUID uuid, long eventTimestamp) {
+        Long lastUntag = lastUntags.get(uuid);
+        return lastUntag != null && eventTimestamp > 0L && eventTimestamp <= lastUntag;
+    }
+
+    private void rememberUntag(UUID uuid, long timestamp) {
+        if (timestamp <= 0L) return;
+        lastUntags.merge(uuid, timestamp, Math::max);
     }
 
     private void publish(UUID player, UUID opponent, long expiresAt) {

@@ -25,7 +25,7 @@ scoreboards:
     priority: 0
 
     # Supports MiniMessage tags, & color codes, &#RRGGBB hex colors,
-    # PlaceholderAPI placeholders, and Raven internal placeholders listed below.
+    # and PlaceholderAPI placeholders. Raven registers every %raven_*% placeholder listed below.
     # For strongest black text shadow, wrap text with <shadow:#000000FF>...</shadow>.
     title: "<shadow:#000000FF><#FF2B2B><bold>Raven SMP</bold></shadow>"
 
@@ -50,7 +50,7 @@ scoreboards:
     # Built-in event names:
     # - balance: fired when Raven economy receives a BalanceUpdateEvent.
     #
-    # Built-in Raven placeholders:
+    # Built-in Raven PlaceholderAPI placeholders:
     # - %raven_server%
     # - %raven_server_display%
     # - %raven_role%

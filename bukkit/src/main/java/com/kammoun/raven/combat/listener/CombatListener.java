@@ -20,6 +20,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
+import java.util.UUID;
+
 public final class CombatListener implements Listener {
     private final RavenCore plugin;
     private final CombatService combat;
@@ -43,10 +45,17 @@ public final class CombatListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent event) {
-        combat.remove(event.getPlayer().getUniqueId(), false, true);
+        UUID victimId = event.getPlayer().getUniqueId();
+        UUID opponentId = combat.opponent(victimId).orElse(null);
+        combat.remove(victimId, false, true);
+
         Player killer = event.getPlayer().getKiller();
+        UUID otherId = killer == null ? opponentId : killer.getUniqueId();
+        if (otherId != null && !otherId.equals(victimId)) {
+            combat.remove(otherId, true, true);
+        }
+
         if (killer != null) {
-            combat.remove(killer.getUniqueId(), true, true);
             stealMoney(killer, event.getPlayer());
         }
     }

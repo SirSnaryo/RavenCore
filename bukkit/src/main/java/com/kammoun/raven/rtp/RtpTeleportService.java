@@ -55,6 +55,10 @@ public final class RtpTeleportService {
                 config.overworldClusters().keySet(), LocationDimension.NETHER));
     }
 
+    public void nether(Player player, String cluster) {
+        begin(player, () -> pool.getRandomLocationInCluster(cluster, LocationDimension.NETHER));
+    }
+
     public void end(Player player) {
         begin(player, () -> pool.getRandomLocation(config.endServer(), LocationDimension.END));
     }
@@ -62,6 +66,47 @@ public final class RtpTeleportService {
     public void stop() {
         resolving.clear();
         cooldowns.clear();
+    }
+
+    public Optional<RtpLocation> randomOverworldLocation() {
+        return pool.getRandomLocationGlobal(LocationDimension.OVERWORLD);
+    }
+
+    public boolean isBusy(UUID uuid) {
+        return warmups.isActive(uuid) || resolving.contains(uuid);
+    }
+
+    public long remainingCooldown(UUID uuid) {
+        return cooldowns.remainingSeconds(uuid);
+    }
+
+    public void startCooldown(UUID uuid) {
+        cooldowns.start(uuid, config.cooldownSeconds());
+    }
+
+    public boolean teleportTo(UUID uuid, RtpLocation target) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && target.serverId().equalsIgnoreCase(plugin.getServerId())) {
+            SchedulerUtil.execute(player, () -> teleportLocal(player, target));
+            return true;
+        }
+
+        boolean stored = transfers.store(new TeleportTransferStore.CoordinateTarget(
+                uuid, target.world(), target.x(), target.y(), target.z(), target.yaw(), target.pitch()));
+        if (!stored) {
+            return false;
+        }
+        CrossServerTeleportEvent event = new CrossServerTeleportEvent();
+        event.setPlayerUuid(uuid.toString());
+        event.setTargetServer(target.serverId());
+        event.setWorld(target.world());
+        event.setX(target.x());
+        event.setY(target.y());
+        event.setZ(target.z());
+        event.setYaw(target.yaw());
+        event.setPitch(target.pitch());
+        plugin.getNetworkEventBus().publish(event);
+        return true;
     }
 
     private void begin(Player player, Supplier<Optional<RtpLocation>> destination) {
@@ -102,21 +147,7 @@ public final class RtpTeleportService {
 
     private void teleport(Player player, RtpLocation target) {
         if (target.serverId().equalsIgnoreCase(plugin.getServerId())) {
-            World world = Bukkit.getWorld(target.world());
-            if (world == null) {
-                messages.send(player, RtpMessage.WORLD_MISSING);
-                sounds.play(player, "warmup-cancelled");
-                return;
-            }
-            Location location = new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
-            player.teleportAsync(location).thenAccept(success -> SchedulerUtil.execute(player, () -> {
-                if (!success || !player.isOnline()) {
-                    messages.send(player, RtpMessage.TRANSFER_FAILED);
-                    sounds.play(player, "warmup-cancelled");
-                    return;
-                }
-                complete(player);
-            }));
+            teleportLocal(player, target);
             return;
         }
 
@@ -143,5 +174,23 @@ public final class RtpTeleportService {
     private void complete(Player player) {
         cooldowns.start(player.getUniqueId(), config.cooldownSeconds());
         sounds.play(player, "teleport-success");
+    }
+
+    private void teleportLocal(Player player, RtpLocation target) {
+        World world = Bukkit.getWorld(target.world());
+        if (world == null) {
+            messages.send(player, RtpMessage.WORLD_MISSING);
+            sounds.play(player, "warmup-cancelled");
+            return;
+        }
+        Location location = new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
+        player.teleportAsync(location).thenAccept(success -> SchedulerUtil.execute(player, () -> {
+            if (!success || !player.isOnline()) {
+                messages.send(player, RtpMessage.TRANSFER_FAILED);
+                sounds.play(player, "warmup-cancelled");
+                return;
+            }
+            complete(player);
+        }));
     }
 }

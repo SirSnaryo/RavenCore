@@ -1,11 +1,13 @@
 package com.kammoun.raven.scoreboard;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.platform.placeholder.KPlaceholderExpansion;
 import com.kammoun.raven.library.redis.event.BalanceUpdateEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.scoreboard.command.ScoreboardCommand;
 import com.kammoun.raven.scoreboard.config.ScoreboardConfig;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholderExpansion;
 import com.kammoun.raven.scoreboard.stats.ScoreboardStatsRepository;
 import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import lombok.Getter;
@@ -51,6 +53,7 @@ public class ScoreboardModule extends KModule<RavenCore> {
         statsService = createStatsService();
         statsService.init();
         service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()), statsService);
+        registerPlaceholders();
         registerCommand(new ScoreboardCommand(this), "scoreboard");
         registerListeners();
         startTasks();
@@ -158,6 +161,20 @@ public class ScoreboardModule extends KModule<RavenCore> {
         return new ScoreboardStatsService(repository, getLogger());
     }
 
+    private void registerPlaceholders() {
+        if (!KPlaceholderExpansion.isAvailable()) {
+            getLogger().info("[Scoreboard] PlaceholderAPI not found; %raven_*% placeholders will resolve internally only.");
+            return;
+        }
+
+        boolean registered = new ScoreboardPlaceholderExpansion(api, service.getPlaceholders()).register();
+        if (registered) {
+            getLogger().info("[Scoreboard] Registered %raven_*% PlaceholderAPI placeholders.");
+        } else {
+            getLogger().warning("[Scoreboard] Could not register %raven_*% placeholders because the identifier is already taken.");
+        }
+    }
+
     private void migrateConfigFile() {
         File file = new File(getDataFolder(), "config.yml");
         if (!file.isFile()) {
@@ -177,6 +194,8 @@ public class ScoreboardModule extends KModule<RavenCore> {
                             "# The module uses Raven's native Paper sidebar renderer inspired by TAB:\r\n"
                                     + "# one private objective per player, one team per line, and blank score numbers\r\n"
                                     + "# on modern clients through Paper NumberFormat.blank().")
+                    .replace("PlaceholderAPI placeholders, and Raven internal placeholders listed below.",
+                            "PlaceholderAPI placeholders. Raven registers every %raven_*% placeholder listed below.")
                     .replace(">NA East <#4CC9F0>", ">%raven_server_display% <#4CC9F0>")
                     .replace("<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF></shadow>",
                             "<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>")

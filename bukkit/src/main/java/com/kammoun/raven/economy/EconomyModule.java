@@ -203,7 +203,6 @@ public class EconomyModule extends KModule<RavenCore> {
             return;
         }
         new EconomyPlaceholders(api, "ravencore", economyService, economy).register();
-        new EconomyPlaceholders(api, "raven", economyService, economy).register();
         getLogger().info("[Economy] Registered PlaceholderAPI placeholders.");
     }
 

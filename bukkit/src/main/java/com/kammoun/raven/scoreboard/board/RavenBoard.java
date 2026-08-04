@@ -4,6 +4,7 @@ import com.kammoun.raven.scoreboard.model.LineUpdateMode;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -56,8 +57,12 @@ public class RavenBoard {
         renderedLines.clear();
         lineIndexes.clear();
         registerObjective();
-        player.setScoreboard(scoreboard);
         updateAll();
+        SchedulerUtil.execute(player, () -> {
+            if (player.isOnline()) {
+                player.setScoreboard(scoreboard);
+            }
+        });
     }
 
     public void tick(int elapsedTicks) {

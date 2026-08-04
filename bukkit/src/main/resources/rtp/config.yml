@@ -10,6 +10,19 @@ cancel-on-damage: true
 # The End has one dedicated backend and does not use a cluster selector.
 end-server: smp-end
 
+# RTP Queue pairs two players from anywhere on the network and sends them to
+# the same random overworld location, facing each other.
+queue:
+  enabled: true
+  # Distance between the two players after matching.
+  distance-blocks: 7.0
+  # Waiting entries older than this are cleaned up automatically.
+  entry-ttl-seconds: 300
+  # Redis lock duration; keeps only one backend matching players at a time.
+  lock-millis: 5000
+  # How often each backend tries to match queued players. 20 ticks = 1 second.
+  match-interval-ticks: 40
+
 # These IDs must match the cluster names in the Redis grid registry.
 overworld-clusters:
   na:

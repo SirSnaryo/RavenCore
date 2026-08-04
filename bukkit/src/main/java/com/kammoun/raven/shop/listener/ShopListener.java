@@ -162,7 +162,6 @@ public class ShopListener implements Listener {
 
         if (!economy.has(player, total)) {
             player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
-            player.closeInventory();
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
@@ -192,7 +191,6 @@ public class ShopListener implements Listener {
         );
         if (!result.success()) {
             player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
-            player.closeInventory();
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }

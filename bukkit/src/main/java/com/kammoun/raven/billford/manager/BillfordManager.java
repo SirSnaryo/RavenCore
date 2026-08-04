@@ -6,7 +6,6 @@ import com.kammoun.raven.billford.config.BillfordMessages;
 import com.kammoun.raven.billford.db.BillfordRepository;
 import com.kammoun.raven.billford.model.BillfordPreset;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
-import org.bukkit.Bukkit;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -88,6 +87,10 @@ public class BillfordManager {
 
     public long timeUntilNextChange() {
         return Math.max(0, lastChange + rotationIntervalMillis - System.currentTimeMillis());
+    }
+
+    public long nextChangeAtMillis() {
+        return Math.max(0, lastChange + rotationIntervalMillis);
     }
 
     public long getRotationIntervalMillis() {
@@ -285,13 +288,11 @@ public class BillfordManager {
     private synchronized void applyState(String preset, long changedAt,
                                          long intervalMillis, long version, boolean announce) {
         if (version < stateVersion) return;
-        boolean changedPreset = version > stateVersion
-                && preset != null && !preset.equals(currentPresetName);
         currentPresetName = preset;
         lastChange = changedAt;
         if (intervalMillis > 0) rotationIntervalMillis = intervalMillis;
         stateVersion = version;
-        if (announce && changedPreset) broadcastChange(preset);
+        // Rotation is visible in the GUI/placeholders only; do not broadcast chat noise.
     }
 
     private void publishState(String preset, long lastChange, long intervalMillis,
@@ -303,12 +304,6 @@ public class BillfordManager {
         event.setStateVersion(version);
         event.setAnnounce(announce);
         api.getNetworkEventBus().publish(event);
-    }
-
-    private void broadcastChange(String presetName) {
-        String line = messages.format("preset-changed", "preset", presetName);
-        if (line.isEmpty()) return;
-        SchedulerUtil.run(() -> Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(line)));
     }
 
     private synchronized void putLocal(BillfordPreset preset) {

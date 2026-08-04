@@ -9,6 +9,9 @@ import java.util.Map;
 
 public record RtpConfig(int cooldownSeconds, int warmupSeconds, boolean cancelOnMove,
                         boolean cancelOnDamage, String endServer,
+                        boolean queueEnabled, double queueDistanceBlocks,
+                        int queueEntryTtlSeconds, long queueLockMillis,
+                        long queueMatchIntervalTicks,
                         Map<String, String> overworldClusters) {
 
     public static RtpConfig load(FileConfiguration config) {
@@ -26,6 +29,11 @@ public record RtpConfig(int cooldownSeconds, int warmupSeconds, boolean cancelOn
                 config.getBoolean("cancel-on-move", true),
                 config.getBoolean("cancel-on-damage", true),
                 config.getString("end-server", "smp-end").trim(),
+                config.getBoolean("queue.enabled", true),
+                Math.max(1.0D, config.getDouble("queue.distance-blocks", 7.0D)),
+                Math.max(30, config.getInt("queue.entry-ttl-seconds", 300)),
+                Math.max(1000L, config.getLong("queue.lock-millis", 5000L)),
+                Math.max(20L, config.getLong("queue.match-interval-ticks", 40L)),
                 Collections.unmodifiableMap(clusters));
     }
 }

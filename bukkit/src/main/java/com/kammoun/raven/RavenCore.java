@@ -19,6 +19,8 @@ import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.respawn.RespawnModule;
+import com.kammoun.raven.scoreboard.ScoreboardModule;
+import com.kammoun.raven.serverinfo.ServerInfoModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.tpa.TeleportModule;
@@ -91,6 +93,8 @@ public final class RavenCore extends JavaPlugin {
     private GlobalModule globalModule;
     private ChatModule chatModule;
     private SettingsModule settingsModule;
+    private ServerInfoModule serverInfoModule;
+    private ScoreboardModule scoreboardModule;
     private BillfordModule billfordModule;
     private StatsModule statsModule;
     private LeaderboardModule leaderboardModule;
@@ -146,6 +150,10 @@ public final class RavenCore extends JavaPlugin {
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, SchedulerUtil::run);
         networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(),
                 serverId, serverDisplayName, networkEventBus);
+
+        serverInfoModule = new ServerInfoModule();
+        serverInfoModule.onEnable(this);
+        enabledModules.add("ServerInfo");
 
         mySqlManager = new MySQLDBManager(getConfig());
         mySqlManager.connect();
@@ -230,6 +238,10 @@ public final class RavenCore extends JavaPlugin {
         teleportModule.onEnable(this);
         enabledModules.add("Teleport");
 
+        scoreboardModule = new ScoreboardModule();
+        scoreboardModule.onEnable(this);
+        enabledModules.add("Scoreboard");
+
         settingsModule = new SettingsModule();
         settingsModule.onEnable(this);
         enabledModules.add("Settings");
@@ -312,6 +324,8 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "clearinventory", clearInventoryModule);
         putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
+        putModule(modules, "scoreboard", scoreboardModule);
+        putModule(modules, "serverinfo", serverInfoModule);
         putModule(modules, "settings", settingsModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
@@ -735,6 +749,8 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (scoreboardModule != null) scoreboardModule.onDisable(this);
+        if (serverInfoModule != null) serverInfoModule.onDisable(this);
         if (combatModule != null) combatModule.onDisable(this);
         if (teamModule != null) teamModule.onDisable(this);
         if (homeModule != null) homeModule.onDisable(this);

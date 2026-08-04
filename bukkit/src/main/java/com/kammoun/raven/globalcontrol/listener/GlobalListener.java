@@ -6,6 +6,7 @@ import com.kammoun.raven.globalcontrol.config.GlobalConfig;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -39,6 +40,7 @@ public final class GlobalListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
+        refreshCreativeFlight(event.getPlayer());
         GlobalConfig config = module.settings();
         if (!config.enabled() || !config.suppression().joinMessage()) return;
         event.joinMessage(null);
@@ -141,6 +143,21 @@ public final class GlobalListener implements Listener {
             case WITHER -> Sound.ENTITY_WITHER_DEATH;
             default -> null;
         };
+    }
+
+    private void refreshCreativeFlight(Player player) {
+        SchedulerUtil.runLater(() -> SchedulerUtil.execute(player, () -> {
+            if (!player.isOnline()) return;
+            GameMode mode = player.getGameMode();
+            if (mode != GameMode.CREATIVE && mode != GameMode.SPECTATOR) return;
+
+            boolean wasFlying = player.isFlying();
+            player.setAllowFlight(false);
+            player.setAllowFlight(true);
+            if (wasFlying || mode == GameMode.SPECTATOR) {
+                player.setFlying(true);
+            }
+        }), 2L);
     }
 
     private void sendNearby(Location origin, double radiusSquared, PlayerConsumer consumer) {

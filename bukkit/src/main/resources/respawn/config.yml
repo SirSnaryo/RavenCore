@@ -3,9 +3,16 @@ clusters:
   - na
   - eu
 
+# Preferred server used when the player has no bed and no homes.
+# Leave empty to use the first enabled SPAWN row from ravencore_locations.
+spawn-server: ''
+
 # Guaranteed local floor used immediately while MySQL/Redis resolution runs.
 # This world must exist on this server and have World.Environment.NORMAL.
 default-spawn:
+  # Optional backend server for the final fallback when no /setspawn row exists.
+  # Leave empty to use this server.
+  server: ''
   world: world
   x: 0.5
   y: 100.0

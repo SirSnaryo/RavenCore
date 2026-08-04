@@ -48,12 +48,15 @@ public class PurchaseManager {
         setButton(inv, config.getDecline());
         setButton(inv, config.getAccept());
 
-        setButton(inv, config.getMinus64(), 64);
-        if (cur > 16) setButton(inv, config.getMinus16(), 16);
-        if (cur > 1)  setButton(inv, config.getMinus1(), 1);
-        if (cur < max)       setButton(inv, config.getPlus1(), 1);
-        if (cur + 16 <= max) setButton(inv, config.getPlus16(), 16);
-        setButton(inv, config.getPlus64(), 64);
+        if (max > 1) {
+            if (cur > 1)  setButton(inv, config.getMinus1(), 1);
+            if (cur > 16) setButton(inv, config.getMinus16(), 16);
+            if (cur > 1)  setButton(inv, config.getMinus64(), 64);
+
+            if (cur < max)       setButton(inv, config.getPlus1(), 1);
+            if (cur + 16 <= max) setButton(inv, config.getPlus16(), 16);
+            if (cur + 64 <= max) setButton(inv, config.getPlus64(), 64);
+        }
 
         ItemStack display = h.getShopItem().getIcon().getItemStack().clone();
         display.setAmount(Math.max(1, Math.min(cur, display.getMaxStackSize())));

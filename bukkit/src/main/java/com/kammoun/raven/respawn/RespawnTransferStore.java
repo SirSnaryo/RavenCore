@@ -3,7 +3,6 @@ package com.kammoun.raven.respawn;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.kammoun.raven.RavenCore;
-import com.kammoun.raven.library.locationpool.RtpLocation;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -28,9 +27,9 @@ public final class RespawnTransferStore {
                 bed.x(), bed.y(), bed.z(), 0.0f, 0.0f));
     }
 
-    public boolean storeRandom(UUID playerUuid, RtpLocation location) {
-        return store(playerUuid, new Payload("RANDOM", location.serverId(), location.world(),
-                location.x(), location.y(), location.z(), location.yaw(), location.pitch()));
+    public boolean storeCoordinate(UUID playerUuid, String serverId, String world,
+                                   double x, double y, double z, float yaw, float pitch) {
+        return store(playerUuid, new Payload("COORDINATE", serverId, world, x, y, z, yaw, pitch));
     }
 
     public ConsumeResult consume(UUID playerUuid) {
@@ -43,7 +42,8 @@ public final class RespawnTransferStore {
                 return pending ? ConsumeResult.invalid() : ConsumeResult.none();
             }
             Payload payload = GSON.fromJson(json, Payload.class);
-            if (payload == null || (!"BED".equals(payload.type()) && !"RANDOM".equals(payload.type()))
+            if (payload == null || (!"BED".equals(payload.type()) && !"COORDINATE".equals(payload.type())
+                    && !"RANDOM".equals(payload.type()))
                     || payload.serverId() == null
                     || payload.world() == null || payload.serverId().isBlank() || payload.world().isBlank()
                     || !Double.isFinite(payload.x()) || !Double.isFinite(payload.y())

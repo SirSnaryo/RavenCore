@@ -6,12 +6,12 @@ sound: "minecraft:entity.player.levelup"
 link-sent: "&7The link has been sent in chat!"
 
 discord:
-  - "&7Join our Discord community"
-  - "&7&l•&r &7&ndiscord.gg/example"
+  - "&bDiscord"
+  - "&7Discord.gg/rvt"
 
 store:
-  - "&7Visit our store"
-  - "&7&l•&r &7&nhttps://store.example.com"
+  - "&bStore"
+  - "&7Store.Raven-Mc.Net"
 
 rules:
   - "&7Rule 1: &fBe respectful to all players"
@@ -20,8 +20,8 @@ rules:
 
 media:
   - "&7Follow us on social media!"
-  - "&7&l•&r &7&nyoutube.com/example"
-  - "&7&l•&r &7&ntiktok.com/@example"
+  - "&7youtube.com/example"
+  - "&7tiktok.com/@example"
 
 help:
   - "&7Available commands:"

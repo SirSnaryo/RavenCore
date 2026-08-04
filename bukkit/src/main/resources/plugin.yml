@@ -125,6 +125,12 @@ commands:
     aliases: [btoggle, togglebroadcast]
     permission: raven.chat
     permission-message: You don't have permission to use this command.
+  scoreboard:
+    description: Toggle and manage Raven scoreboards
+    usage: /scoreboard [toggle|on|off|list|current|select|reset|reload|set|clear]
+    aliases: [sb]
+    permission: raven.scoreboard
+    permission-message: You don't have permission to use this command.
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
@@ -161,6 +167,12 @@ commands:
     usage: /rtp
     permission: raven.rtp
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
+  rtpq:
+    description: Join or leave the RTP matchmaking queue
+    usage: /rtpq
+    aliases: [rtpqueue]
+    permission: raven.rtp.queue
+    permission-message: You don't have permission to use RTP Queue.
 
   home:
     description: Open your homes or teleport to a named home
@@ -298,6 +310,9 @@ permissions:
   raven.rtp:
     description: Teleport to a random location
     default: true
+  raven.rtp.queue:
+    description: Join the RTP matchmaking queue
+    default: true
   raven.home:
     description: Use and list network-wide homes
     default: true
@@ -360,6 +375,12 @@ permissions:
     default: op
   raven.chat.bypass.length:
     description: Bypass max chat length
+    default: op
+  raven.scoreboard:
+    description: Toggle and select your Raven scoreboard
+    default: true
+  raven.scoreboard.admin:
+    description: Reload and assign Raven scoreboards
     default: op
   raven.core.admin:
     description: Reload RavenCore modules

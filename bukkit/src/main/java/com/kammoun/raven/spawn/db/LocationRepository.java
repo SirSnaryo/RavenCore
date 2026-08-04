@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class LocationRepository {
 
@@ -76,5 +77,38 @@ public class LocationRepository {
             }
         }
         return results;
+    }
+
+    public Optional<NetworkLocation> findSpawn(String preferredServer) throws SQLException {
+        String server = preferredServer == null ? "" : preferredServer.trim();
+        String sql = "SELECT server_name, type, world, x, y, z, yaw, pitch, max_players, enabled, updated_at "
+                + "FROM ravencore_locations WHERE type=? AND enabled=1"
+                + (server.isBlank() ? " ORDER BY server_name LIMIT 1" : " AND server_name=? LIMIT 1");
+        try (Connection c = db.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, LocationType.SPAWN.name());
+            if (!server.isBlank()) {
+                ps.setString(2, server);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(read(rs)) : Optional.empty();
+            }
+        }
+    }
+
+    private static NetworkLocation read(ResultSet rs) throws SQLException {
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        return NetworkLocation.builder()
+                .serverName(rs.getString("server_name"))
+                .type(LocationType.valueOf(rs.getString("type")))
+                .world(rs.getString("world"))
+                .x(rs.getDouble("x"))
+                .y(rs.getDouble("y"))
+                .z(rs.getDouble("z"))
+                .yaw(rs.getFloat("yaw"))
+                .pitch(rs.getFloat("pitch"))
+                .maxPlayers(rs.getInt("max_players"))
+                .enabled(rs.getBoolean("enabled"))
+                .updatedAt(updatedAt != null ? updatedAt.getTime() : 0L)
+                .build();
     }
 }

@@ -9,9 +9,10 @@ Items:
     lore:
       - '&fDrops you at a random safe surface location.'
       - ''
-      - '&#55FF55⚑ &#AAAAAADimension: &fOverworld'
+      - '&#55FF55Dimension: &fOverworld'
+      - '&#33FF66Players: &#FFFFFF%online%'
       - ''
-      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Teleport'
+      - '&#FFFF55> &#FFFF55&nCLICK&r &#55FF55to Select'
 
   Nether:
     slot: 13
@@ -20,9 +21,10 @@ Items:
     lore:
       - '&fDrops you at a random spot in the Nether.'
       - ''
-      - '&#FF4D4D✕ &#AAAAAADimension: &fNether'
+      - '&#FF4D4DDimension: &fNether'
+      - '&#33FF66Players: &#FFFFFF%online%'
       - ''
-      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Teleport'
+      - '&#FFFF55> &#FFFF55&nCLICK&r &#FF4D4Dto Select'
 
   End:
     slot: 15
@@ -31,6 +33,7 @@ Items:
     lore:
       - '&fDrops you at a random spot in the End.'
       - ''
-      - '&#B466DF★ &#AAAAAADimension: &fThe End'
+      - '&#B466DFDimension: &fThe End'
+      - '&#33FF66Players: &#FFFFFF%online%'
       - ''
-      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#B466DFto Teleport'
+      - '&#FFFF55> &#FFFF55&nCLICK&r &#B466DFto Teleport'

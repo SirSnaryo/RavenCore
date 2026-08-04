@@ -1,9 +1,9 @@
 package com.kammoun.raven.respawn;
 
 import com.kammoun.raven.RavenCore;
-import com.kammoun.raven.library.locationpool.LocationDimension;
-import com.kammoun.raven.library.locationpool.LocationPool;
-import com.kammoun.raven.library.locationpool.RtpLocation;
+import com.kammoun.raven.home.db.HomeRepository;
+import com.kammoun.raven.home.model.HomeRecord;
+import com.kammoun.raven.library.location.NetworkLocation;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
@@ -12,6 +12,7 @@ import com.kammoun.raven.respawn.BedSpawnLocator.BedSpawnStatus;
 import com.kammoun.raven.respawn.RespawnTransferStore.ConsumeResult;
 import com.kammoun.raven.respawn.RespawnTransferStore.ConsumeStatus;
 import com.kammoun.raven.respawn.db.BedSpawnRepository;
+import com.kammoun.raven.spawn.db.LocationRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -33,18 +34,21 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class RespawnManager implements Listener {
     private final RavenCore plugin;
     private final BedSpawnRepository beds;
-    private final LocationPool locations;
+    private final HomeRepository homes;
+    private final LocationRepository spawnLocations;
     private final RespawnTransferStore transfers;
     private final RespawnConfig config;
     private final Location defaultSpawn;
     private final Map<UUID, Attempt> attempts = new ConcurrentHashMap<>();
     private final AtomicLong attemptSequence = new AtomicLong();
 
-    public RespawnManager(RavenCore plugin, BedSpawnRepository beds, LocationPool locations,
-                          RespawnTransferStore transfers, RespawnConfig config, Location defaultSpawn) {
+    public RespawnManager(RavenCore plugin, BedSpawnRepository beds, HomeRepository homes,
+                          LocationRepository spawnLocations, RespawnTransferStore transfers,
+                          RespawnConfig config, Location defaultSpawn) {
         this.plugin = plugin;
         this.beds = beds;
-        this.locations = locations;
+        this.homes = homes;
+        this.spawnLocations = spawnLocations;
         this.transfers = transfers;
         this.config = config;
         this.defaultSpawn = defaultSpawn.clone();
@@ -64,7 +68,8 @@ public final class RespawnManager implements Listener {
         long attemptId = beginAttempt(player, false);
         SchedulerUtil.runAsync(() -> {
             ConsumeResult result = transfers.consume(player.getUniqueId());
-            SchedulerUtil.execute(player, () -> handleIncomingResult(player, attemptId, result));
+            SchedulerUtil.runLater(() -> SchedulerUtil.execute(player,
+                    () -> handleIncomingResult(player, attemptId, result)), 1L);
         });
     }
 
@@ -121,12 +126,12 @@ public final class RespawnManager implements Listener {
             } catch (SQLException | RuntimeException error) {
                 plugin.getLogger().warning("[Respawn] Failed to load bed for " + player.getName()
                         + "; preserving its record: " + error.getMessage());
-                scheduleForPlayer(player, attemptId, () -> resolveRandom(player, attemptId));
+                scheduleForPlayer(player, attemptId, () -> resolveFirstHome(player, attemptId));
                 return;
             }
             scheduleForPlayer(player, attemptId, () -> {
                 if (bed.isPresent()) useBed(player, attemptId, bed.get());
-                else resolveRandom(player, attemptId);
+                else resolveFirstHome(player, attemptId);
             });
         });
     }
@@ -158,51 +163,83 @@ public final class RespawnManager implements Listener {
         if (result.status() == BedSpawnStatus.INVALID) {
             deleteConfirmedStaleBed(bed);
         }
-        resolveRandom(player, attemptId);
+        resolveFirstHome(player, attemptId);
     }
 
-    private void resolveRandom(Player player, long attemptId) {
+    private void resolveFirstHome(Player player, long attemptId) {
         if (!isActive(player, attemptId)) return;
         SchedulerUtil.runAsync(() -> {
-            Optional<RtpLocation> location;
+            Optional<HomeRecord> home;
             try {
-                location = locations.getRandomLocationAcrossClusters(
-                        config.clusters(), LocationDimension.OVERWORLD);
-            } catch (RuntimeException error) {
-                plugin.getLogger().warning("[Respawn] Failed to obtain a random location for "
-                        + player.getName() + ": " + error.getMessage());
-                location = Optional.empty();
+                home = homes.findFirst(player.getUniqueId());
+            } catch (SQLException | RuntimeException error) {
+                plugin.getLogger().warning("[Respawn] Failed to load first home for " + player.getName()
+                        + ": " + error.getMessage());
+                home = Optional.empty();
             }
-            Optional<RtpLocation> selected = location;
+            Optional<HomeRecord> selected = home;
             scheduleForPlayer(player, attemptId, () -> {
-                if (selected.isEmpty()) {
-                    player.sendMessage(ChatFormatter.color(config.noLocationMessage()));
-                    fallbackToDefault(player, attemptId);
+                if (selected.isPresent()) {
+                    useDestination(player, attemptId, RespawnDestination.home(selected.get()));
                     return;
                 }
-                useRandom(player, attemptId, selected.get());
+                resolveSpawn(player, attemptId);
             });
         });
     }
 
-    private void useRandom(Player player, long attemptId, RtpLocation location) {
-        if (!location.serverId().equalsIgnoreCase(plugin.getServerId())) {
-            if (!transfers.storeRandom(player.getUniqueId(), location)) {
+    private void resolveSpawn(Player player, long attemptId) {
+        if (!isActive(player, attemptId)) return;
+        SchedulerUtil.runAsync(() -> {
+            Optional<NetworkLocation> spawn;
+            try {
+                spawn = spawnLocations.findSpawn(config.spawnServer());
+            } catch (SQLException | RuntimeException error) {
+                plugin.getLogger().warning("[Respawn] Failed to load spawn location for " + player.getName()
+                        + ": " + error.getMessage());
+                spawn = Optional.empty();
+            }
+            Optional<NetworkLocation> selected = spawn;
+            scheduleForPlayer(player, attemptId, () -> {
+                if (selected.isPresent()) {
+                    useDestination(player, attemptId, RespawnDestination.spawn(selected.get()));
+                    return;
+                }
+                useConfiguredSpawn(player, attemptId);
+            });
+        });
+    }
+
+    private void useConfiguredSpawn(Player player, long attemptId) {
+        RespawnConfig.DefaultSpawn spawn = config.defaultSpawn();
+        String server = spawn.server() == null || spawn.server().isBlank()
+                ? plugin.getServerId()
+                : spawn.server();
+        useDestination(player, attemptId, new RespawnDestination(server, spawn.world(),
+                spawn.x(), spawn.y(), spawn.z(), spawn.yaw(), spawn.pitch()));
+    }
+
+    private void useDestination(Player player, long attemptId, RespawnDestination destination) {
+        if (!destination.serverId().equalsIgnoreCase(plugin.getServerId())) {
+            if (!transfers.storeCoordinate(player.getUniqueId(), destination.serverId(), destination.world(),
+                    destination.x(), destination.y(), destination.z(), destination.yaw(), destination.pitch())) {
                 failToDefault(player, attemptId);
                 return;
             }
-            sendToServer(player, location.serverId());
+            if (plugin.getCombatModule() != null && plugin.getCombatModule().getService() != null) {
+                plugin.getCombatModule().getService().remove(player.getUniqueId(), false, true);
+            }
+            sendToServer(player, destination.serverId());
             return;
         }
-        World world = Bukkit.getWorld(location.world());
-        if (world == null || world.getEnvironment() != World.Environment.NORMAL) {
-            plugin.getLogger().warning("[Respawn] Random destination world is unavailable or not an Overworld: "
-                    + location.world());
+        World world = Bukkit.getWorld(destination.world());
+        if (world == null) {
+            plugin.getLogger().warning("[Respawn] Destination world is unavailable: " + destination.world());
             fallbackToDefault(player, attemptId);
             return;
         }
-        teleportAndFinish(player, attemptId, new Location(world, location.x(), location.y(), location.z(),
-                location.yaw(), location.pitch()));
+        teleportAndFinish(player, attemptId, new Location(world, destination.x(), destination.y(), destination.z(),
+                destination.yaw(), destination.pitch()));
     }
 
     private void applyIncoming(Player player, long attemptId, RespawnTransferStore.Payload payload) {
@@ -218,8 +255,8 @@ public final class RespawnManager implements Listener {
             validateBed(player, attemptId, bed);
             return;
         }
-        useRandom(player, attemptId, new RtpLocation(payload.serverId(), LocationDimension.OVERWORLD,
-                payload.world(), payload.x(), payload.y(), payload.z(), payload.yaw(), payload.pitch()));
+        useDestination(player, attemptId, new RespawnDestination(payload.serverId(), payload.world(),
+                payload.x(), payload.y(), payload.z(), payload.yaw(), payload.pitch()));
     }
 
     private void sendToServer(Player player, String serverId) {
@@ -310,5 +347,18 @@ public final class RespawnManager implements Listener {
     }
 
     private record Attempt(long id, boolean fallbackOnTimeout) {
+    }
+
+    private record RespawnDestination(String serverId, String world, double x, double y, double z,
+                                      float yaw, float pitch) {
+        private static RespawnDestination home(HomeRecord home) {
+            return new RespawnDestination(home.serverId(), home.world(), home.x(), home.y(), home.z(),
+                    home.yaw(), home.pitch());
+        }
+
+        private static RespawnDestination spawn(NetworkLocation spawn) {
+            return new RespawnDestination(spawn.getServerName(), spawn.getWorld(), spawn.getX(), spawn.getY(),
+                    spawn.getZ(), spawn.getYaw(), spawn.getPitch());
+        }
     }
 }

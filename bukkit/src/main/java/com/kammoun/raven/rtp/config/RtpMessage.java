@@ -13,7 +13,12 @@ public enum RtpMessage implements MessageKey {
     NO_LOCATIONS("no-locations-available", "&cNo safe locations are available right now. Try again shortly."),
     ALREADY_TELEPORTING("already-teleporting", "&cA random teleport is already in progress."),
     TRANSFER_FAILED("transfer-failed", "&cThe destination server could not be reached. Please try again."),
-    WORLD_MISSING("world-missing", "&cThe destination world is not loaded. Please contact an administrator.");
+    WORLD_MISSING("world-missing", "&cThe destination world is not loaded. Please contact an administrator."),
+    QUEUE_DISABLED("queue.disabled", "&#D90429RTP Queue is currently disabled."),
+    QUEUE_JOINED("queue.joined", "&#4CC9F0RTP Queue &#7A7A7AYou joined the queue. Waiting for another player..."),
+    QUEUE_LEFT("queue.left", "&#4CC9F0RTP Queue &#7A7A7AYou left the queue."),
+    QUEUE_MATCHED("queue.matched", "&#33FF66RTP Queue matched you with &#FFFFFF%player%&#33FF66. Teleporting..."),
+    QUEUE_FAILED("queue.failed", "&#D90429RTP Queue failed to teleport you. Please try again.");
 
     private final String path;
     private final String[] defaults;
