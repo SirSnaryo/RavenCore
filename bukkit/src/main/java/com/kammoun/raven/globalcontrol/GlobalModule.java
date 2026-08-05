@@ -30,7 +30,7 @@ public final class GlobalModule extends KModule<RavenCore> {
     public void onModuleEnable() {
         settings = GlobalConfig.load(getConfig(), getLogger());
         registerEvent(new GlobalListener(this));
-        applyGameRules();
+        applyLoadedWorldGameRules();
         getLogger().info("[Global] Enabled.");
     }
 
@@ -45,7 +45,7 @@ public final class GlobalModule extends KModule<RavenCore> {
         reloadConfig();
         settings = GlobalConfig.load(getConfig(), getLogger());
         stopSleepActionBarTask();
-        applyGameRules();
+        applyLoadedWorldGameRules();
         getLogger().info("[Global] Configuration reloaded.");
     }
 
@@ -61,17 +61,19 @@ public final class GlobalModule extends KModule<RavenCore> {
         startSleepActionBarTask();
     }
 
-    private void applyGameRules() {
+    private void applyLoadedWorldGameRules() {
         if (!settings.enabled() || !settings.gameRules().applyOnEnable()) return;
-        for (World world : Bukkit.getWorlds()) {
-            applyGameRules(world);
-        }
+        SchedulerUtil.run(() -> Bukkit.getWorlds().forEach(this::applyGameRulesNow));
+    }
+
+    public void applyGameRules(World world) {
+        if (!settings.enabled()) return;
+        SchedulerUtil.run(() -> applyGameRulesNow(world));
     }
 
     @SuppressWarnings("removal")
-    public void applyGameRules(World world) {
-        if (!settings.enabled()) return;
-
+    private void applyGameRulesNow(World world) {
+        if (world == null || !settings.enabled()) return;
         GlobalConfig.GameRules gameRules = settings.gameRules();
         if (settings.suppression().advancementAnnouncements()) {
             world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, gameRules.announceAdvancements());

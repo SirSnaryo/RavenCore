@@ -52,8 +52,8 @@ death-messages:
   # - %cause%
   #
   # Supports MiniMessage, & colors, and &#RRGGBB hex colors.
-  player-kill-format: "<shadow:#000000:1><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>was killed by <#FF5555>%killer%</shadow>"
-  generic-format: "<shadow:#000000:1><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>died.</shadow>"
+  player-kill-format: "<shadow:#000000FF><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>was killed by <#FF5555>%killer%</shadow>"
+  generic-format: "<shadow:#000000FF><#D90429>\u2620 <#FFFFFF>%victim% <#7A7A7A>died.</shadow>"
 
 boss-sounds:
   # Stops the default boss death sound, then replays it only nearby.

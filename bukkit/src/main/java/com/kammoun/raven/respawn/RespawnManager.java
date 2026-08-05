@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -28,38 +29,66 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class RespawnManager implements Listener {
+    private static final long MIN_REMOTE_TRANSFER_SUPPRESSION_MILLIS = 30_000L;
+
     private final RavenCore plugin;
     private final BedSpawnRepository beds;
     private final HomeRepository homes;
     private final LocationRepository spawnLocations;
     private final RespawnTransferStore transfers;
     private final RespawnConfig config;
-    private final Location defaultSpawn;
     private final Map<UUID, Attempt> attempts = new ConcurrentHashMap<>();
+    private final Map<UUID, CompletableFuture<Optional<PreparedRespawn>>> preparedRespawns = new ConcurrentHashMap<>();
     private final AtomicLong attemptSequence = new AtomicLong();
+    private volatile Location localHoldingSpawn;
 
     public RespawnManager(RavenCore plugin, BedSpawnRepository beds, HomeRepository homes,
                           LocationRepository spawnLocations, RespawnTransferStore transfers,
-                          RespawnConfig config, Location defaultSpawn) {
+                          RespawnConfig config) {
         this.plugin = plugin;
         this.beds = beds;
         this.homes = homes;
         this.spawnLocations = spawnLocations;
         this.transfers = transfers;
         this.config = config;
-        this.defaultSpawn = defaultSpawn.clone();
+        refreshLocalHoldingSpawn();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        preparedRespawns.put(player.getUniqueId(),
+                resolvePreparedRespawn(player.getUniqueId(), player.getName()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        event.setRespawnLocation(defaultSpawn());
+        event.setRespawnLocation(holdingSpawn(player));
         long attemptId = beginAttempt(player, true);
-        resolveSavedBed(player, attemptId);
+        CompletableFuture<Optional<PreparedRespawn>> prepared = preparedRespawns.remove(player.getUniqueId());
+        if (prepared == null) {
+            resolveSavedBed(player, attemptId);
+            return;
+        }
+        prepared.whenComplete((result, error) -> scheduleForPlayer(player, attemptId, () -> {
+            if (error != null) {
+                plugin.getLogger().warning("[Respawn] Failed to prepare respawn for " + player.getName()
+                        + ": " + error.getMessage());
+                resolveSavedBed(player, attemptId);
+                return;
+            }
+            if (result.isPresent()) {
+                usePreparedRespawn(player, attemptId, result.get());
+                return;
+            }
+            useConfiguredSpawn(player, attemptId);
+        }));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -75,11 +104,14 @@ public final class RespawnManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        attempts.remove(event.getPlayer().getUniqueId());
+        UUID playerUuid = event.getPlayer().getUniqueId();
+        attempts.remove(playerUuid);
+        preparedRespawns.remove(playerUuid);
     }
 
     public void stop() {
         attempts.clear();
+        preparedRespawns.clear();
     }
 
     private long beginAttempt(Player player, boolean fallbackOnTimeout) {
@@ -143,10 +175,18 @@ public final class RespawnManager implements Listener {
                 failToDefault(player, attemptId);
                 return;
             }
-            sendToServer(player, bed.serverId());
+            beginRemoteTransfer(player, attemptId, bed.serverId());
             return;
         }
         validateBed(player, attemptId, bed);
+    }
+
+    private void usePreparedRespawn(Player player, long attemptId, PreparedRespawn prepared) {
+        if (prepared.bed() != null) {
+            useBed(player, attemptId, prepared.bed());
+            return;
+        }
+        useDestination(player, attemptId, prepared.destination());
     }
 
     private void validateBed(Player player, long attemptId, BedSpawnRecord bed) {
@@ -215,8 +255,40 @@ public final class RespawnManager implements Listener {
         String server = spawn.server() == null || spawn.server().isBlank()
                 ? plugin.getServerId()
                 : spawn.server();
+        if (server.equalsIgnoreCase(plugin.getServerId())) {
+            teleportAndFinish(player, attemptId, holdingSpawn(player));
+            return;
+        }
         useDestination(player, attemptId, new RespawnDestination(server, spawn.world(),
                 spawn.x(), spawn.y(), spawn.z(), spawn.yaw(), spawn.pitch()));
+    }
+
+    private CompletableFuture<Optional<PreparedRespawn>> resolvePreparedRespawn(UUID playerUuid, String playerName) {
+        CompletableFuture<Optional<PreparedRespawn>> future = new CompletableFuture<>();
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Optional<BedSpawnRecord> bed = beds.find(playerUuid);
+                if (bed.isPresent()) {
+                    future.complete(Optional.of(PreparedRespawn.bed(bed.get())));
+                    return;
+                }
+
+                Optional<HomeRecord> home = homes.findFirst(playerUuid);
+                if (home.isPresent()) {
+                    future.complete(Optional.of(PreparedRespawn.destination(RespawnDestination.home(home.get()))));
+                    return;
+                }
+
+                Optional<NetworkLocation> spawn = spawnLocations.findSpawn(config.spawnServer());
+                future.complete(spawn.map(location ->
+                        PreparedRespawn.destination(RespawnDestination.spawn(location))));
+            } catch (SQLException | RuntimeException error) {
+                plugin.getLogger().warning("[Respawn] Failed to pre-resolve respawn for " + playerName
+                        + ": " + error.getMessage());
+                future.completeExceptionally(error);
+            }
+        });
+        return future;
     }
 
     private void useDestination(Player player, long attemptId, RespawnDestination destination) {
@@ -226,10 +298,7 @@ public final class RespawnManager implements Listener {
                 failToDefault(player, attemptId);
                 return;
             }
-            if (plugin.getCombatModule() != null && plugin.getCombatModule().getService() != null) {
-                plugin.getCombatModule().getService().remove(player.getUniqueId(), false, true);
-            }
-            sendToServer(player, destination.serverId());
+            beginRemoteTransfer(player, attemptId, destination.serverId());
             return;
         }
         World world = Bukkit.getWorld(destination.world());
@@ -266,6 +335,19 @@ public final class RespawnManager implements Listener {
         plugin.getNetworkEventBus().publish(event);
     }
 
+    private void beginRemoteTransfer(Player player, long attemptId, String serverId) {
+        if (!claim(player, attemptId)) return;
+        suppressBorders(player, remoteTransferSuppressionMillis());
+        if (plugin.getCombatModule() != null && plugin.getCombatModule().getService() != null) {
+            plugin.getCombatModule().getService().remove(player.getUniqueId(), false, true);
+        }
+        sendToServer(player, serverId);
+    }
+
+    private long remoteTransferSuppressionMillis() {
+        return Math.max(MIN_REMOTE_TRANSFER_SUPPRESSION_MILLIS, config.resolutionTimeoutTicks() * 50L);
+    }
+
     private void deleteConfirmedStaleBed(BedSpawnRecord bed) {
         SchedulerUtil.runAsync(() -> {
             try {
@@ -294,7 +376,7 @@ public final class RespawnManager implements Listener {
     }
 
     private void teleportToDefaultAndRelease(Player player) {
-        player.teleportAsync(defaultSpawn()).whenComplete((success, error) -> releaseBorders(player));
+        player.teleportAsync(holdingSpawn(player)).whenComplete((success, error) -> releaseBorders(player));
     }
 
     private void failToDefault(Player player, long attemptId) {
@@ -329,14 +411,45 @@ public final class RespawnManager implements Listener {
                 && attempts.remove(player.getUniqueId(), attempt);
     }
 
-    private Location defaultSpawn() {
-        return defaultSpawn.clone();
+    private Location holdingSpawn(Player player) {
+        Location cached = localHoldingSpawn;
+        if (cached != null && cached.getWorld() != null) {
+            return cached.clone();
+        }
+        Location spawn = player.getWorld().getSpawnLocation().clone();
+        spawn.add(0.5D, 0.0D, 0.5D);
+        return spawn;
+    }
+
+    private void refreshLocalHoldingSpawn() {
+        SchedulerUtil.runAsync(() -> {
+            try {
+                Optional<NetworkLocation> spawn = spawnLocations.findSpawn(plugin.getServerId());
+                if (spawn.isEmpty()) {
+                    return;
+                }
+                NetworkLocation location = spawn.get();
+                SchedulerUtil.run(() -> {
+                    World world = Bukkit.getWorld(location.getWorld());
+                    if (world != null) {
+                        localHoldingSpawn = new Location(world, location.getX(), location.getY(), location.getZ(),
+                                location.getYaw(), location.getPitch());
+                    }
+                });
+            } catch (SQLException | RuntimeException error) {
+                plugin.getLogger().warning("[Respawn] Failed to cache local holding spawn: "
+                        + error.getMessage());
+            }
+        });
     }
 
     private void suppressBorders(Player player) {
+        suppressBorders(player, config.resolutionTimeoutTicks() * 50L);
+    }
+
+    private void suppressBorders(Player player, long durationMillis) {
         if (plugin.getBorderModule() != null) {
-            plugin.getBorderModule().suppressTransfers(player.getUniqueId(),
-                    config.resolutionTimeoutTicks() * 50L);
+            plugin.getBorderModule().suppressTransfers(player.getUniqueId(), durationMillis);
         }
     }
 
@@ -347,6 +460,16 @@ public final class RespawnManager implements Listener {
     }
 
     private record Attempt(long id, boolean fallbackOnTimeout) {
+    }
+
+    private record PreparedRespawn(BedSpawnRecord bed, RespawnDestination destination) {
+        private static PreparedRespawn bed(BedSpawnRecord bed) {
+            return new PreparedRespawn(bed, null);
+        }
+
+        private static PreparedRespawn destination(RespawnDestination destination) {
+            return new PreparedRespawn(null, destination);
+        }
     }
 
     private record RespawnDestination(String serverId, String world, double x, double y, double z,

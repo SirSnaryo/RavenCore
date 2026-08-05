@@ -7,8 +7,9 @@ clusters:
 # Leave empty to use the first enabled SPAWN row from ravencore_locations.
 spawn-server: ''
 
-# Guaranteed local floor used immediately while MySQL/Redis resolution runs.
-# This world must exist on this server and have World.Environment.NORMAL.
+# Last fallback destination when no /setspawn row exists.
+# Local respawn never uses this as a temporary holding floor; Raven uses the
+# current server's cached /setspawn or world spawn while resolving.
 default-spawn:
   # Optional backend server for the final fallback when no /setspawn row exists.
   # Leave empty to use this server.

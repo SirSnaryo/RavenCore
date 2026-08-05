@@ -41,9 +41,9 @@ public record GlobalConfig(
                         config.getBoolean("death-messages.enabled", true),
                         nonNegative(config.getDouble("death-messages.radius-blocks", 500.0D), 500.0D),
                         config.getString("death-messages.player-kill-format",
-                                "<shadow:#000000:1><#D90429>\\u2620 <#FFFFFF>%victim% <#7A7A7A>was killed by <#FF5555>%killer%</shadow>"),
+                                "<shadow:#000000FF><#D90429>\\u2620 <#FFFFFF>%victim% <#7A7A7A>was killed by <#FF5555>%killer%</shadow>"),
                         config.getString("death-messages.generic-format",
-                                "<shadow:#000000:1><#D90429>\\u2620 <#FFFFFF>%victim% <#7A7A7A>died.</shadow>")
+                                "<shadow:#000000FF><#D90429>\\u2620 <#FFFFFF>%victim% <#7A7A7A>died.</shadow>")
                 ),
                 new BossSounds(
                         config.getBoolean("boss-sounds.restrict-global-death-sounds", true),
