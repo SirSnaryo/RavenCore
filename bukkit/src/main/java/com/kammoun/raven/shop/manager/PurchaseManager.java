@@ -2,8 +2,8 @@ package com.kammoun.raven.shop.manager;
 
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
-import com.kammoun.raven.library.util.NumberUtils;
 import com.kammoun.raven.shop.model.Category;
+import com.kammoun.raven.shop.model.ShopCurrency;
 import com.kammoun.raven.shop.model.ShopItem;
 import com.kammoun.raven.shop.model.inv.PurchaseHolder;
 import org.bukkit.Bukkit;
@@ -64,8 +64,9 @@ public class PurchaseManager {
         if (meta != null) {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             if (!lore.isEmpty()) lore.add("");
-            String formatted = NumberUtils.formatDouble(h.getPricePerItem() * cur);
-            for (String line : config.getPriceLore()) {
+            ShopCurrency currency = h.getShopItem().getCurrency();
+            String formatted = currency.format(h.getPricePerItem() * cur);
+            for (String line : config.priceLore(currency)) {
                 lore.add(ChatFormatter.color(line.replace("%price%", formatted)));
             }
             meta.setLore(lore);

@@ -1,8 +1,9 @@
-package com.kammoun.raven.respawn;
+package com.kammoun.raven.respawn.transfer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.respawn.bed.BedSpawnRecord;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -33,11 +34,29 @@ public final class RespawnTransferStore {
     }
 
     public ConsumeResult consume(UUID playerUuid) {
+        return read(playerUuid, true);
+    }
+
+    public ConsumeResult peek(UUID playerUuid) {
+        return read(playerUuid, false);
+    }
+
+    public void delete(UUID playerUuid) {
+        if (pool == null) return;
+        try (Jedis jedis = pool.getResource()) {
+            jedis.del(PAYLOAD_PREFIX + playerUuid);
+            jedis.del(MARKER_PREFIX + playerUuid);
+        } catch (Exception e) {
+            plugin.getLogger().warning("[Respawn] Failed to delete transfer payload: " + e.getMessage());
+        }
+    }
+
+    private ConsumeResult read(UUID playerUuid, boolean consume) {
         if (pool == null) return ConsumeResult.unavailable();
         try (Jedis jedis = pool.getResource()) {
             boolean pending = jedis.exists(MARKER_PREFIX + playerUuid);
-            String json = jedis.getDel(PAYLOAD_PREFIX + playerUuid);
-            jedis.del(MARKER_PREFIX + playerUuid);
+            String json = consume ? jedis.getDel(PAYLOAD_PREFIX + playerUuid) : jedis.get(PAYLOAD_PREFIX + playerUuid);
+            if (consume) jedis.del(MARKER_PREFIX + playerUuid);
             if (json == null) {
                 return pending ? ConsumeResult.invalid() : ConsumeResult.none();
             }

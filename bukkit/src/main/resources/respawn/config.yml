@@ -3,7 +3,8 @@ clusters:
   - na
   - eu
 
-# Preferred server used when the player has no bed and no homes.
+# Preferred spawn row used only if no bed exists and no random LocationPool
+# destination is available.
 # Leave empty to use the first enabled SPAWN row from ravencore_locations.
 spawn-server: ''
 

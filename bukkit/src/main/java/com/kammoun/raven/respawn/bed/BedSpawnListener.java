@@ -1,4 +1,4 @@
-package com.kammoun.raven.respawn;
+package com.kammoun.raven.respawn.bed;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
@@ -33,7 +33,7 @@ public final class BedSpawnListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBedEnter(PlayerBedEnterEvent event) {
-        if (event.getBedEnterResult() != PlayerBedEnterEvent.BedEnterResult.OK) return;
+        if (!shouldSaveSpawn(event.getBedEnterResult())) return;
         Player player = event.getPlayer();
         BedSpawnLocator.canonicalBed(event.getBed()).ifPresent(bed -> {
             BedSpawnRecord record = new BedSpawnRecord(player.getUniqueId(), plugin.getServerId(),
@@ -41,6 +41,9 @@ public final class BedSpawnListener implements Listener {
             SchedulerUtil.runAsync(() -> {
                 try {
                     repository.upsert(record);
+                    plugin.getLogger().info("[Respawn] Saved bed spawn for " + player.getName()
+                            + " at " + record.serverId() + "/" + record.world() + " "
+                            + record.x() + " " + record.y() + " " + record.z() + ".");
                 } catch (SQLException | RuntimeException e) {
                     plugin.getLogger().warning("[Respawn] Failed to save bed for " + player.getName() + ": " + e.getMessage());
                 }
@@ -86,9 +89,17 @@ public final class BedSpawnListener implements Listener {
         SchedulerUtil.runAsync(() -> {
             try {
                 repository.deleteAt(server, world, x, y, z);
+                plugin.getLogger().info("[Respawn] Invalidated destroyed bed at "
+                        + server + "/" + world + " " + x + " " + y + " " + z + ".");
             } catch (SQLException | RuntimeException e) {
                 plugin.getLogger().warning("[Respawn] Failed to invalidate destroyed bed: " + e.getMessage());
             }
         });
+    }
+
+    private static boolean shouldSaveSpawn(PlayerBedEnterEvent.BedEnterResult result) {
+        return result == PlayerBedEnterEvent.BedEnterResult.OK
+                || result == PlayerBedEnterEvent.BedEnterResult.NOT_POSSIBLE_NOW
+                || result == PlayerBedEnterEvent.BedEnterResult.NOT_SAFE;
     }
 }

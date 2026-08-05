@@ -4,6 +4,7 @@ import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.shop.command.ShopCommand;
+import com.kammoun.raven.shop.hook.RavsHook;
 import com.kammoun.raven.shop.listener.ShopListener;
 import com.kammoun.raven.shop.manager.CategoryManager;
 import com.kammoun.raven.shop.manager.PurchaseManager;
@@ -18,6 +19,7 @@ public class ShopModule extends KModule<RavenCore> {
     private CategoryManager categoryManager;
     private PurchaseManager purchaseManager;
     private ShopSellPriceGuard shopPriceGuard;
+    private RavsHook ravs;
 
     public ShopModule() {
         super("shop");
@@ -29,6 +31,12 @@ public class ShopModule extends KModule<RavenCore> {
         saveDefaultConfig("categories/food-shop.yml");
         saveDefaultConfig("categories/gear-shop.yml");
         saveDefaultConfig("categories/nether-shop.yml");
+        saveDefaultConfig("categories/ravs-shop.yml");
+
+        ravs = new RavsHook();
+        if (!ravs.available()) {
+            getLogger().warning("[Shop] Ravs is unavailable; Ravs categories cannot be purchased from.");
+        }
 
         configManager   = new ShopConfigManager(this);
         categoryManager = new CategoryManager(this);

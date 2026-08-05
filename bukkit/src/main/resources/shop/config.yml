@@ -1,6 +1,10 @@
 Price-Lore:
   - "&#7A7A7Aᴘʀɪᴄᴇ &#33FF66$%price%"
 
+# Used by categories/items with 'Currency: RAVS'.
+Ravs-Price-Lore:
+  - "&#7A7A7Aᴘʀɪᴄᴇ &#A855F7%price% ʀᴀᴠs"
+
 purchase-inventory:
   buttons:
     minus-64:
@@ -84,16 +88,18 @@ main-inventory:
         - '&#7A7A7Aғᴏᴏᴅ sʜᴏᴘ'
       category: 'food-shop.yml'
 
-    shard:
-      displayName: '&#D90429sʜᴀʀᴅ'
-      material: AMETHYST_SHARD
+    ravs:
+      displayName: '&#A855F7ʀᴀᴠs'
+      material: FEATHER
       slot: 15
       lore:
-        - '&#7A7A7Asʜᴀʀᴅ sʜᴏᴘ'
-      commands:
-        - 'shard shop'
+        - '&#7A7A7Aʀᴀᴠs sʜᴏᴘ'
+      category: 'ravs-shop.yml'
 
 messages:
   not-enough-balance: '&#D90429You don''t have enough money.'
+  not-enough-ravs: '&#D90429You don''t have enough Ravs.'
+  ravs-unavailable: '&#D90429Ravs are not available right now.'
+  economy-unavailable: '&#D90429The economy is not available right now.'
   buying: '&#33FF66You bought &#FFFFFF%amount% %item-name%'
   not-enough-space: '&#D90429You do not have enough space in your inventory.'

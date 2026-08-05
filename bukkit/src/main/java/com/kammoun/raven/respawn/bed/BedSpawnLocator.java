@@ -1,4 +1,4 @@
-package com.kammoun.raven.respawn;
+package com.kammoun.raven.respawn.bed;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.tasks.SchedulerUtil;

@@ -1,0 +1,49 @@
+Title: '&8sʜᴏᴘ - ʀᴀᴠs'
+Size: 27
+
+# Every item in this file is paid for with Ravs instead of money.
+# Single items can override this with their own 'currency: MONEY' / 'currency: RAVS'.
+Currency: RAVS
+
+items:
+  back-page:
+    name: '&#7A7A7ABack'
+    material: RED_STAINED_GLASS_PANE
+    slot: 18
+    lore:
+      - '&#7A7A7Aʙᴀᴄᴋ'
+  totem-of-undying:
+    slot: 11
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴛᴏᴛᴇᴍ'
+    displayName: '&#A855F7Totem of Undying'
+    material: TOTEM_OF_UNDYING
+    price: 250
+    max-stack: 16
+  enchanted-golden-apple:
+    slot: 12
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴇɴᴄʜᴀɴᴛᴇᴅ ᴀᴘᴘʟᴇ'
+    displayName: '&#A855F7Enchanted Golden Apple'
+    material: ENCHANTED_GOLDEN_APPLE
+    price: 150
+    max-stack: 16
+  netherite-ingot:
+    slot: 13
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ɴᴇᴛʜᴇʀɪᴛᴇ ɪɴɢᴏᴛ'
+    displayName: '&#A855F7Netherite Ingot'
+    material: NETHERITE_INGOT
+    price: 400
+    max-stack: 8
+  elytra:
+    slot: 14
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ ᴇʟʏᴛʀᴀ'
+    displayName: '&#A855F7Elytra'
+    material: ELYTRA
+    price: 1000
+    max-stack: 1
+  shulker-shell:
+    slot: 15
+    purchase-inventory-title: '&8ʙᴜʏɪɴɢ sʜᴜʟᴋᴇʀ sʜᴇʟʟ'
+    displayName: '&#A855F7Shulker Shell'
+    material: SHULKER_SHELL
+    price: 120
+    max-stack: 32

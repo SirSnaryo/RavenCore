@@ -54,7 +54,7 @@ public class CategoryManager {
     }
 
     public void open(Player player, Category category) {
-        Inventory inv = category.buildInventory(module.getConfigManager().getPriceLore());
+        Inventory inv = category.buildInventory(module.getConfigManager()::priceLore);
         MenuItem back = category.getBackItem() != null ? category.getBackItem() : module.getConfigManager().getBackPage();
         if (back != null && back.getSlot() >= 0) {
             inv.setItem(back.getSlot(), back.getItemStack());

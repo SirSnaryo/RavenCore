@@ -3,6 +3,7 @@ package com.kammoun.raven.shop.utils;
 import com.kammoun.raven.library.sell.SellBridgeInterface;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.shop.model.Category;
+import com.kammoun.raven.shop.model.ShopCurrency;
 import com.kammoun.raven.shop.model.ShopItem;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +37,7 @@ public final class ShopSellPriceGuard {
         for (Map.Entry<String, Category> categoryEntry
                 : module.getApi().getShopModule().getCategoryManager().getCategories().entrySet()) {
             for (ShopItem shopItem : categoryEntry.getValue().getItems()) {
+                if (shopItem.getCurrency() != ShopCurrency.MONEY) continue;
                 ItemStack template = shopItem.getIcon().getItemStack().clone();
                 int configuredAmount = Math.max(1, template.getAmount());
                 double purchasePerItem = shopItem.getPrice() / configuredAmount;

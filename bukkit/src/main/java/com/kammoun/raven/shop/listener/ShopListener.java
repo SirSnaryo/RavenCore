@@ -6,9 +6,12 @@ import com.kammoun.raven.economy.model.EconomyTransactionType;
 import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.item.ClickAction;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.util.CommandHelper;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.shop.model.Category;
+import com.kammoun.raven.shop.model.ShopCurrency;
+import com.kammoun.raven.shop.hook.RavsHook;
 import com.kammoun.raven.shop.model.ShopItem;
 import com.kammoun.raven.shop.model.inv.MainShopHolder;
 import com.kammoun.raven.shop.model.inv.PurchaseHolder;
@@ -154,31 +157,37 @@ public class ShopListener implements Listener {
         int amount = holder.getCurrentAmount();
         double total = holder.getPricePerItem() * amount;
 
-        RavenEconomy economy = module.getEconomy();
-        if (economy == null) {
-            player.sendMessage(ChatFormatter.color("&#D90429Economy is not available."));
-            return;
-        }
-
-        if (!economy.has(player, total)) {
-            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-            return;
-        }
-
         ClickAction action = shopItem.getIcon().getAction();
         boolean commandsOnly = action != null && !action.isEmpty();
         if (!commandsOnly && !canFit(player, shopItem.getIcon().getItemStack(), amount)) {
             player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughSpace()));
             player.closeInventory();
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            deny(player);
             return;
         }
 
-        String itemName = "";
-        var meta = shopItem.getIcon().getItemStack().getItemMeta();
-        if (meta != null) itemName = meta.getDisplayName();
+        if (shopItem.getCurrency() == ShopCurrency.RAVS) {
+            purchaseWithRavs(player, holder, amount, total, commandsOnly);
+            return;
+        }
+        purchaseWithMoney(player, shopItem, amount, total, commandsOnly);
+    }
 
+    private void purchaseWithMoney(Player player, ShopItem shopItem, int amount, double total, boolean commandsOnly) {
+        RavenEconomy economy = module.getEconomy();
+        if (economy == null) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgEconomyUnavailable()));
+            deny(player);
+            return;
+        }
+
+        if (!economy.has(player, total)) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
+            deny(player);
+            return;
+        }
+
+        String itemName = itemName(shopItem);
         EconomyTransactionResult result = module.getApi().getEconomyModule().getEconomyService().withdraw(
                 player.getUniqueId(),
                 total,
@@ -191,18 +200,58 @@ public class ShopListener implements Listener {
         );
         if (!result.success()) {
             player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughBalance()));
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            deny(player);
             return;
         }
 
-        if (module.getApi().getEconomyModule().getSettingsService().paymentMessages(player.getUniqueId())) {
+        deliver(player, shopItem, amount, commandsOnly, itemName);
+    }
+
+    private void purchaseWithRavs(Player player, PurchaseHolder holder, int amount, double total,
+                                  boolean commandsOnly) {
+        ShopItem shopItem = holder.getShopItem();
+        RavsHook ravs = module.getRavs();
+        if (ravs == null || !ravs.available()) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgRavsUnavailable()));
+            deny(player);
+            return;
+        }
+
+        long cost = Math.max(0L, Math.round(total));
+        if (!ravs.has(player.getUniqueId(), cost)) {
+            player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughRavs()));
+            deny(player);
+            return;
+        }
+
+        if (!holder.beginPurchase()) return;
+        String itemName = itemName(shopItem);
+        ravs.withdraw(player.getUniqueId(), cost).whenComplete((success, error) -> SchedulerUtil.execute(player, () -> {
+            holder.endPurchase();
+            if (!Boolean.TRUE.equals(success)) {
+                if (player.isOnline()) {
+                    player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgNotEnoughRavs()));
+                    deny(player);
+                }
+                return;
+            }
+            if (!player.isOnline()) {
+                ravs.deposit(player.getUniqueId(), cost);
+                return;
+            }
+            deliver(player, shopItem, amount, commandsOnly, itemName);
+        }));
+    }
+
+    private void deliver(Player player, ShopItem shopItem, int amount, boolean commandsOnly, String itemName) {
+        if (paymentMessages(player)) {
             player.sendMessage(ChatFormatter.color(module.getConfigManager().getMsgBuying()
                     .replace("%amount%", String.valueOf(amount))
                     .replace("%item-name%", itemName)));
         }
 
         if (commandsOnly) {
-            CommandHelper.executeCommand(player, action.commands());
+            CommandHelper.executeCommand(player, shopItem.getIcon().getAction().commands());
         } else {
             ItemStack give = new ItemStack(shopItem.getIcon().getItemStack().getType());
             give.setAmount(amount);
@@ -210,6 +259,21 @@ public class ShopListener implements Listener {
         }
 
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+    }
+
+    private boolean paymentMessages(Player player) {
+        var economyModule = module.getApi().getEconomyModule();
+        return economyModule == null
+                || economyModule.getSettingsService().paymentMessages(player.getUniqueId());
+    }
+
+    private String itemName(ShopItem shopItem) {
+        var meta = shopItem.getIcon().getItemStack().getItemMeta();
+        return meta != null ? meta.getDisplayName() : "";
+    }
+
+    private void deny(Player player) {
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
     }
 
     private boolean canFit(Player player, ItemStack template, int amount) {

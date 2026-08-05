@@ -9,6 +9,7 @@ import com.kammoun.raven.borders.listener.PlayerListener;
 import com.kammoun.raven.borders.particle.BorderParticleRenderer;
 import com.kammoun.raven.borders.registery.BorderRegistry;
 import com.kammoun.raven.borders.utils.BorderTransferStore;
+import com.kammoun.raven.borders.world.BorderSpawnController;
 import com.kammoun.raven.borders.world.TrueWorldBorderController;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
@@ -29,6 +30,7 @@ public class BorderModule extends KModule<RavenCore> {
     private BorderParticleRenderer particleRenderer;
     private BorderMovementListener movementListener;
     private TrueWorldBorderController trueWorldBorderController;
+    private BorderSpawnController borderSpawnController;
 
     public BorderModule() {
         super("borders");
@@ -50,8 +52,13 @@ public class BorderModule extends KModule<RavenCore> {
         registerEvent(new PlayerListener(this));
         registerEvent(particleRenderer);
         trueWorldBorderController = new TrueWorldBorderController(api, getLogger(), trueBorderConfig);
-        onEvent(WorldLoadEvent.class, event -> trueWorldBorderController.apply(event.getWorld()));
+        borderSpawnController = new BorderSpawnController(api, getLogger(), borderConfig);
+        onEvent(WorldLoadEvent.class, event -> {
+            trueWorldBorderController.apply(event.getWorld());
+            borderSpawnController.apply(event.getWorld());
+        });
         trueWorldBorderController.applyLoadedWorlds();
+        borderSpawnController.applyLoadedWorlds();
         particleRenderer.start();
         api.getNetworkEventBus().subscribe(BorderTransferFailedEvent.class, this::onTransferFailed);
 
@@ -74,6 +81,9 @@ public class BorderModule extends KModule<RavenCore> {
     public void reload() {
         api.reloadConfig();
         borderConfig = new BorderConfig(api.getConfig());
+        if (borderSpawnController != null) {
+            borderSpawnController.reload(borderConfig);
+        }
         try {
             TrueWorldBorderConfig trueBorderConfig = TrueWorldBorderConfig.load(api.getConfig(), borderConfig);
             if (trueWorldBorderController != null) {
