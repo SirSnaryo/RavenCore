@@ -1,0 +1,141 @@
+icon:
+  material: CHEST
+  name: '&cᴄʀɪᴍsᴏɴ ᴄʀᴀᴛᴇ'
+  lore:
+    - '&7(Place this crate)'
+  nbt:
+    crate_id: "string:crimson_crate"
+
+inventory:
+  name: '&8ᴄʜᴏᴏsᴇ 1 ɪᴛᴇᴍ'
+  size: 27
+  background-icon:
+    material: BLACK_STAINED_GLASS_PANE
+    name: '&cᴄʀɪᴍsᴏɴ ᴄʀᴀᴛᴇ'
+    lore:
+      - '&7With a ᴄʀɪᴍsᴏɴ ᴋᴇʏ you can choose'
+      - '&7which of the 7 you want.'
+    glow: false
+
+hologram:
+  1:
+    height: 1.5
+    lines:
+      - '&cᴄʀɪᴍsᴏɴ ᴄʀᴀᴛᴇ'
+      - '&f/store'
+  2:
+    height: -0.3
+    lines:
+      - '&c%crates_keys_crimson_crate% &fKeys'
+
+rewards:
+  1:
+    give-icon: true
+    trim:
+      material: redstone
+      pattern: snout
+    item:
+      slot: 10
+      material: NETHERITE_HELMET
+      name: '&cᴄʀɪᴍsᴏɴ ʜᴇʟᴍᴇᴛ'
+      enchantments:
+        - "PROTECTION:4"
+        - "RESPIRATION:3"
+        - "MENDING:1"
+        - "THORNS:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  2:
+    give-icon: true
+    trim:
+      material: redstone
+      pattern: snout
+    item:
+      slot: 11
+      material: NETHERITE_CHESTPLATE
+      name: '&cᴄʀɪᴍsᴏɴ ᴄʜᴇsᴛᴘʟᴀᴛᴇ'
+      enchantments:
+        - "PROTECTION:4"
+        - "MENDING:1"
+        - "THORNS:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  3:
+    give-icon: true
+    trim:
+      material: redstone
+      pattern: snout
+    item:
+      slot: 12
+      material: NETHERITE_LEGGINGS
+      name: '&cᴄʀɪᴍsᴏɴ ʟᴇɢɢɪɴɢs'
+      enchantments:
+        - "PROTECTION:4"
+        - "SWIFT_SNEAK:3"
+        - "MENDING:1"
+        - "THORNS:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  4:
+    give-icon: true
+    trim:
+      material: redstone
+      pattern: snout
+    item:
+      slot: 13
+      material: NETHERITE_BOOTS
+      name: '&cᴄʀɪᴍsᴏɴ ʙᴏᴏᴛs'
+      enchantments:
+        - "PROTECTION:4"
+        - "DEPTH_STRIDER:3"
+        - "FEATHER_FALLING:4"
+        - "MENDING:1"
+        - "SOUL_SPEED:3"
+        - "THORNS:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  5:
+    give-icon: true
+    item:
+      slot: 14
+      material: NETHERITE_SWORD
+      name: '&cᴄʀɪᴍsᴏɴ sᴡᴏʀᴅ'
+      enchantments:
+        - "SHARPNESS:5"
+        - "LOOTING:3"
+        - "FIRE_ASPECT:2"
+        - "KNOCKBACK:2"
+        - "MENDING:1"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  6:
+    give-icon: true
+    item:
+      slot: 15
+      material: NETHERITE_PICKAXE
+      name: '&cᴄʀɪᴍsᴏɴ ᴘɪᴄᴋᴀxᴇ'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+        - "SILK_TOUCH:1"
+        - "EFFICIENCY:5"
+      unbreakable: true
+
+  7:
+    give-icon: true
+    item:
+      slot: 16
+      material: NETHERITE_AXE
+      name: '&cᴄʀɪᴍsᴏɴ ᴀxᴇ'
+      enchantments:
+        - "EFFICIENCY:5"
+        - "MENDING:1"
+        - "SHARPNESS:5"
+        - "SILK_TOUCH:1"
+        - "UNBREAKING:3"
+      unbreakable: true

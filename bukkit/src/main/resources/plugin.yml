@@ -3,7 +3,7 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs]
+softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, FancyHolograms]
 depend: [Vault]
 load: POSTWORLD
 commands:
@@ -251,6 +251,12 @@ commands:
     aliases: [leaderboards, leaderboaord, lb, top]
     permission: raven.leaderboard
     permission-message: You don't have permission to view leaderboards.
+  crates:
+    description: Manage and open virtual-key crates
+    usage: /crates <list|setblock|give|set|reload|time>
+    aliases: [crate, cratemanager]
+    permission: raven.crates
+    permission-message: You don't have permission to use crates.
 
   ravencore:
     description: RavenCore version and safe module reload
@@ -406,4 +412,9 @@ permissions:
   raven.leaderboard.admin:
     description: Refresh leaderboard caches manually
     default: op
-
+  raven.crates:
+    description: Use crate commands
+    default: true
+  raven.crates.admin:
+    description: Manage crates and virtual crate keys
+    default: op

@@ -98,6 +98,8 @@ scoreboards:
         update: 40
       - text: "<shadow:#000000FF><#00D5FF>⌛ <#FFFFFF>Keyall <#00D5FF>%raven_network_online%</shadow>"
         update: 60
+      - text: "<shadow:#000000FF><#00D5FF>⌛ <#FFFFFF>Crates <#00D5FF>%crates_time_left%</shadow>"
+        update: 20
       - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
       - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>"
@@ -134,6 +136,8 @@ scoreboards:
         update: 40
       - text: "<shadow:#000000FF><#00D5FF>⌛ <#FFFFFF>Online <#00D5FF>%raven_network_online%</shadow>"
         update: 60
+      - text: "<shadow:#000000FF><#00D5FF>⌛ <#FFFFFF>Crates <#00D5FF>%crates_time_left%</shadow>"
+        update: 20
       - text: "<shadow:#000000FF><#FFD447>☻ <#FFFFFF>Playtime <#FFD447>%raven_playtime%</shadow>"
         update: 120
       - text: "<shadow:#000000FF><#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>"

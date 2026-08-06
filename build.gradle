@@ -137,6 +137,7 @@ subprojects {
         }
         maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
         maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+        maven { url = 'https://repo.fancyinnovations.com/releases' }
     }
 
     java {
