@@ -92,6 +92,10 @@ public class BorderMovementListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPortal(PlayerPortalEvent event) {
+        // Null when the destination dimension is unavailable, e.g. an End portal on a
+        // server running without its own End world.
+        if (event.getTo() == null || event.getTo().getWorld() == null) return;
+
         checkAndTransfer(event.getPlayer(), event.getTo().getX(), event.getTo().getY(),
                 event.getTo().getZ(), event.getTo().getYaw(), event.getTo().getPitch(),
                 event.getTo().getWorld().getEnvironment(), event);

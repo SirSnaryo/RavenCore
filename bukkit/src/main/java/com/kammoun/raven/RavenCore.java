@@ -2,6 +2,7 @@ package com.kammoun.raven;
 
 import com.kammoun.raven.billford.BillfordModule;
 import com.kammoun.raven.borders.BorderModule;
+import com.kammoun.raven.endportal.EndPortalModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
@@ -100,6 +101,7 @@ public final class RavenCore extends JavaPlugin {
     private StatsModule statsModule;
     private LeaderboardModule leaderboardModule;
     private BorderModule borderModule;
+    private EndPortalModule endPortalModule;
     private CratesModule cratesModule;
 
     @Override
@@ -275,6 +277,14 @@ public final class RavenCore extends JavaPlugin {
             enabledModules.add("Borders");
         }
 
+        // Survival servers hand their End portals to the dedicated End backend; the End
+        // backend sends players leaving through the exit portal back to an overworld.
+        if (serverRole == ServerRole.SURVIVAL || serverRole == ServerRole.END) {
+            endPortalModule = new EndPortalModule();
+            endPortalModule.onEnable(this);
+            enabledModules.add("EndPortal");
+        }
+
         if (getCommand("ravencore") != null) {
             RavenCoreCommand command = new RavenCoreCommand(this);
             getCommand("ravencore").setExecutor(command);
@@ -346,6 +356,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "combat", combatModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
+        putModule(modules, "endportal", endPortalModule);
         return modules;
     }
 
@@ -768,6 +779,7 @@ public final class RavenCore extends JavaPlugin {
         if (settingsModule != null) settingsModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);
         if (borderModule != null) borderModule.onDisable(this);
+        if (endPortalModule != null) endPortalModule.onDisable(this);
         if (timeSyncModule != null) {
             timeSyncModule.onDisable(this);
         }

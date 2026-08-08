@@ -1,0 +1,23 @@
+# Every survival server's End portal leads to this one dedicated End backend.
+# Must match network.server-id on the End server.
+end-server: smp-end
+
+# Overworld clusters a player can be returned to when they leave the End.
+# One cluster is picked uniformly at random, then a safe location is pulled
+# from that cluster's Location Library pool. If the picked cluster's pool is
+# empty the remaining clusters are tried before giving up.
+# Leave the list empty to draw from every registered overworld server instead.
+return-clusters:
+  - na
+  - eu
+
+# CraftBukkit skips end-portal handling entirely when the target dimension is
+# missing, so PlayerPortalEvent never fires on a survival server running with
+# allow-end: false. This detector watches for players standing in an END_PORTAL
+# block instead, which keeps the module working with the local End deleted.
+# Turn it off only if every survival server keeps its own End world loaded.
+detect-portal-blocks: true
+
+# Ignore repeat portal triggers from the same player for this long, so standing
+# in the portal while the transfer resolves doesn't queue several of them.
+retrigger-cooldown-millis: 3000

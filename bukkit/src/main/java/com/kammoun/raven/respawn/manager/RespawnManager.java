@@ -1,6 +1,7 @@
 package com.kammoun.raven.respawn.manager;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.endportal.listener.EndPortalRespawnListener;
 import com.kammoun.raven.library.locationpool.LocationDimension;
 import com.kammoun.raven.library.locationpool.LocationPool;
 import com.kammoun.raven.library.locationpool.RtpLocation;
@@ -91,6 +92,12 @@ public final class RespawnManager implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
+        // Leaving the End arrives here as a respawn. It is not a death, so the End
+        // portal module owns the destination — resolving a bed for it would drag the
+        // player somewhere they never asked to go.
+        if (plugin.getEndPortalModule() != null && EndPortalRespawnListener.isEndPortalExit(event)) {
+            return;
+        }
         DeathPlanEntry entry = deathPlans.remove(player.getUniqueId());
         if (entry != null && !entry.expired() && entry.future().isDone()) {
             DeathPlan completed = completedDeathPlan(player, entry.future());
