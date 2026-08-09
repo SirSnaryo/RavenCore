@@ -99,8 +99,11 @@ public final class CratesConfig {
                 ItemStack display = readItem(itemSection, Material.STONE, key);
                 ItemStack item = readOptionalItem(itemSection);
                 if (item == null) item = display.clone();
+                List<String> commands = section.getStringList("commands");
+                if (commands.isEmpty() && itemSection != null) commands = itemSection.getStringList("commands");
+                boolean giveItem = section.getBoolean("give-item", section.getBoolean("give-icon", true));
                 rewards.add(new CrateReward(itemSection == null ? section.getInt("slot", -1) : itemSection.getInt("slot", -1),
-                        section.getBoolean("give-item", true), display, item, section.getStringList("commands")));
+                        giveItem, display, item, commands));
             }
         }
         if (rewards.isEmpty()) {

@@ -6,11 +6,13 @@ import com.kammoun.raven.endportal.EndPortalModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
+import com.kammoun.raven.nightvision.NightVisionModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.crates.CratesModule;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.home.HomeModule;
+import com.kammoun.raven.joinfix.JoinFixModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
 import com.kammoun.raven.leaderboard.LeaderboardModule;
 import com.kammoun.raven.locationPool.LocationPoolModule;
@@ -48,13 +50,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -81,6 +78,7 @@ public final class RavenCore extends JavaPlugin {
     private LocationPoolModule locationPoolModule;
     private EconomyModule economyModule;
     private ClearInventoryModule clearInventoryModule;
+    private NightVisionModule nightVisionModule;
     private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
@@ -103,13 +101,13 @@ public final class RavenCore extends JavaPlugin {
     private BorderModule borderModule;
     private EndPortalModule endPortalModule;
     private CratesModule cratesModule;
+    private JoinFixModule joinFixModule;
 
     @Override
     public void onEnable() {
         long startedAt = System.currentTimeMillis();
         instance = this;
         saveDefaultConfig();
-        migrateCoreConfigFile();
         reloadConfig();
         SchedulerUtil.init(this);
         PluginClassPreloader.preload(this);
@@ -181,6 +179,12 @@ public final class RavenCore extends JavaPlugin {
         respawnModule.onEnable(this);
         enabledModules.add("Respawn");
 
+        if (serverRole == ServerRole.SURVIVAL || serverRole == ServerRole.END) {
+            joinFixModule = new JoinFixModule();
+            joinFixModule.onEnable(this);
+            enabledModules.add("JoinFix");
+        }
+
         homeModule = new HomeModule();
         homeModule.onEnable(this);
         enabledModules.add("Home");
@@ -233,6 +237,10 @@ public final class RavenCore extends JavaPlugin {
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
         enabledModules.add("ClearInventory");
+
+        nightVisionModule = new NightVisionModule();
+        nightVisionModule.onEnable(this);
+        enabledModules.add("NightVision");
 
         globalModule = new GlobalModule();
         globalModule.onEnable(this);
@@ -339,6 +347,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "leaderboard", leaderboardModule);
         putModule(modules, "crates", cratesModule);
         putModule(modules, "clearinventory", clearInventoryModule);
+        putModule(modules, "nightvision", nightVisionModule);
         putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
@@ -351,6 +360,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "locationpool", locationPoolModule);
         putModule(modules, "rtp", rtpModule);
         putModule(modules, "respawn", respawnModule);
+        putModule(modules, "joinfix", joinFixModule);
         putModule(modules, "home", homeModule);
         putModule(modules, "team", teamModule);
         putModule(modules, "combat", combatModule);
@@ -383,191 +393,8 @@ public final class RavenCore extends JavaPlugin {
 
         @Override
         public void reload() {
-            RavenCore.this.migrateCoreConfigFile();
             RavenCore.this.reloadConfig();
         }
-    }
-
-    /**
-     * Bukkit only copies config.yml the first time. This adds new core keys to
-     * existing installs with a tiny line-based migration so comments/order stay intact.
-     */
-    private void migrateCoreConfigFile() {
-        File configFile = new File(getDataFolder(), "config.yml");
-        if (!configFile.isFile()) {
-            return;
-        }
-
-        try {
-            List<String> lines = Files.readAllLines(configFile.toPath(), StandardCharsets.UTF_8);
-            List<String> updated = new ArrayList<>(lines);
-            boolean changed = false;
-
-            if (!hasNetworkKey(updated, "server-display-name")) {
-                List<String> displayNameBlock = List.of(
-                        "  # Friendly server name shown in GUI lore/messages.",
-                        "  # Example: \"NA East\", \"SMP World NA\", \"Spawn\".",
-                        "  # Leave empty to reuse network.server-id.",
-                        "  server-display-name: ''"
-                );
-                int networkLine = findTopLevelSection(updated, "network");
-                if (networkLine == -1) {
-                    if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
-                    updated.add("network:");
-                    updated.add("  server-id: ''");
-                    updated.addAll(displayNameBlock);
-                } else {
-                    int serverIdLine = findSectionKey(updated, networkLine, "server-id");
-                    updated.addAll(serverIdLine == -1 ? networkLine + 1 : serverIdLine + 1, displayNameBlock);
-                }
-                changed = true;
-            }
-
-            YamlConfiguration existing = YamlConfiguration.loadConfiguration(configFile);
-            int cellSize = existing.getInt("grid.cell-size", 5000);
-            int ratio = Math.max(1, existing.getInt("grid.nether-ratio", 8));
-            int cellX = existing.getInt("grid.cell-x", 0);
-            int cellZ = existing.getInt("grid.cell-z", 0);
-            int margin = Math.max(0, existing.getInt("grid.border-safety-margin", 300));
-            long overworldMinX = (long) cellX * cellSize + margin;
-            long overworldMinZ = (long) cellZ * cellSize + margin;
-            long overworldMaxX = (long) (cellX + 1) * cellSize - margin;
-            long overworldMaxZ = (long) (cellZ + 1) * cellSize - margin;
-            int netherSize = cellSize / ratio;
-            int netherMargin = (int) Math.ceil(margin / (double) ratio);
-            long netherMinX = (long) cellX * netherSize + netherMargin;
-            long netherMinZ = (long) cellZ * netherSize + netherMargin;
-            long netherMaxX = (long) (cellX + 1) * netherSize - netherMargin;
-            long netherMaxZ = (long) (cellZ + 1) * netherSize - netherMargin;
-
-            int locationLine = findTopLevelSection(updated, "location-library");
-            if (locationLine == -1) {
-                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
-                updated.add("location-library:");
-                updated.add("  refill-interval-seconds: 45");
-                updated.add("  nether-pool-enabled: true");
-                locationLine = updated.size() - 3;
-                changed = true;
-            }
-
-            List<String> additions = new ArrayList<>();
-            if (findSectionKey(updated, locationLine, "bounds") == -1) {
-                additions.addAll(List.of(
-                        "  bounds:",
-                        "    overworld:",
-                        "      min: { x: " + overworldMinX + ", y: -64, z: " + overworldMinZ + " }",
-                        "      max: { x: " + overworldMaxX + ", y: 320, z: " + overworldMaxZ + " }",
-                        "    nether:",
-                        "      min: { x: " + netherMinX + ", y: 5, z: " + netherMinZ + " }",
-                        "      max: { x: " + netherMaxX + ", y: 120, z: " + netherMaxZ + " }",
-                        "    end:",
-                        "      min: { x: -5000, y: 1, z: -5000 }",
-                        "      max: { x: 5000, y: 255, z: 5000 }"
-                ));
-            }
-            if (findSectionKey(updated, locationLine, "blacklisted-blocks") == -1) {
-                additions.addAll(List.of(
-                        "  blacklisted-blocks:",
-                        "    - WATER", "    - LAVA", "    - CACTUS", "    - BEDROCK",
-                        "    - KELP", "    - MAGMA_BLOCK", "    - FIRE", "    - SOUL_FIRE",
-                        "    - CAMPFIRE", "    - SOUL_CAMPFIRE", "    - POWDER_SNOW",
-                        "    - SWEET_BERRY_BUSH", "    - OAK_LEAVES", "    - SPRUCE_LEAVES",
-                        "    - BIRCH_LEAVES", "    - JUNGLE_LEAVES", "    - ACACIA_LEAVES",
-                        "    - DARK_OAK_LEAVES", "    - MANGROVE_LEAVES", "    - CHERRY_LEAVES",
-                        "    - PALE_OAK_LEAVES"
-                ));
-            }
-            if (findSectionKey(updated, locationLine, "blacklisted-biomes") == -1) {
-                additions.addAll(List.of("  blacklisted-biomes:", "    - BEACH"));
-            }
-            if (!additions.isEmpty()) {
-                updated.addAll(findSectionEnd(updated, locationLine), additions);
-                changed = true;
-            }
-
-            int boundsLine = findSectionKey(updated, locationLine, "bounds");
-            if (boundsLine != -1 && !containsExactLine(updated, "    end:")) {
-                updated.addAll(findNestedSectionEnd(updated, boundsLine, 4), List.of(
-                        "    end:",
-                        "      min: { x: -5000, y: 1, z: -5000 }",
-                        "      max: { x: 5000, y: 255, z: 5000 }"
-                ));
-                changed = true;
-            }
-
-            if (changed) {
-                Files.write(configFile.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Config] Added missing RavenCore configuration defaults.");
-            }
-        } catch (IOException e) {
-            getLogger().warning("[Config] Failed to migrate config.yml: " + e.getMessage());
-        }
-    }
-
-    private boolean hasNetworkKey(List<String> lines, String key) {
-        return findSectionKey(lines, findTopLevelSection(lines, "network"), key) != -1;
-    }
-
-    private int findTopLevelSection(List<String> lines, String section) {
-        String expected = section + ":";
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line == null || line.isBlank() || line.startsWith(" ") || line.startsWith("\t")) {
-                continue;
-            }
-            if (line.trim().equals(expected)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findSectionKey(List<String> lines, int sectionLine, String key) {
-        if (sectionLine < 0) {
-            return -1;
-        }
-
-        String expected = key + ":";
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            String trimmed = line.trim();
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                continue;
-            }
-            if (!line.startsWith(" ") && !line.startsWith("\t")) {
-                return -1;
-            }
-            if (trimmed.equals(expected) || trimmed.startsWith(expected + " ")) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findSectionEnd(List<String> lines, int sectionLine) {
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (!line.isBlank() && !line.startsWith(" ") && !line.startsWith("\t")
-                    && !line.trim().startsWith("#")) {
-                return i;
-            }
-        }
-        return lines.size();
-    }
-
-    private int findNestedSectionEnd(List<String> lines, int sectionLine, int childIndent) {
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.isBlank() || line.trim().startsWith("#")) continue;
-            int indent = 0;
-            while (indent < line.length() && line.charAt(indent) == ' ') indent++;
-            if (indent < childIndent) return i;
-        }
-        return lines.size();
-    }
-
-    private boolean containsExactLine(List<String> lines, String expected) {
-        return lines.stream().anyMatch(expected::equals);
     }
 
     /** Console banner shown at the very start of enable, before modules load. */
@@ -773,6 +600,7 @@ public final class RavenCore extends JavaPlugin {
         if (teamModule != null) teamModule.onDisable(this);
         if (homeModule != null) homeModule.onDisable(this);
         if (respawnModule != null) respawnModule.onDisable(this);
+        if (joinFixModule != null) joinFixModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
         if (spawnModule != null) spawnModule.onDisable(this);
         if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
@@ -785,6 +613,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (clearInventoryModule != null) {
             clearInventoryModule.onDisable(this);
+        }
+        if (nightVisionModule != null) {
+            nightVisionModule.onDisable(this);
         }
         if (globalModule != null) {
             globalModule.onDisable(this);

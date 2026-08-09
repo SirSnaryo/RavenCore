@@ -1,0 +1,2 @@
+# Delay gives HuskSync/data-sync plugins time to apply synced player state first.
+delay-ticks: 20

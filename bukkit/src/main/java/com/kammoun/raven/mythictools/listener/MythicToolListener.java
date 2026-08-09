@@ -2,10 +2,12 @@ package com.kammoun.raven.mythictools.listener;
 
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.mythictools.MythicToolsModule;
+import com.kammoun.raven.mythictools.ability.MultiToolSwitcher;
 import com.kammoun.raven.mythictools.ability.MythicToolAbilities;
 import com.kammoun.raven.mythictools.item.MythicItemData;
 import com.kammoun.raven.mythictools.model.MythicToolDefinition;
 import com.kammoun.raven.mythictools.model.MythicToolType;
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,10 +31,12 @@ public final class MythicToolListener implements Listener {
 
     private final MythicToolsModule module;
     private final MythicToolAbilities abilities;
+    private final MultiToolSwitcher multiTool;
 
     public MythicToolListener(MythicToolsModule module) {
         this.module = module;
         this.abilities = new MythicToolAbilities(module);
+        this.multiTool = new MultiToolSwitcher(module);
     }
 
     @EventHandler
@@ -118,13 +122,18 @@ public final class MythicToolListener implements Listener {
             case TREE_CHOPPER -> {
                 if (module.config().log(block.getType())) abilities.treeChopper(player, block);
             }
-            case MULTI_TOOL -> {
-                if (module.config().log(block.getType())) abilities.treeChopper(player, block);
-                else if (module.config().diggable(block.getType())) abilities.shovel(player, block);
-                else if (module.config().mineable(block.getType())) abilities.drill(player, block);
-            }
             default -> {}
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onAttack(PrePlayerAttackEntityEvent event) {
+        if (!event.willAttack()) return;
+        Player player = event.getPlayer();
+        int slot = player.getInventory().getHeldItemSlot();
+        if (MythicItemData.type(player.getInventory().getItem(slot)) != MythicToolType.MULTI_TOOL) return;
+        if (!module.expiry().validate(player, player.getInventory(), slot, true)) return;
+        multiTool.forCombat(player);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -139,10 +148,10 @@ public final class MythicToolListener implements Listener {
             return;
         }
         if (event.getAction() == Action.LEFT_CLICK_BLOCK && type == MythicToolType.MULTI_TOOL) {
-            switchMainHandMaterial(player, abilities.appropriateMaterial(event.getClickedBlock()));
+            multiTool.forBlock(player, event.getClickedBlock().getType());
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && (type == MythicToolType.SELL_AXE || type == MythicToolType.MULTI_TOOL)
+                && type == MythicToolType.SELL_AXE
                 && event.getClickedBlock().getState() instanceof org.bukkit.block.Chest) {
             event.setCancelled(true);
             abilities.sellChest(player, event.getClickedBlock());
@@ -154,13 +163,6 @@ public final class MythicToolListener implements Listener {
         MythicToolType type = MythicItemData.type(event.getItem());
         MythicToolDefinition definition = type == null ? null : module.config().tool(type);
         if (definition != null && definition.unbreakable()) event.setCancelled(true);
-    }
-
-    private void switchMainHandMaterial(Player player, org.bukkit.Material material) {
-        ItemStack current = player.getInventory().getItemInMainHand();
-        if (current.getType() == material) return;
-        ItemStack replacement = current.withType(material);
-        player.getInventory().setItemInMainHand(replacement);
     }
 
     private void later(Player player, Runnable runnable) {

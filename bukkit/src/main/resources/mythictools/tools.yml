@@ -19,10 +19,15 @@ tools:
 
   multi_tool:
     material: NETHERITE_PICKAXE
+    switch:
+      pickaxe: NETHERITE_PICKAXE
+      shovel: NETHERITE_SHOVEL
+      axe: NETHERITE_AXE
+      sword: NETHERITE_SWORD
     display-name: "&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴍᴜʟᴛɪᴛᴏᴏʟ"
     lore:
-      - "&#7A7A7AAutomatically switches tool type."
-      - "&#7A7A7AIncludes all Mythic Tool abilities."
+      - "&#7A7A7ATurns into the right tool on its own:"
+      - "&#7A7A7Apickaxe, shovel, axe or sword."
       - ""
       - "&#B466DFMythic Tool"
     enchantments: [ "MENDING:1", "UNBREAKING:3", "EFFICIENCY:5" ]
@@ -32,8 +37,8 @@ tools:
     self-destruct: 5d
     sound:
       enabled: true
-      sound: BLOCK_NOTE_BLOCK_PLING
-      pitch: 1.0
+      sound: UI_BUTTON_CLICK
+      pitch: 1.35
       volume: 1.0
 
   tree_chopper:

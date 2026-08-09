@@ -41,7 +41,7 @@ public final class RtpDimensionMenu extends KMenu {
             List<String> servers = module.registeredServersAcrossClusters(LocationDimension.NETHER);
             MenuItem item = item(nether, RtpMenuPlaceholders.apply(
                     nether.getItemStack(), online, servers));
-            item.onClick(event -> module.openClusters((Player) event.getWhoClicked(), LocationDimension.NETHER));
+            item.onClick(event -> module.getTeleportService().nether((Player) event.getWhoClicked()));
             setItem(item);
         }
         if (end != null) {

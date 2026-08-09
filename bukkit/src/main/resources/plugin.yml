@@ -251,12 +251,23 @@ commands:
     aliases: [leaderboards, leaderboaord, lb, top]
     permission: raven.leaderboard
     permission-message: You don't have permission to view leaderboards.
+  baltop:
+    description: Open the network-wide balance leaderboard
+    usage: /baltop
+    aliases: [baltops, baltop, balancetop]
   crates:
     description: Manage and open virtual-key crates
     usage: /crates <list|setblock|give|set|reload|time>
     aliases: [crate, cratemanager]
     permission: raven.crates
     permission-message: You don't have permission to use crates.
+
+  nv:
+    description: Toggle permanent night vision
+    usage: /nv
+    aliases: [nightvision]
+    permission: raven.nightvision
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   ravencore:
     description: RavenCore version and safe module reload
@@ -279,7 +290,7 @@ permissions:
     default: true
   raven.clearinventory.self:
     description: Clear your own inventory
-    default: true
+    default: op
   raven.clearinventory.others:
     description: Clear another player's inventory
     default: op
@@ -417,4 +428,7 @@ permissions:
     default: true
   raven.crates.admin:
     description: Manage crates and virtual crate keys
+    default: op
+  raven.nightvision:
+    description: Toggle permanent night vision with /nv
     default: op

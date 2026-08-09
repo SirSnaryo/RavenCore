@@ -21,10 +21,6 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +44,6 @@ public class ScoreboardModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         saveDefaultConfig("config.example.yml");
-        migrateConfigFile();
         reloadConfig();
         statsService = createStatsService();
         statsService.init();
@@ -81,7 +76,6 @@ public class ScoreboardModule extends KModule<RavenCore> {
 
     @Override
     public void reload() {
-        migrateConfigFile();
         reloadConfig();
         stopTasks();
         service.reload(new ScoreboardConfig(getConfig()));
@@ -172,57 +166,6 @@ public class ScoreboardModule extends KModule<RavenCore> {
             getLogger().info("[Scoreboard] Registered %raven_*% PlaceholderAPI placeholders.");
         } else {
             getLogger().warning("[Scoreboard] Could not register %raven_*% placeholders because the identifier is already taken.");
-        }
-    }
-
-    private void migrateConfigFile() {
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.isFile()) {
-            return;
-        }
-
-        try {
-            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            String updated = content
-                    .replace("# The module is powered by FastBoard packets, and each line can refresh on its\n"
-                                    + "# own interval or event. FastBoard hides sidebar score numbers on modern clients.",
-                            "# The module uses Raven's native Paper sidebar renderer inspired by TAB:\n"
-                                    + "# one private objective per player, one team per line, and blank score numbers\n"
-                                    + "# on modern clients through Paper NumberFormat.blank().")
-                    .replace("# The module is powered by FastBoard packets, and each line can refresh on its\r\n"
-                                    + "# own interval or event. FastBoard hides sidebar score numbers on modern clients.",
-                            "# The module uses Raven's native Paper sidebar renderer inspired by TAB:\r\n"
-                                    + "# one private objective per player, one team per line, and blank score numbers\r\n"
-                                    + "# on modern clients through Paper NumberFormat.blank().")
-                    .replace("PlaceholderAPI placeholders, and Raven internal placeholders listed below.",
-                            "PlaceholderAPI placeholders. Raven registers every %raven_*% placeholder listed below.")
-                    .replace(">NA East <#4CC9F0>", ">%raven_server_display% <#4CC9F0>")
-                    .replace("<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF></shadow>",
-                            "<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>")
-                    .replace("# - %raven_ravs% reserved for a future Ravs module, currently returns 0.",
-                            "# - %raven_ravs% compact Ravs format from the Stats Ravs bridge, for example 1k.");
-            if (!updated.contains("# - %raven_server_display%")) {
-                updated = updated.replace("# - %raven_server%\n", "# - %raven_server%\n    # - %raven_server_display%\n");
-                updated = updated.replace("# - %raven_server%\r\n", "# - %raven_server%\r\n    # - %raven_server_display%\r\n");
-            }
-            if (!updated.contains("# - %raven_team%")) {
-                updated = updated.replace("# - %raven_playtime%\n", "# - %raven_playtime%\n    # - %raven_team%\n");
-                updated = updated.replace("# - %raven_playtime%\r\n", "# - %raven_playtime%\r\n    # - %raven_team%\r\n");
-            }
-            updated = updated.replace("<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>\"\n        update: static",
-                    "<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>\"\n        update: 60");
-            updated = updated.replace("<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>\"\r\n        update: static",
-                    "<#3A86FF>⚑ <#FFFFFF>Team <#3A86FF>%raven_team%</shadow>\"\r\n        update: 60");
-            updated = updated.replace("✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>\"\n        update: event:balance",
-                    "✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>\"\n        update: 40");
-            updated = updated.replace("✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>\"\r\n        update: event:balance",
-                    "✦ <#FFFFFF>Ravs <#D90429>%raven_ravs%</shadow>\"\r\n        update: 40");
-            if (!updated.equals(content)) {
-                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Scoreboard] Migrated config.yml to the current sidebar format.");
-            }
-        } catch (IOException e) {
-            getLogger().warning("[Scoreboard] Failed to migrate config.yml: " + e.getMessage());
         }
     }
 

@@ -12,7 +12,7 @@
 # ---------------------------------------------------------------------------
 
 # Seconds a player must stand in the zone before the group is teleported.
-timer: 30
+timer: 15
 
 # WorldGuard region ids that act as the RTP zone (matched case-insensitively,
 # in whichever world the player is standing in).

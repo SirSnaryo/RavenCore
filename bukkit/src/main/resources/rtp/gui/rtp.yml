@@ -24,7 +24,7 @@ Items:
       - '&#FF4D4DDimension: &fNether'
       - '&#33FF66Players: &#FFFFFF%online%'
       - ''
-      - '&#FFFF55> &#FFFF55&nCLICK&r &#FF4D4Dto Select'
+      - '&#FFFF55> &#FFFF55&nCLICK&r &#FF4D4Dto Teleport'
 
   End:
     slot: 15

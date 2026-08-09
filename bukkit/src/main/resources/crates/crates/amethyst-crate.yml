@@ -1,8 +1,8 @@
 icon:
   material: CHEST
-  name: '&5ᴀᴍᴇᴛʜʏsᴛ ᴄʀᴀᴛᴇ'
+  name: '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴄʀᴀᴛᴇ'
   lore:
-    - '&7(Place this crate)'
+    - '&#7A7A7A(Place this crate)'
   nbt:
     crate_id: "string:amethyst_crate"
 
@@ -11,47 +11,118 @@ inventory:
   size: 27
   background-icon:
     material: BLACK_STAINED_GLASS_PANE
-    name: '&5ᴀᴍᴇᴛʜʏsᴛ ᴄʀᴀᴛᴇ'
+    name: '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴄʀᴀᴛᴇ'
     lore:
-      - '&7With a ᴀᴍᴇᴛʜʏsᴛ ᴋᴇʏ you can choose'
-      - '&7which of the 3 you want.'
+      - '&#7A7A7AWith a ᴀᴍᴇᴛʜʏѕᴛ ᴋᴇʏ you can choose'
+      - '&#7A7A7Awhich of the 4 mythic tools you want.'
     glow: false
 
 hologram:
   1:
     height: 1.5
     lines:
-      - '&5ᴀᴍᴇᴛʜʏsᴛ ᴄʀᴀᴛᴇ'
+      - '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴄʀᴀᴛᴇ'
       - '&f/store'
   2:
     height: -0.3
     lines:
-      - '&5%crates_keys_amethyst_crate% &fKeys'
+      - '&#B466DF%crates_keys_amethyst_crate% &fKeys'
 
 rewards:
   1:
-    give-icon: false
+    give-item: false
+    commands:
+      - 'mythictools give %player% multi_tool 1'
     item:
-      slot: 12
-      material: NETHERITE_SHOVEL
-      name: '&5ᴀᴍᴇᴛʜʏsᴛ mᴜʟᴛɪ-ᴛᴏᴏʟ'
-      commands:
-        - '[server] mythictools give %player% multi_tool 1'
+      slot: 10
+      material: NETHERITE_PICKAXE
+      name: '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴍᴜʟᴛɪᴛᴏᴏʟ'
+      lore:
+        - '&#B466DFᴍʏᴛʜɪᴄ ᴛᴏᴏʟ'
+        - ''
+        - '&#7A7A7ATurns into the right tool on its own:'
+        - '&#7A7A7Apickaxe, shovel, axe or sword.'
+        - ''
+        - '&#7A7A7ALasts &#FFD4475 days &#7A7A7Aafter first use.'
+        - ''
+        - '&#33FF66Click to claim'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+        - "EFFICIENCY:5"
+      flags: [ "HIDE_ENCHANTS" ]
+      unbreakable: true
+      glow: true
 
   2:
-    give-icon: false
+    give-item: false
+    commands:
+      - 'mythictools give %player% drill 1'
     item:
-      slot: 13
+      slot: 12
       material: NETHERITE_PICKAXE
-      name: '&5ᴀᴍᴇᴛʜʏsᴛ ᴅʀɪʟʟ'
-      commands:
-        - '[server] mythictools give %player% drill 1'
+      name: '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴅʀɪʟʟ'
+      lore:
+        - '&#B466DFᴍʏᴛʜɪᴄ ᴛᴏᴏʟ'
+        - ''
+        - '&#7A7A7ABreaks a &#FFFFFF3x3 &#7A7A7Aarea.'
+        - ''
+        - '&#7A7A7ALasts &#FFD4475 days &#7A7A7Aafter first use.'
+        - ''
+        - '&#33FF66Click to claim'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+        - "EFFICIENCY:5"
+      flags: [ "HIDE_ENCHANTS" ]
+      unbreakable: true
+      glow: true
 
   3:
-    give-icon: false
+    give-item: false
+    commands:
+      - 'mythictools give %player% tree_chopper 1'
     item:
       slot: 14
       material: NETHERITE_AXE
-      name: '&5ᴀᴍᴇᴛʜʏsᴛ ᴛʀᴇᴇ ᴄʜᴏᴘᴘᴇʀ'
-      commands:
-        - '[server] mythictools give %player% tree_chopper 1'
+      name: '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴛʀᴇᴇ ᴄʜᴏᴘᴘᴇʀ'
+      lore:
+        - '&#B466DFᴍʏᴛʜɪᴄ ᴛᴏᴏʟ'
+        - ''
+        - '&#7A7A7AChops connected logs.'
+        - ''
+        - '&#7A7A7ALasts &#FFD4475 days &#7A7A7Aafter first use.'
+        - ''
+        - '&#33FF66Click to claim'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+        - "EFFICIENCY:5"
+        - "SILK_TOUCH:1"
+      flags: [ "HIDE_ENCHANTS" ]
+      unbreakable: true
+      glow: true
+
+  4:
+    give-item: false
+    commands:
+      - 'mythictools give %player% sell_axe 1'
+    item:
+      slot: 16
+      material: NETHERITE_AXE
+      name: '&#B466DFѕᴇʟʟ ᴀxᴇ'
+      lore:
+        - '&#B466DFᴍʏᴛʜɪᴄ ᴛᴏᴏʟ'
+        - ''
+        - '&#7A7A7ARight-click a chest to sell its contents.'
+        - ''
+        - '&#7A7A7ALasts &#FFD4475 days &#7A7A7Aafter first use.'
+        - ''
+        - '&#33FF66Click to claim'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+        - "EFFICIENCY:5"
+      flags: [ "HIDE_ENCHANTS" ]
+      unbreakable: true
+      glow: true

@@ -1,6 +1,7 @@
 package com.kammoun.raven.leaderboard;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.leaderboard.command.BalTopCommand;
 import com.kammoun.raven.leaderboard.command.LeaderboardCommand;
 import com.kammoun.raven.leaderboard.config.LeaderboardConfig;
 import com.kammoun.raven.leaderboard.config.LeaderboardMessages;
@@ -8,9 +9,12 @@ import com.kammoun.raven.leaderboard.db.LeaderboardRepository;
 import com.kammoun.raven.leaderboard.gui.LeaderboardMenu;
 import com.kammoun.raven.leaderboard.gui.LeaderboardPage;
 import com.kammoun.raven.leaderboard.model.LeaderboardType;
+import com.kammoun.raven.leaderboard.papi.LeaderboardPlaceholders;
+import com.kammoun.raven.leaderboard.service.LeaderboardPlaceholderCache;
 import com.kammoun.raven.leaderboard.service.LeaderboardService;
 import com.kammoun.raven.library.command.UnavailableCommand;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.library.platform.placeholder.KPlaceholderExpansion;
 import lombok.Getter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -18,7 +22,6 @@ import org.bukkit.entity.Player;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public final class LeaderboardModule extends KModule<RavenCore> {
     private LeaderboardConfig leaderboardConfig;
     private LeaderboardMessages messages;
     private LeaderboardService service;
+    private LeaderboardPlaceholderCache placeholderCache;
 
     public LeaderboardModule() {
         super("leaderboard");
@@ -42,7 +46,6 @@ public final class LeaderboardModule extends KModule<RavenCore> {
         saveDefaultConfig("gui/menu.yml");
         saveDefaultConfig("gui/page.yml");
         restoreBlockLeaderboards();
-        migrateSearchMessages();
         restoreGuiSection("gui/page.yml", "Items.Search", "Items.Search-Active");
         leaderboardConfig = new LeaderboardConfig(getConfig());
         messages = new LeaderboardMessages(getConfig());
@@ -50,6 +53,7 @@ public final class LeaderboardModule extends KModule<RavenCore> {
             LeaderboardRepository repository = new LeaderboardRepository(api.getMySqlManager());
             repository.init();
             service = new LeaderboardService(repository, leaderboardConfig, getLogger());
+            registerPlaceholders();
             service.start();
         } catch (Exception e) {
             getLogger().warning("[Leaderboard] Failed to initialize: " + e.getMessage());
@@ -57,12 +61,14 @@ public final class LeaderboardModule extends KModule<RavenCore> {
             return;
         }
         registerCommand(new LeaderboardCommand(this), "leaderboard");
+        registerCommand(new BalTopCommand(this),"baltop");
         getLogger().info("[Leaderboard] Enabled.");
     }
 
     @Override
     public void onModuleDisable() {
         if (service != null) service.shutdown();
+        if (placeholderCache != null) placeholderCache.shutdown();
         getLogger().info("[Leaderboard] Disabled.");
     }
 
@@ -71,6 +77,7 @@ public final class LeaderboardModule extends KModule<RavenCore> {
         reloadConfig();
         leaderboardConfig = new LeaderboardConfig(getConfig());
         messages = new LeaderboardMessages(getConfig());
+        if (placeholderCache != null) placeholderCache.updateConfig(leaderboardConfig);
         if (service != null) service.updateConfig(leaderboardConfig);
     }
 
@@ -90,29 +97,15 @@ public final class LeaderboardModule extends KModule<RavenCore> {
         new LeaderboardPage(api, this, type, page, filter).open(player);
     }
 
-    // Appended as raw text so the existing config comments and key order survive.
-    private void migrateSearchMessages() {
-        if (getConfig().isConfigurationSection("messages")) return;
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.isFile()) return;
-        try {
-            String current = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            String block = """
-                    messages:
-                      # %query% is the text the player typed on the search sign.
-                      search-no-results: '&#D90429No player on this leaderboard matches &#FFD447%query%&#D90429.'
-                      search-cleared: '&#33FF66Search cleared.'
-                      search-unavailable: '&#D90429Search is not available on this server version.'
-                      # Shown in the search item lore through %filter% while no search is active.
-                      search-none: '&#7A7A7ANone'
-                    """;
-            Files.writeString(file.toPath(),
-                    current.endsWith("\n") ? current + "\n" + block : current + "\n\n" + block,
-                    StandardCharsets.UTF_8);
-            reloadConfig();
-            getLogger().info("[Leaderboard] Added search messages to config.yml.");
-        } catch (IOException e) {
-            getLogger().warning("[Leaderboard] Could not add search messages: " + e.getMessage());
+
+    private void registerPlaceholders() {
+        if (!KPlaceholderExpansion.isAvailable()) return;
+        placeholderCache = new LeaderboardPlaceholderCache(service, leaderboardConfig);
+        placeholderCache.start();
+        if (new LeaderboardPlaceholders(api, placeholderCache).register()) {
+            getLogger().info("[Leaderboard] Registered %leaderboard_*% PlaceholderAPI placeholders.");
+        } else {
+            getLogger().warning("[Leaderboard] Could not register %leaderboard_*% placeholders because the identifier is already taken.");
         }
     }
 

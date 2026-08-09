@@ -6,6 +6,7 @@ import com.kammoun.raven.library.locationpool.LocationPool;
 import com.kammoun.raven.library.locationpool.RtpLocation;
 import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
+import com.kammoun.raven.locationPool.redis.RedisLocationPool;
 import com.kammoun.raven.rtp.config.RtpConfig;
 import com.kammoun.raven.rtp.config.RtpMessage;
 import com.kammoun.raven.rtp.config.RtpMessages;
@@ -50,9 +51,16 @@ public final class RtpTeleportService {
         begin(player, () -> pool.getRandomLocationInCluster(cluster, LocationDimension.OVERWORLD));
     }
 
+    /**
+     * The nether has no region selector, so the cluster is picked here: this server's own
+     * cluster first, to keep the player in the region they are already playing in, then any
+     * cluster that still has locations left.
+     */
     public void nether(Player player) {
-        begin(player, () -> pool.getRandomLocationAcrossClusters(
-                config.overworldClusters().keySet(), LocationDimension.NETHER));
+        begin(player, () -> currentCluster()
+                .flatMap(cluster -> pool.getRandomLocationInCluster(cluster, LocationDimension.NETHER))
+                .or(() -> pool.getRandomLocationAcrossClusters(
+                        config.overworldClusters().keySet(), LocationDimension.NETHER)));
     }
 
     public void nether(Player player, String cluster) {
@@ -107,6 +115,20 @@ public final class RtpTeleportService {
         event.setPitch(target.pitch());
         plugin.getNetworkEventBus().publish(event);
         return true;
+    }
+
+    /** Reads Redis — only call from the async destination supplier. */
+    private Optional<String> currentCluster() {
+        if (plugin.getLocationPoolModule() == null || plugin.getLocationPoolModule().getLocationPool() == null) {
+            return Optional.empty();
+        }
+        RedisLocationPool registry = plugin.getLocationPoolModule().getLocationPool();
+        for (String cluster : config.overworldClusters().keySet()) {
+            if (registry.getRegisteredServers(cluster, LocationDimension.OVERWORLD).contains(plugin.getServerId())) {
+                return Optional.of(cluster);
+            }
+        }
+        return Optional.empty();
     }
 
     private void begin(Player player, Supplier<Optional<RtpLocation>> destination) {

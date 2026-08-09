@@ -93,9 +93,11 @@ public final class LocationPoolConfig {
             throw new IllegalArgumentException("Grid safety margin leaves no " + dimension + " search area");
         }
         if (!bounds.fitsWithin(safeMinX, safeMinZ, safeMaxX, safeMaxZ)) {
-            throw new IllegalArgumentException("LocationPool " + dimension
-                    + " X/Z bounds exceed the safe grid interior [" + safeMinX + "," + safeMinZ
-                    + "] -> [" + safeMaxX + "," + safeMaxZ + "]");
+            throw new IllegalArgumentException("LocationPool " + dimension + " X/Z bounds ["
+                    + bounds.minX() + "," + bounds.minZ() + "] -> [" + bounds.maxX() + "," + bounds.maxZ()
+                    + "] from locationpool/config.yml exceed the safe grid interior ["
+                    + safeMinX + "," + safeMinZ + "] -> [" + safeMaxX + "," + safeMaxZ
+                    + "] for this server's grid cell");
         }
     }
 

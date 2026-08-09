@@ -11,7 +11,7 @@ import com.kammoun.raven.crates.player.CratePlayer;
 import com.kammoun.raven.crates.player.CratePlayerManager;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
-import org.bukkit.Bukkit;
+import com.kammoun.raven.library.util.CommandHelper;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -161,11 +161,7 @@ public final class CrateService {
             HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(reward.rewardItem().clone());
             leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
         }
-        for (String command : reward.commands()) {
-            String processed = command.replace("%player%", player.getName())
-                    .replace("%player_uuid%", player.getUniqueId().toString());
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed);
-        }
+        CommandHelper.executeCommand(player, reward.commands());
     }
 
     private String key(Location location) {

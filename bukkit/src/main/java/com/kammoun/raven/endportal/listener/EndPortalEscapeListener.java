@@ -29,7 +29,6 @@ public class EndPortalEscapeListener implements Listener {
         Player player = event.getPlayer();
         if (player.getWorld().getEnvironment() == World.Environment.THE_END) return;
         if (!service.claim(player)) return;
-
         service.sendToOverworld(player);
     }
 }

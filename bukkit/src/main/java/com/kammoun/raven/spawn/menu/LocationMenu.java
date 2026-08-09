@@ -7,6 +7,7 @@ import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.location.LocationType;
 import com.kammoun.raven.library.location.NetworkLocation;
+import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
 import com.kammoun.raven.library.platform.bungee.BungeeHelper;
 import com.kammoun.raven.library.util.PlaceholderHelper;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,12 +65,7 @@ public class LocationMenu extends KMenu {
 
     @Override
     protected void setMenuItems(Player viewer, String... placeholders) {
-        // Grouped by server+world (not just server) so multiple spawn locations on the same
-        // server, in different worlds, each get an accurate count instead of the whole server's.
-        Map<String, Long> liveCounts = networkPlayerManager.getOnlineNetworkPlayers().stream()
-                .filter(info -> info.getWorld() != null)
-                .collect(Collectors.groupingBy(
-                        info -> info.getServerId() + "|" + info.getWorld(), Collectors.counting()));
+        Map<String, Long> liveCounts = onlineByServer();
 
         List<NetworkLocation> servers = cache.getAll(type).stream()
                 .filter(NetworkLocation::isEnabled)
@@ -83,7 +80,7 @@ public class LocationMenu extends KMenu {
             }
             int slot = itemSlots.get(slotIndex++);
 
-            long count = liveCounts.getOrDefault(location.getServerName() + "|" + location.getWorld(), 0L);
+            long count = liveCounts.getOrDefault(location.getServerName(), 0L);
             boolean full = location.getMaxPlayers() > 0 && count >= location.getMaxPlayers();
             MenuItem template = full ? fullTemplate : availableTemplate;
             if (template == null) continue;
@@ -110,6 +107,18 @@ public class LocationMenu extends KMenu {
             }
             setItem(item);
         }
+    }
+
+    private Map<String, Long> onlineByServer() {
+        if (networkPlayerManager == null) {
+            return Map.of(api.getServerId(), (long) api.getServer().getOnlinePlayers().size());
+        }
+        Map<String, Long> counts = new HashMap<>();
+        for (NetworkPlayerInfo info : networkPlayerManager.getOnlineNetworkPlayers()) {
+            if (info.getServerId() == null || info.getServerId().isBlank()) continue;
+            counts.merge(info.getServerId(), 1L, Long::sum);
+        }
+        return counts;
     }
 
     /** True if the viewer is currently standing on this server, in this location's world. */

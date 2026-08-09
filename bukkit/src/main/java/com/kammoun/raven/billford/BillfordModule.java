@@ -17,7 +17,6 @@ import com.kammoun.raven.library.redis.event.BillfordPresetsUpdatedEvent;
 import com.kammoun.raven.library.redis.event.BillfordStateUpdatedEvent;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import lombok.Getter;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -141,7 +140,7 @@ public class BillfordModule extends KModule<RavenCore> {
 
     private FileConfiguration loadGuiConfig() {
         File guiFile = new File(getDataFolder(), "gui.yml");
-        if (!guiFile.isFile() && !migrateLegacyGui(guiFile)) {
+        if (!guiFile.isFile()) {
             saveDefaultConfig("gui.yml");
         }
 
@@ -159,34 +158,4 @@ public class BillfordModule extends KModule<RavenCore> {
         return gui;
     }
 
-    /**
-     * Existing servers kept both GUI sections in config.yml. Copy them once
-     * into gui.yml before loading the new bundled file so custom layouts survive
-     * this split. The old sections are intentionally left untouched.
-     */
-    private boolean migrateLegacyGui(File guiFile) {
-        ConfigurationSection main = getConfig().getConfigurationSection("gui");
-        ConfigurationSection editor = getConfig().getConfigurationSection("editor");
-        if (main == null && editor == null) return false;
-
-        YamlConfiguration migrated = new YamlConfiguration();
-        copySection(main, "gui", migrated);
-        copySection(editor, "editor", migrated);
-        try {
-            migrated.save(guiFile);
-            getLogger().info("[Billford] Migrated GUI layout from config.yml to gui.yml.");
-            return true;
-        } catch (Exception error) {
-            getLogger().warning("[Billford] Could not migrate GUI configuration: "
-                    + error.getMessage());
-            return false;
-        }
-    }
-
-    private void copySection(ConfigurationSection source, String root, YamlConfiguration target) {
-        if (source == null) return;
-        source.getValues(true).forEach((path, value) -> {
-            if (!(value instanceof ConfigurationSection)) target.set(root + "." + path, value);
-        });
-    }
 }

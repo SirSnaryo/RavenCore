@@ -1,6 +1,7 @@
 package com.kammoun.raven.mythictools.command;
 
 import com.kammoun.raven.library.command.KCommand;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.mythictools.MythicToolsModule;
 import com.kammoun.raven.mythictools.model.MythicToolDefinition;
 import com.kammoun.raven.mythictools.model.MythicToolType;
@@ -71,12 +72,15 @@ public final class MythicToolsCommand extends KCommand {
                 return;
             }
         }
-        for (int i = 0; i < amount; i++) {
-            ItemStack item = module.items().create(definition, false);
-            target.getInventory().addItem(item).values().forEach(leftover ->
-                    target.getWorld().dropItemNaturally(target.getLocation(), leftover));
-            module.expiry().register(target, item);
-        }
+        int total = amount;
+        SchedulerUtil.execute(target, () -> {
+            for (int i = 0; i < total; i++) {
+                ItemStack item = module.items().create(definition, false);
+                target.getInventory().addItem(item).values().forEach(leftover ->
+                        target.getWorld().dropItemNaturally(target.getLocation(), leftover));
+                module.expiry().register(target, item);
+            }
+        });
         module.send(sender, "command.give-success",
                 "%amount%", Integer.toString(amount), "%tool%", type.name(), "%player%", target.getName());
         module.send(target, "command.give-received",

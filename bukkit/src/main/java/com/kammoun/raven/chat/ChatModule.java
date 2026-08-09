@@ -27,9 +27,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.TabCompleteEvent;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +50,6 @@ public class ChatModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
-        migrateConfig();
         reloadConfig();
         messages = new ChatMessages(loadMessages());
         settingsService = new ChatSettingsService(api, getLogger());
@@ -100,7 +96,6 @@ public class ChatModule extends KModule<RavenCore> {
 
     @Override
     public void reload() {
-        migrateConfig();
         reloadConfig();
         messages = new ChatMessages(loadMessages());
         loadRuntimeConfig();
@@ -238,25 +233,6 @@ public class ChatModule extends KModule<RavenCore> {
     private FileConfiguration loadMessages() {
         saveDefaultConfig("messages.yml");
         return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml"));
-    }
-
-    private void migrateConfig() {
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.isFile()) {
-            return;
-        }
-        try {
-            String text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            String updated = text
-                    .replace("<shadow:#000000:1>", "<shadow:#000000FF>")
-                    .replace("<shadow:#000000>", "<shadow:#000000FF>");
-            if (!updated.equals(text)) {
-                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Chat] Migrated legacy MiniMessage shadow tags.");
-            }
-        } catch (IOException error) {
-            getLogger().warning("[Chat] Failed to migrate config.yml: " + error.getMessage());
-        }
     }
 
     private String lastToken(String buffer) {

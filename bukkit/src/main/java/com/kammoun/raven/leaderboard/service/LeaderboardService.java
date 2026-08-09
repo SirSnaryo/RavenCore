@@ -6,6 +6,7 @@ import com.kammoun.raven.leaderboard.model.LeaderboardEntry;
 import com.kammoun.raven.leaderboard.model.LeaderboardType;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.util.NumberUtils;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +22,12 @@ public final class LeaderboardService {
     private final AtomicBoolean refreshing = new AtomicBoolean();
     private final Map<LeaderboardType, List<LeaderboardEntry>> cache = new ConcurrentHashMap<>();
     private volatile LeaderboardConfig config;
+    /**
+     * -- SETTER --
+     * Runs on the async refresh thread once every cache refresh finishes.
+     */
+    @Setter
+    private volatile Runnable refreshListener;
     private SchedulerUtil.Task refreshTask;
 
     public LeaderboardService(LeaderboardRepository repository, LeaderboardConfig config, Logger logger) {
@@ -42,6 +49,7 @@ public final class LeaderboardService {
 
     public void shutdown() {
         if (refreshTask != null) refreshTask.cancel();
+        refreshListener = null;
         cache.clear();
     }
 
@@ -58,6 +66,13 @@ public final class LeaderboardService {
                 }
             } finally {
                 refreshing.set(false);
+            }
+            Runnable listener = refreshListener;
+            if (listener == null) return;
+            try {
+                listener.run();
+            } catch (Exception e) {
+                logger.warning("[Leaderboard] Refresh listener failed: " + e.getMessage());
             }
         });
     }

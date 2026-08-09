@@ -23,7 +23,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.UUID;
 
 @Getter
@@ -44,9 +43,7 @@ public final class StatsModule extends KModule<RavenCore> {
             return;
         }
         saveDefaultConfig("gui/stats-menu.yml");
-        removeObsoleteShardsConfig();
         removeRemovedStatsConfig();
-        migrateStatsMenuToRavs();
         restoreBlockStatsConfig();
         restoreBlockStatsMenuItems();
         removeRemovedStatsMenuItems();
@@ -57,7 +54,7 @@ public final class StatsModule extends KModule<RavenCore> {
             ravs = new RavsBalanceResolver(loadRavsProvider());
             service.start();
             registerEvent(new StatsListener(service));
-            registerCommand(new StatsCommand(service, ravs, () -> new StatsMenu(api)), "stats");
+            registerCommand(new StatsCommand(service, ravs, api.getNetworkPlayerManager(), () -> new StatsMenu(api)), "stats");
             registerCommand(new StatsManagerCommand(service, this::reload), "statsmanager");
         } catch (Exception e) {
             if (service != null) {
@@ -119,13 +116,6 @@ public final class StatsModule extends KModule<RavenCore> {
         registerCommand(new UnavailableCommand("statsmanager", "raven.stats.admin", false, message), "statsmanager");
     }
 
-    private void removeObsoleteShardsConfig() {
-        if (!getConfig().contains("shards-placeholder")) return;
-        getConfig().set("shards-placeholder", null);
-        saveConfig();
-        getLogger().info("[Stats] Removed obsolete shards-placeholder configuration.");
-    }
-
     private void removeRemovedStatsConfig() {
         String[] removed = {
                 "tracking.items-crafted",
@@ -157,25 +147,6 @@ public final class StatsModule extends KModule<RavenCore> {
         if (changed) {
             saveConfig();
             getLogger().info("[Stats] Restored blocks broken/placed tracking options.");
-        }
-    }
-
-    private void migrateStatsMenuToRavs() {
-        File file = new File(getDataFolder(), "gui/stats-menu.yml");
-        if (!file.isFile()) return;
-        try {
-            String current = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            String updated = current
-                    .replace("  shards:", "  ravs:")
-                    .replace("%shards%", "%ravs%")
-                    .replace("Shards", "Ravs")
-                    .replace("material: AMETHYST_SHARD", "material: FEATHER");
-            if (!updated.equals(current)) {
-                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Stats] Migrated the stats menu from Shards to Ravs.");
-            }
-        } catch (IOException e) {
-            getLogger().warning("[Stats] Could not migrate stats-menu.yml to Ravs: " + e.getMessage());
         }
     }
 

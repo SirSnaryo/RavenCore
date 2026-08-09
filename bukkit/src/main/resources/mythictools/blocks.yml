@@ -122,3 +122,13 @@ blocks:
     - ROOTED_DIRT
     - MUD
     - PACKED_MUD
+
+# Blocks that force the Multi Tool into a specific tool, overriding vanilla mineable tags.
+multi-tool:
+  sword:
+    - COBWEB
+    - BAMBOO
+    - BAMBOO_SAPLING
+  axe: [ ]
+  shovel: [ ]
+  pickaxe: [ ]

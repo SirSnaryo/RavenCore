@@ -42,16 +42,6 @@ public final class MythicToolAbilities {
         }
     }
 
-    public void shovel(Player player, Block origin) {
-        play(player, MythicToolType.MULTI_TOOL);
-        origin.getWorld().spawnParticle(Particle.FALLING_DUST, origin.getLocation().add(.5, .5, .5),
-                30, .5, .5, .5, .08, origin.getBlockData());
-        ItemStack tool = player.getInventory().getItemInMainHand();
-        for (Block block : area(origin, player)) {
-            if (module.config().diggable(block.getType())) block.breakNaturally(tool);
-        }
-    }
-
     public void treeChopper(Player player, Block origin) {
         ItemStack tool = player.getInventory().getItemInMainHand();
         ArrayDeque<Block> pending = new ArrayDeque<>();
@@ -133,12 +123,6 @@ public final class MythicToolAbilities {
         soldSlots.forEach(slot -> inventory.setItem(slot, null));
         module.send(player, "tool.sell-axe.success",
                 "%items%", Integer.toString(sold), "%money%", String.format(java.util.Locale.US, "%,.2f", total));
-    }
-
-    public Material appropriateMaterial(Block block) {
-        if (module.config().log(block.getType())) return Material.NETHERITE_AXE;
-        if (module.config().diggable(block.getType())) return Material.NETHERITE_SHOVEL;
-        return Material.NETHERITE_PICKAXE;
     }
 
     private void play(Player player, MythicToolType type) {

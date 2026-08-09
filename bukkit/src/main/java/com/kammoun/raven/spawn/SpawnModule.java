@@ -37,7 +37,6 @@ public class SpawnModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
-        migrateDefaultCountdownSound();
         repository = new LocationRepository(api.getMySqlManager());
 
         // Deliberate exception to "JDBC off main thread": this is one-time startup DDL,
@@ -97,21 +96,5 @@ public class SpawnModule extends KModule<RavenCore> {
         }
         KSound sound = KSound.getSoundFromConfig(getConfig().getConfigurationSection(path));
         return sound != null ? sound : new KSound(fallback, pitch, volume);
-    }
-
-    private void migrateDefaultCountdownSound() {
-        String base = "teleport-countdown.sounds.tick";
-        String sound = getConfig().getString(base + ".sound", "");
-        double pitch = getConfig().getDouble(base + ".pitch", 0.0D);
-        double volume = getConfig().getDouble(base + ".volume", 0.0D);
-        if (!"ENTITY_ENDERMAN_TELEPORT".equalsIgnoreCase(sound)
-                || Math.abs(pitch - 1.9D) > 0.001D
-                || Math.abs(volume - 0.65D) > 0.001D) {
-            return;
-        }
-        getConfig().set(base + ".sound", "BLOCK_NOTE_BLOCK_BASS");
-        getConfig().set(base + ".pitch", 0.5D);
-        getConfig().set(base + ".volume", 1.0D);
-        saveConfig();
     }
 }

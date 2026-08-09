@@ -14,7 +14,6 @@ import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.util.PlaceholderHelper;
 import de.rapha149.signgui.SignGUI;
 import de.rapha149.signgui.SignGUIAction;
-import de.rapha149.signgui.exception.SignGUIVersionException;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -150,7 +149,7 @@ public final class LeaderboardPage extends KMenu {
                     .callHandlerSynchronously(module.getApi())
                     .build()
                     .open(player);
-        } catch (SignGUIVersionException exception) {
+        } catch (Throwable exception) {
             module.getMessages().send(player, "search-unavailable");
             module.openPage(player, type, page, filter);
         }
