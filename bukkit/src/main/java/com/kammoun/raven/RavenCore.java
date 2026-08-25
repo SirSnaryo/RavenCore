@@ -15,6 +15,7 @@ import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.rtp.RtpModule;
+import com.kammoun.raven.pearlstasis.PearlStasisModule;
 import com.kammoun.raven.respawn.RespawnModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
@@ -87,6 +88,7 @@ public final class RavenCore extends JavaPlugin {
     private SettingsModule settingsModule;
     private BillfordModule billfordModule;
     private BorderModule borderModule;
+    private PearlStasisModule pearlStasisModule;
 
     @Override
     public void onEnable() {
@@ -233,6 +235,10 @@ public final class RavenCore extends JavaPlugin {
             borderModule = new BorderModule();
             borderModule.onEnable(this);
             enabledModules.add("Borders");
+
+            pearlStasisModule = new PearlStasisModule();
+            pearlStasisModule.onEnable(this);
+            enabledModules.add("PearlStasis");
         }
 
         if (getCommand("ravencore") != null) {
@@ -300,6 +306,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "combat", combatModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
+        putModule(modules, "pearlstasis", pearlStasisModule);
         return modules;
     }
 
@@ -434,6 +441,24 @@ public final class RavenCore extends JavaPlugin {
                         "    end:",
                         "      min: { x: -5000, y: 1, z: -5000 }",
                         "      max: { x: 5000, y: 255, z: 5000 }"
+                ));
+                changed = true;
+            }
+
+            int pearlStasisLine = findTopLevelSection(updated, "pearl-stasis");
+            if (pearlStasisLine == -1) {
+                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
+                updated.addAll(List.of(
+                        "# Cross-server Ender Pearl stasis chambers settings.",
+                        "pearl-stasis:",
+                        "  # Whether cross-server stasis handling is enabled.",
+                        "  enabled: true",
+                        "  # How long (seconds) a pending pearl landing record stays valid in MySQL/Redis before expiring.",
+                        "  pending-record-ttl-seconds: 300",
+                        "  sound:",
+                        "    name: ENTITY_ENDERMAN_TELEPORT",
+                        "    pitch: 1.75",
+                        "    volume: 0.9"
                 ));
                 changed = true;
             }
@@ -698,6 +723,7 @@ public final class RavenCore extends JavaPlugin {
         if (settingsModule != null) settingsModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);
         if (borderModule != null) borderModule.onDisable(this);
+        if (pearlStasisModule != null) pearlStasisModule.onDisable(this);
         if (timeSyncModule != null) {
             timeSyncModule.onDisable(this);
         }

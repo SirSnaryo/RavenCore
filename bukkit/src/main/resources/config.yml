@@ -77,3 +77,14 @@ border:
   particle: DUST_PLUME
   # Sent when a player tries to break or place a block past the border.
   deny-message: ""
+
+# Cross-server Ender Pearl stasis chambers settings.
+pearl-stasis:
+  # Whether cross-server stasis handling is enabled.
+  enabled: true
+  # How long (seconds) a pending pearl landing record stays valid in MySQL/Redis before expiring.
+  pending-record-ttl-seconds: 300
+  sound:
+    name: ENTITY_ENDERMAN_TELEPORT
+    pitch: 1.75
+    volume: 0.9

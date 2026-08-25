@@ -45,6 +45,9 @@ public final class RespawnManager implements Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         if (event.isBedSpawn()) return;
         Player player = event.getPlayer();
+        if (plugin.getPearlStasisModule() != null && plugin.getPearlStasisModule().hasPendingStasis(player.getUniqueId())) {
+            return;
+        }
         suppressBorders(player);
         SchedulerUtil.runLater(() -> resolveSavedBed(player), 1L);
     }
@@ -52,6 +55,9 @@ public final class RespawnManager implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        if (plugin.getPearlStasisModule() != null && plugin.getPearlStasisModule().hasPendingStasis(player.getUniqueId())) {
+            return;
+        }
         SchedulerUtil.runAsync(() -> {
             RespawnTransferStore.Payload payload = transfers.consume(player.getUniqueId());
             if (payload == null) return;
