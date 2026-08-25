@@ -1,0 +1,15 @@
+# Utilities Configuration
+#
+# Small server-wide tweaks that are too minor to deserve their own module.
+# Every feature is independent, and disabling one leaves vanilla behaviour untouched.
+
+join-messages:
+  # Removes the vanilla "%player% joined the game" broadcast.
+  hide-join: true
+
+  # Removes the vanilla "%player% left the game" broadcast.
+  hide-quit: true
+
+  # Keeps the broadcast the very first time a player ever joins this server,
+  # even while hide-join is true. Useful for welcoming new players only.
+  keep-first-join: false

@@ -52,7 +52,6 @@ public class TeleportSettingsRepository {
     public void init() throws SQLException {
         try (Connection connection = db.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(CREATE);
-            ensureConfirmMenuColumn(connection);
         }
     }
 
@@ -113,14 +112,4 @@ public class TeleportSettingsRepository {
         statement.setLong(6, System.currentTimeMillis());
     }
 
-    private void ensureConfirmMenuColumn(Connection connection) throws SQLException {
-        try (ResultSet columns = connection.getMetaData().getColumns(null, null, "raven_teleport_settings", "confirm_menu")) {
-            if (columns.next()) {
-                return;
-            }
-        }
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("ALTER TABLE raven_teleport_settings ADD COLUMN confirm_menu BOOLEAN NOT NULL DEFAULT TRUE");
-        }
-    }
 }

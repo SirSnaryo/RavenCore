@@ -3,10 +3,16 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI, WorldGuard]
+softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, FancyHolograms]
 depend: [Vault]
 load: POSTWORLD
 commands:
+  mythictools:
+    description: Manage Mythic Tools
+    usage: /mythictools <give|selfdestruct|list|reload>
+    aliases: [mythictool]
+    permission: raven.mythictools.admin
+    permission-message: You don't have permission to use this command.
   balance:
     description: Check your balance or another player's balance
     usage: /balance [player]
@@ -119,6 +125,12 @@ commands:
     aliases: [btoggle, togglebroadcast]
     permission: raven.chat
     permission-message: You don't have permission to use this command.
+  scoreboard:
+    description: Toggle and manage Raven scoreboards
+    usage: /scoreboard [toggle|on|off|list|current|select|reset|reload|set|clear]
+    aliases: [sb]
+    permission: raven.scoreboard
+    permission-message: You don't have permission to use this command.
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
@@ -155,6 +167,12 @@ commands:
     usage: /rtp
     permission: raven.rtp
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
+  rtpq:
+    description: Join or leave the RTP matchmaking queue
+    usage: /rtpq
+    aliases: [rtpqueue]
+    permission: raven.rtp.queue
+    permission-message: You don't have permission to use RTP Queue.
 
   home:
     description: Open your homes or teleport to a named home
@@ -203,12 +221,6 @@ commands:
     usage: /spawner <give|list|reload>
     permission: raven.spawner.admin
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
-  scoreboard:
-    description: Manage the Raven scoreboard
-    usage: /scoreboard [toggle|on|off|list|current|select|reset|set|clear|reload]
-    aliases: [sb]
-    permission: raven.scoreboard
-    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
   billford:
     description: Open the Billford trade menu
@@ -222,6 +234,41 @@ commands:
     permission: raven.billford.admin
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
+  stats:
+    description: View network-wide player statistics
+    usage: /stats [player]
+    permission: raven.stats
+    permission-message: You don't have permission to view stats.
+  statsmanager:
+    description: Manage network-wide player statistics
+    usage: /statsmanager <set|add|remove|reset|reload> [player] [stat] [amount]
+    aliases: [statsadmin]
+    permission: raven.stats.admin
+    permission-message: You don't have permission to manage stats.
+  leaderboard:
+    description: Open cached network leaderboards
+    usage: /leaderboard [type|refresh]
+    aliases: [leaderboards, leaderboaord, lb, top]
+    permission: raven.leaderboard
+    permission-message: You don't have permission to view leaderboards.
+  baltop:
+    description: Open the network-wide balance leaderboard
+    usage: /baltop
+    aliases: [baltops, baltop, balancetop]
+  crates:
+    description: Manage and open virtual-key crates
+    usage: /crates <list|setblock|give|set|reload|time>
+    aliases: [crate, cratemanager]
+    permission: raven.crates
+    permission-message: You don't have permission to use crates.
+
+  nv:
+    description: Toggle permanent night vision
+    usage: /nv
+    aliases: [nightvision]
+    permission: raven.nightvision
+    permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
+
   ravencore:
     description: RavenCore version and safe module reload
     usage: /ravencore <version|modules|reload>
@@ -229,6 +276,9 @@ commands:
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
 permissions:
+  raven.mythictools.admin:
+    description: Manage Mythic Tools
+    default: op
   raven.teleport:
     description: Teleport yourself or others across the network
     default: op
@@ -240,7 +290,7 @@ permissions:
     default: true
   raven.clearinventory.self:
     description: Clear your own inventory
-    default: true
+    default: op
   raven.clearinventory.others:
     description: Clear another player's inventory
     default: op
@@ -276,6 +326,9 @@ permissions:
     default: op
   raven.rtp:
     description: Teleport to a random location
+    default: true
+  raven.rtp.queue:
+    description: Join the RTP matchmaking queue
     default: true
   raven.home:
     description: Use and list network-wide homes
@@ -320,8 +373,8 @@ permissions:
     description: Use the default admin chat format
     default: op
   raven.chat.bypass.toggle:
-    description: Receive public chat even when other players hide it
-    default: op
+    description: Optional receive-bypass for hidden public chat when enabled in chat/config.yml
+    default: false
   raven.chat.bypass.cooldown:
     description: Bypass chat cooldown checks
     default: op
@@ -341,10 +394,10 @@ permissions:
     description: Bypass max chat length
     default: op
   raven.scoreboard:
-    description: Use personal scoreboard commands
+    description: Toggle and select your Raven scoreboard
     default: true
   raven.scoreboard.admin:
-    description: Manage scoreboard configuration and player board selection
+    description: Reload and assign Raven scoreboards
     default: op
   raven.core.admin:
     description: Reload RavenCore modules
@@ -355,4 +408,27 @@ permissions:
   raven.billford.admin:
     description: Manage Billford trade presets
     default: op
-
+  raven.stats:
+    description: View your own player statistics
+    default: true
+  raven.stats.others:
+    description: View another player's statistics
+    default: true
+  raven.stats.admin:
+    description: Manage player statistics
+    default: op
+  raven.leaderboard:
+    description: View cached network leaderboards
+    default: true
+  raven.leaderboard.admin:
+    description: Refresh leaderboard caches manually
+    default: op
+  raven.crates:
+    description: Use crate commands
+    default: true
+  raven.crates.admin:
+    description: Manage crates and virtual crate keys
+    default: op
+  raven.nightvision:
+    description: Toggle permanent night vision with /nv
+    default: op

@@ -1,6 +1,7 @@
 package com.kammoun.raven.library.skin.api;
 
 import com.kammoun.raven.library.skin.SkinService;
+import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.skin.model.SkinData;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -29,11 +30,15 @@ public final class SkinCacheAPI {
     }
     
     public static CompletableFuture<SkinCacheAPI> init(@NotNull Plugin plugin) {
+        return init(plugin, null);
+    }
+
+    public static CompletableFuture<SkinCacheAPI> init(@NotNull Plugin plugin, @Nullable MySQLDBManager database) {
         if (instance != null) {
             return CompletableFuture.completedFuture(instance);
         }
         
-        SkinService service = new SkinService(plugin);
+        SkinService service = new SkinService(plugin, database);
         return service.initialize().thenApply(v -> {
             instance = new SkinCacheAPI(service);
             return instance;
@@ -42,6 +47,13 @@ public final class SkinCacheAPI {
     
     public static boolean isInitialized() {
         return instance != null;
+    }
+
+    public static CompletableFuture<Void> shutdown() {
+        if (instance == null) return CompletableFuture.completedFuture(null);
+        SkinService service = instance.service;
+        instance = null;
+        return service.shutdown();
     }
     
     public void getSkin(@NotNull UUID uuid, @NotNull Consumer<SkinData> callback) {

@@ -1,0 +1,96 @@
+gui:
+  title: '&8BILLFORD'
+  size: 54
+  required-items-slots:
+    - 10
+    - 11
+    - 12
+    - 19
+    - 20
+    - 21
+    - 28
+    - 29
+    - 30
+  trade-slot: 25
+  confirm-item:
+    slot: 40
+    material: LIME_CONCRETE
+    name: '&#33FF66&lCONFIRM TRADE'
+    lore:
+      - '&fHand in the required items to claim your reward.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAAction: &fComplete the trade'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Confirm'
+    glow: true
+  info-item:
+    slot: 49
+    material: BOOK
+    name: '&#FFAA00&lTRADE INFO'
+    lore:
+      - '&#FFAA00Information'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAYou give:'
+      - '%required_item%'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAYou receive:'
+      - '&#FFCC00%item%'
+  filler:
+    item:
+      material: BLACK_STAINED_GLASS_PANE
+      name: ' '
+
+editor:
+  title: '&8EDITING: %preset%'
+  size: 54
+  required-items-slots:
+    - 10
+    - 11
+    - 12
+    - 19
+    - 20
+    - 21
+    - 28
+    - 29
+    - 30
+  trade-slot: 25
+  save-slot: 49
+  info-slot: 4
+  info-item:
+    material: BOOK
+    name: '&#00FFFF&lPRESET EDITOR'
+    lore:
+      - '&fLay out the trade you want players to see.'
+      - ''
+      - '&#00FFFF✦ &#AAAAAAStep 1: &fPlace the required items'
+      - '&#00FFFF✦ &#AAAAAAStep 2: &fPlace the reward item'
+      - '&#00FFFF✦ &#AAAAAAStep 3: &fSave the preset'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Save when done'
+  save-item:
+    material: LIME_CONCRETE
+    name: '&#33FF66&lSAVE PRESET'
+    lore:
+      - '&fStores this preset for every server.'
+      - ''
+      - '&#55FF55✔ &#AAAAAAScope: &fNetwork-wide'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Save'
+    glow: true
+  required-placeholder:
+    material: LIGHT_GRAY_STAINED_GLASS_PANE
+    name: '&#FF4D4D&lREQUIRED ITEM SLOT'
+    lore:
+      - '&fThis slot is still waiting for an item.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAAStatus: &fEmpty'
+  reward-placeholder:
+    material: YELLOW_STAINED_GLASS_PANE
+    name: '&#FFAA00&lREWARD ITEM SLOT'
+    lore:
+      - '&fDrop the item players will receive here.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAAStatus: &fEmpty'
+  filler:
+    material: BLACK_STAINED_GLASS_PANE
+    name: ' '

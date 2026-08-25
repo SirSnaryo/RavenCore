@@ -3,6 +3,28 @@ clusters:
   - na
   - eu
 
+# Preferred spawn row used only if no bed exists and no random LocationPool
+# destination is available.
+# Leave empty to use the first enabled SPAWN row from ravencore_locations.
+spawn-server: ''
+
+# Last fallback destination when no /setspawn row exists.
+# Local respawn never uses this as a temporary holding floor; Raven uses the
+# current server's cached /setspawn or world spawn while resolving.
+default-spawn:
+  # Optional backend server for the final fallback when no /setspawn row exists.
+  # Leave empty to use this server.
+  server: ''
+  world: world
+  x: 0.5
+  y: 100.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+
+# Border suppression and destination resolution are force-released after this.
+resolution-timeout-seconds: 5
+
 messages:
-  no-location: "&cNo safe respawn location is available right now."
-  transfer-failed: "&cCould not send you to your respawn server."
+  no-location: "&#FF4D4D✕ No safe respawn location is available right now."
+  transfer-failed: "&#FF4D4D✕ Could not send you to your respawn server."

@@ -1,0 +1,102 @@
+Title: '&8LEADERBOARDS'
+Size: 36
+
+Items:
+  money:
+    material: EMERALD
+    slot: 10
+    display-name: '&#FFAA00&lMONEY LEADERBOARD'
+    lore:
+      - '&fRanks every player by their current balance.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fEconomy'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  kills:
+    material: DIAMOND_SWORD
+    slot: 11
+    display-name: '&#FFAA00&lKILLS LEADERBOARD'
+    lore:
+      - '&fRanks every player by total player kills.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fPvP Combat'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  deaths:
+    material: SKELETON_SKULL
+    slot: 12
+    display-name: '&#FFAA00&lDEATHS LEADERBOARD'
+    lore:
+      - '&fRanks every player by how often they died.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fPlayer Stats'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  mobs-killed:
+    material: ZOMBIE_HEAD
+    slot: 13
+    display-name: '&#FFAA00&lMOBS KILLED LEADERBOARD'
+    lore:
+      - '&fRanks every player by mobs defeated.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fPvE Combat'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  blocks-broken:
+    material: COBBLESTONE
+    slot: 14
+    display-name: '&#FFAA00&lBLOCKS BROKEN LEADERBOARD'
+    lore:
+      - '&fRanks every player by blocks mined.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fMining'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  blocks-placed:
+    material: STONE
+    slot: 15
+    display-name: '&#FFAA00&lBLOCKS PLACED LEADERBOARD'
+    lore:
+      - '&fRanks every player by blocks placed.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fBuilding'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  play-time:
+    material: CLOCK
+    slot: 16
+    display-name: '&#FFAA00&lPLAY TIME LEADERBOARD'
+    lore:
+      - '&fRanks every player by time spent online.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fActivity'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  money-spent:
+    material: GOLD_NUGGET
+    slot: 19
+    display-name: '&#FFAA00&lMONEY SPENT LEADERBOARD'
+    lore:
+      - '&fRanks every player by money spent in shops.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fEconomy'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'
+
+  sells-made:
+    material: IRON_NUGGET
+    slot: 20
+    display-name: '&#FFAA00&lSELLS MADE LEADERBOARD'
+    lore:
+      - '&fRanks every player by completed sales.'
+      - ''
+      - '&#FFAA00◈ &#AAAAAACategory: &fMarket'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FFAA00to View'

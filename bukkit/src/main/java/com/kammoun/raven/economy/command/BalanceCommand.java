@@ -35,8 +35,12 @@ public class BalanceCommand extends KCommand {
                 sender.sendMessage(messages.get("balance.usage-console"));
                 return;
             }
+            double balance = service.getBalance(player.getUniqueId());
             player.sendMessage(messages.format("balance.own",
-                    "balance", economy.format(service.getBalance(player.getUniqueId()))));
+                    "balance", economy.format(balance),
+                    "balance_formatted", economy.format(balance),
+                    "balance_full", economy.formatFull(balance),
+                    "balance_raw", balance));
             return;
         }
 
@@ -53,9 +57,13 @@ public class BalanceCommand extends KCommand {
         }
 
         String name = target.getName() != null ? target.getName() : args[0];
+        double balance = service.getBalance(target.getUniqueId());
         sender.sendMessage(messages.format("balance.other",
                 "player", name,
-                "balance", economy.format(service.getBalance(target.getUniqueId()))));
+                "balance", economy.format(balance),
+                "balance_formatted", economy.format(balance),
+                "balance_full", economy.formatFull(balance),
+                "balance_raw", balance));
     }
 
     @Override

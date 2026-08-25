@@ -1,0 +1,5 @@
+entering: "&#A855F7The End &#7A7A7Apulls you in&#A855F7..."
+returning: "&#A855F7The End &#7A7A7Areleases you. Sending you back to the overworld&#A855F7..."
+no-end-location: "&#D90429The End is not accepting travellers right now. Try again shortly."
+no-return-location: "&#D90429No safe overworld location is available right now. Try again shortly."
+transfer-failed: "&#D90429The destination server could not be reached. Please try again."

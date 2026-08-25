@@ -2,8 +2,8 @@ package com.kammoun.raven.shop.manager;
 
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
-import com.kammoun.raven.library.util.NumberUtils;
 import com.kammoun.raven.shop.model.Category;
+import com.kammoun.raven.shop.model.ShopCurrency;
 import com.kammoun.raven.shop.model.ShopItem;
 import com.kammoun.raven.shop.model.inv.PurchaseHolder;
 import org.bukkit.Bukkit;
@@ -48,12 +48,15 @@ public class PurchaseManager {
         setButton(inv, config.getDecline());
         setButton(inv, config.getAccept());
 
-        setButton(inv, config.getMinus64(), 64);
-        if (cur > 16) setButton(inv, config.getMinus16(), 16);
-        if (cur > 1)  setButton(inv, config.getMinus1(), 1);
-        if (cur < max)       setButton(inv, config.getPlus1(), 1);
-        if (cur + 16 <= max) setButton(inv, config.getPlus16(), 16);
-        setButton(inv, config.getPlus64(), 64);
+        if (max > 1) {
+            if (cur > 1)          setButton(inv, config.getMinus1(), 1);
+            if (cur - 16 >= 1)    setButton(inv, config.getMinus16(), 16);
+            if (cur - 63 >= 1)    setButton(inv, config.getMinus64(), 64);
+
+            if (cur < max)        setButton(inv, config.getPlus1(), 1);
+            if (cur + 16 <= max)  setButton(inv, config.getPlus16(), 16);
+            if (cur + 63 <= max)  setButton(inv, config.getPlus64(), 64);
+        }
 
         ItemStack display = h.getShopItem().getIcon().getItemStack().clone();
         display.setAmount(Math.max(1, Math.min(cur, display.getMaxStackSize())));
@@ -61,8 +64,9 @@ public class PurchaseManager {
         if (meta != null) {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             if (!lore.isEmpty()) lore.add("");
-            String formatted = NumberUtils.formatDouble(h.getPricePerItem() * cur);
-            for (String line : config.getPriceLore()) {
+            ShopCurrency currency = h.getShopItem().getCurrency();
+            String formatted = currency.format(h.getPricePerItem() * cur);
+            for (String line : config.priceLore(currency)) {
                 lore.add(ChatFormatter.color(line.replace("%price%", formatted)));
             }
             meta.setLore(lore);

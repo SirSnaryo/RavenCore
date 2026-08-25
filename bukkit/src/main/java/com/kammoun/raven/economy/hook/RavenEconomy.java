@@ -34,6 +34,10 @@ public class RavenEconomy implements Economy {
 
     @Override
     public String format(double amount) {
+        return formatCompact(amount);
+    }
+
+    public String formatFull(double amount) {
         return format.format(amount) + " " + (amount == 1.0 ? singular : plural);
     }
 

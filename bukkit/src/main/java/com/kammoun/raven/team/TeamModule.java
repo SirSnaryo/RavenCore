@@ -15,7 +15,14 @@ import com.kammoun.raven.library.redis.event.TeamStateChangedEvent;
 import com.kammoun.raven.library.redis.event.TeamNotificationEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import com.kammoun.raven.team.db.TeamRepository;
 import com.kammoun.raven.team.db.TeamTable;
@@ -39,6 +46,8 @@ public final class TeamModule extends KModule<RavenCore> {
             return;
         }
         new TeamTable(api.getMySqlManager()).createTable();
+        restoreGuiSection("gui/kick-confirm.yml", "Items.Confirm", "Items.Cancel");
+        restoreGuiSection("gui/disband-confirm.yml", "Items.Confirm", "Items.Cancel");
         loadState();
         TeamCommand command = new TeamCommand(this);
         registerCommand(command, "team");
@@ -78,19 +87,61 @@ public final class TeamModule extends KModule<RavenCore> {
     }
 
     public void openKickConfirmation(Player player, TeamSnapshot.Member target) {
-        new TeamConfirmationMenu(api, "kick-confirm.yml", "&a&lConfirm Kick",
-                new String[]{"&7Click to confirm", "&7that you want to kick this player", "",
-                        "&c&lThis cannot be undone!"},
+        new TeamConfirmationMenu(api, "kick-confirm.yml",
                 () -> service.kick(player, target.lastName()),
                 () -> openMenu(player)).open(player);
     }
 
     public void openDisbandConfirmation(Player player) {
-        new TeamConfirmationMenu(api, "disband-confirm.yml", "&a&lConfirm Disband",
-                new String[]{"&7Click to confirm", "&7that you want to", "&cdisband your team", "",
-                        "&c&lThis cannot be undone!"},
+        new TeamConfirmationMenu(api, "disband-confirm.yml",
                 () -> service.disband(player),
                 () -> openMenu(player)).open(player);
+    }
+
+    /**
+     * The confirm/cancel items moved out of Java and into the gui files, so installs created before
+     * that change have a menu file with no Items section at all. Merge in only what is missing.
+     */
+    private void restoreGuiSection(String resourcePath, String... paths) {
+        File file = new File(getDataFolder(), resourcePath);
+        if (!file.isFile()) return;
+
+        YamlConfiguration menu = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration defaults;
+        try (InputStream stream = api.getResource("team/" + resourcePath)) {
+            if (stream == null) return;
+            defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().warning("[Team] Could not read bundled " + resourcePath + ": " + e.getMessage());
+            return;
+        }
+
+        boolean changed = false;
+        for (String path : paths) {
+            if (menu.contains(path) || !defaults.contains(path)) continue;
+            copyPath(defaults, menu, path);
+            changed = true;
+        }
+        if (!changed) return;
+
+        try {
+            menu.save(file);
+            getLogger().info("[Team] Restored confirm menu items in " + resourcePath + ".");
+        } catch (IOException e) {
+            getLogger().warning("[Team] Could not save " + resourcePath + ": " + e.getMessage());
+        }
+    }
+
+    private void copyPath(YamlConfiguration source, YamlConfiguration target, String path) {
+        ConfigurationSection section = source.getConfigurationSection(path);
+        if (section == null) {
+            target.set(path, source.get(path));
+            return;
+        }
+        for (String key : section.getKeys(true)) {
+            if (section.isConfigurationSection(key)) continue;
+            target.set(path + "." + key, section.get(key));
+        }
     }
 
     private void loadState() {

@@ -42,8 +42,8 @@ public final class HomeMenu extends KMenu {
                 bed.onClick(event -> {
                     if (state == State.NO_PERMISSION) return;
                     if (home == null) {
-                        module.getService().set(player, name);
                         player.closeInventory();
+                        module.getService().set(player, name, () -> module.openMenu(player));
                     } else module.getService().teleport(player, name);
                 });
                 setItem(bed);
@@ -52,8 +52,8 @@ public final class HomeMenu extends KMenu {
                 dye.onClick(event -> {
                     if (state == State.NO_PERMISSION) return;
                     if (home == null) {
-                        module.getService().set(player, name);
                         player.closeInventory();
+                        module.getService().set(player, name, () -> module.openMenu(player));
                     } else {
                         new HomeDeleteConfirmMenu(module.getApi(),
                                 () -> module.getService().delete(player, name),
@@ -83,7 +83,11 @@ public final class HomeMenu extends KMenu {
             bed.onClick(event -> {
                 if (!visit) return;
                 if (hasHome) module.getApi().getTeamModule().getService().home(player);
-                else if (edit) module.getApi().getTeamModule().getService().setHome(player);
+                else if (edit) {
+                    player.closeInventory();
+                    module.getApi().getTeamModule().getService().setHome(player,
+                            () -> module.openMenu(player));
+                }
             });
             setItem(bed);
         }
@@ -92,11 +96,13 @@ public final class HomeMenu extends KMenu {
                 if (!edit) return;
                 if (hasHome) {
                     new HomeDeleteConfirmMenu(module.getApi(),
-                            () -> module.getApi().getTeamModule().getService().deleteHome(player),
+                            () -> module.getApi().getTeamModule().getService().deleteHome(player,
+                                    () -> module.openMenu(player)),
                             () -> module.openMenu(player)).open(player);
                 } else {
-                    module.getApi().getTeamModule().getService().setHome(player);
                     player.closeInventory();
+                    module.getApi().getTeamModule().getService().setHome(player,
+                            () -> module.openMenu(player));
                 }
             });
             setItem(dye);

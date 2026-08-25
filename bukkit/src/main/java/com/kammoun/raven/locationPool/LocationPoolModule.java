@@ -33,7 +33,6 @@ public final class LocationPoolModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
-        removeObsoleteLimits();
         locationPool = new RedisLocationPool(
                 api.getRedisMessenger().getConnection().getPool(), getLogger());
         onEvent(WorldLoadEvent.class, event -> tryStartGeneration());
@@ -55,23 +54,6 @@ public final class LocationPoolModule extends KModule<RavenCore> {
 
     public LocationPool getPool() {
         return locationPool;
-    }
-
-    private void removeObsoleteLimits() {
-        String base = "location-library.";
-        boolean changed = false;
-        for (String key : List.of("pool-target-size", "max-refill-per-cycle",
-                "max-attempts-per-location")) {
-            String path = base + key;
-            if (getConfig().contains(path)) {
-                getConfig().set(path, null);
-                changed = true;
-            }
-        }
-        if (changed) {
-            saveConfig();
-            getLogger().info("[LocationPool] Removed obsolete generation limits from config.yml.");
-        }
     }
 
     private void prepareGeneration() {

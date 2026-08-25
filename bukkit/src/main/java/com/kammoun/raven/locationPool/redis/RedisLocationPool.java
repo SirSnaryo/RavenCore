@@ -74,6 +74,22 @@ public final class RedisLocationPool implements LocationPool {
     }
 
     @Override
+    public Optional<RtpLocation> getRandomLocationGlobal(LocationDimension dimension) {
+        if (pool == null) {
+            return Optional.empty();
+        }
+        try (Jedis jedis = pool.getResource()) {
+            List<String> servers = ClusterServerIds.fromRegistry(
+                    jedis.hgetAll(LocationPoolKeys.globalGridRegistry(dimension)));
+            return popRandomAvailable(jedis, servers, dimension);
+        } catch (Exception e) {
+            logger.warning("[LocationPool] Failed to pop global location for "
+                    + dimension + ": " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public long getPoolSize(String serverId, LocationDimension dimension) {
         if (pool == null) {
             return 0;
@@ -90,6 +106,38 @@ public final class RedisLocationPool implements LocationPool {
     @Override
     public boolean isReady(String serverId, LocationDimension dimension) {
         return getPoolSize(serverId, dimension) > 0;
+    }
+
+    public List<String> getRegisteredServers(String cluster, LocationDimension dimension) {
+        if (pool == null || cluster == null || cluster.isBlank()) {
+            return List.of();
+        }
+        try (Jedis jedis = pool.getResource()) {
+            return ClusterServerIds.fromRegistry(jedis.hgetAll(LocationPoolKeys.clusterRegistry(cluster, dimension)));
+        } catch (Exception e) {
+            logger.warning("[LocationPool] Failed to read cluster servers for " + cluster + "/"
+                    + dimension + ": " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<String> getRegisteredServersAcrossClusters(Collection<String> clusters,
+                                                            LocationDimension dimension) {
+        if (pool == null || clusters == null || clusters.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<String> serverIds = new LinkedHashSet<>();
+        try (Jedis jedis = pool.getResource()) {
+            for (String cluster : clusters) {
+                if (cluster == null || cluster.isBlank()) continue;
+                serverIds.addAll(ClusterServerIds.fromRegistry(
+                        jedis.hgetAll(LocationPoolKeys.clusterRegistry(cluster, dimension))));
+            }
+        } catch (Exception e) {
+            logger.warning("[LocationPool] Failed to read cluster servers for " + dimension
+                    + ": " + e.getMessage());
+        }
+        return serverIds.stream().sorted().toList();
     }
 
     public void push(RtpLocation location) {

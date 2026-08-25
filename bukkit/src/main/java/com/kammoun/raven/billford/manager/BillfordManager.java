@@ -6,7 +6,6 @@ import com.kammoun.raven.billford.config.BillfordMessages;
 import com.kammoun.raven.billford.db.BillfordRepository;
 import com.kammoun.raven.billford.model.BillfordPreset;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
-import org.bukkit.Bukkit;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -43,12 +42,15 @@ public class BillfordManager {
 
     private volatile String currentPresetName;
     private volatile long lastChange;
+    private volatile long rotationIntervalMillis;
+    private volatile long stateVersion = -1L;
 
     public BillfordManager(RavenCore api, BillfordRepository repository, BillfordConfig config, BillfordMessages messages) {
         this.api = api;
         this.repository = repository;
         this.config = config;
         this.messages = messages;
+        this.rotationIntervalMillis = config.getIntervalMillis();
     }
 
     public void updateConfig(BillfordConfig config, BillfordMessages messages) {
@@ -84,7 +86,15 @@ public class BillfordManager {
     }
 
     public long timeUntilNextChange() {
-        return Math.max(0, lastChange + config.getIntervalMillis() - System.currentTimeMillis());
+        return Math.max(0, lastChange + rotationIntervalMillis - System.currentTimeMillis());
+    }
+
+    public long nextChangeAtMillis() {
+        return Math.max(0, lastChange + rotationIntervalMillis);
+    }
+
+    public long getRotationIntervalMillis() {
+        return rotationIntervalMillis;
     }
 
     // ─── Loading ─────────────────────────────────────────────────────────────────
@@ -119,8 +129,8 @@ public class BillfordManager {
         SchedulerUtil.runAsync(() -> {
             try {
                 BillfordRepository.State state = repository.loadState();
-                currentPresetName = state.currentPreset();
-                lastChange = state.lastChange();
+                applyState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), false);
             } catch (SQLException e) {
                 api.getLogger().warning("[Billford] State reload failed: " + e.getMessage());
             }
@@ -200,11 +210,11 @@ public class BillfordManager {
             boolean ok = true;
             long now = System.currentTimeMillis();
             try {
-                repository.setState(name, now);
-                currentPresetName = name;
-                lastChange = now;
-                publishState(name, now, true);
-                broadcastChange(name);
+                BillfordRepository.State state = repository.setState(name, now);
+                applyState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), true);
+                publishState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), true);
             } catch (SQLException e) {
                 api.getLogger().warning("[Billford] Failed to switch preset: " + e.getMessage());
                 ok = false;
@@ -233,11 +243,13 @@ public class BillfordManager {
         long expected = lastChange;
         long now = System.currentTimeMillis();
         try {
-            if (repository.tryAdvance(next, expected, now)) {
-                currentPresetName = next;
-                lastChange = now;
-                publishState(next, now, true);
-                broadcastChange(next);
+            var advanced = repository.tryAdvance(next, expected, now);
+            if (advanced.isPresent()) {
+                BillfordRepository.State state = advanced.get();
+                applyState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), true);
+                publishState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), true);
             } else {
                 reloadState(); // another server advanced first — catch up
             }
@@ -248,26 +260,50 @@ public class BillfordManager {
 
     // ─── Remote application (from cross-server events) ───────────────────────────
 
-    public void applyRemoteState(String currentPreset, long lastChange, boolean announce) {
-        this.currentPresetName = currentPreset;
-        this.lastChange = lastChange;
-        if (announce && currentPreset != null) broadcastChange(currentPreset);
+    public void applyRemoteState(String currentPreset, long lastChange,
+                                 long rotationIntervalMillis, long version, boolean announce) {
+        applyState(currentPreset, lastChange, rotationIntervalMillis, version, announce);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-    private void publishState(String preset, long lastChange, boolean announce) {
+    public void setRotationInterval(long intervalMillis, Consumer<Boolean> callback) {
+        SchedulerUtil.runAsync(() -> {
+            boolean ok = true;
+            try {
+                BillfordRepository.State state = repository.setRotationInterval(intervalMillis);
+                applyState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), false);
+                publishState(state.currentPreset(), state.lastChange(),
+                        state.rotationIntervalMillis(), state.version(), false);
+            } catch (SQLException error) {
+                api.getLogger().warning("[Billford] Failed to update rotation interval: "
+                        + error.getMessage());
+                ok = false;
+            }
+            finish(callback, ok);
+        });
+    }
+
+    private synchronized void applyState(String preset, long changedAt,
+                                         long intervalMillis, long version, boolean announce) {
+        if (version < stateVersion) return;
+        currentPresetName = preset;
+        lastChange = changedAt;
+        if (intervalMillis > 0) rotationIntervalMillis = intervalMillis;
+        stateVersion = version;
+        // Rotation is visible in the GUI/placeholders only; do not broadcast chat noise.
+    }
+
+    private void publishState(String preset, long lastChange, long intervalMillis,
+                              long version, boolean announce) {
         var event = new com.kammoun.raven.library.redis.event.BillfordStateUpdatedEvent();
         event.setCurrentPreset(preset);
         event.setLastChange(lastChange);
+        event.setRotationIntervalMillis(intervalMillis);
+        event.setStateVersion(version);
         event.setAnnounce(announce);
         api.getNetworkEventBus().publish(event);
-    }
-
-    private void broadcastChange(String presetName) {
-        String line = messages.format("preset-changed", "preset", presetName);
-        if (line.isEmpty()) return;
-        SchedulerUtil.run(() -> Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(line)));
     }
 
     private synchronized void putLocal(BillfordPreset preset) {

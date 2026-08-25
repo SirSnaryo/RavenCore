@@ -2,18 +2,22 @@ package com.kammoun.raven.borders;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.borders.config.BorderConfig;
+import com.kammoun.raven.borders.config.TrueWorldBorderConfig;
 import com.kammoun.raven.borders.listener.BorderInteractionListener;
 import com.kammoun.raven.borders.listener.BorderMovementListener;
 import com.kammoun.raven.borders.listener.PlayerListener;
 import com.kammoun.raven.borders.particle.BorderParticleRenderer;
 import com.kammoun.raven.borders.registery.BorderRegistry;
 import com.kammoun.raven.borders.utils.BorderTransferStore;
+import com.kammoun.raven.borders.world.BorderSpawnController;
+import com.kammoun.raven.borders.world.TrueWorldBorderController;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.redis.event.BorderTransferFailedEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
 import org.bukkit.entity.Player;
+import org.bukkit.event.world.WorldLoadEvent;
 
 import java.util.UUID;
 
@@ -25,6 +29,8 @@ public class BorderModule extends KModule<RavenCore> {
     private BorderTransferStore transferStore;
     private BorderParticleRenderer particleRenderer;
     private BorderMovementListener movementListener;
+    private TrueWorldBorderController trueWorldBorderController;
+    private BorderSpawnController borderSpawnController;
 
     public BorderModule() {
         super("borders");
@@ -33,6 +39,7 @@ public class BorderModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         borderConfig = new BorderConfig(api.getConfig());
+        TrueWorldBorderConfig trueBorderConfig = loadTrueWorldBorderConfig();
         var pool = api.getRedisMessenger().getConnection().getPool();
         registry = new BorderRegistry(pool, getLogger());
         transferStore = new BorderTransferStore(pool, getLogger());
@@ -44,6 +51,14 @@ public class BorderModule extends KModule<RavenCore> {
         registerEvent(new BorderInteractionListener(this));
         registerEvent(new PlayerListener(this));
         registerEvent(particleRenderer);
+        trueWorldBorderController = new TrueWorldBorderController(api, getLogger(), trueBorderConfig);
+        borderSpawnController = new BorderSpawnController(api, getLogger(), borderConfig);
+        onEvent(WorldLoadEvent.class, event -> {
+            trueWorldBorderController.apply(event.getWorld());
+            borderSpawnController.apply(event.getWorld());
+        });
+        trueWorldBorderController.applyLoadedWorlds();
+        borderSpawnController.applyLoadedWorlds();
         particleRenderer.start();
         api.getNetworkEventBus().subscribe(BorderTransferFailedEvent.class, this::onTransferFailed);
 
@@ -56,12 +71,37 @@ public class BorderModule extends KModule<RavenCore> {
         if (particleRenderer != null) {
             particleRenderer.close();
         }
+        if (trueWorldBorderController != null) {
+            trueWorldBorderController.close();
+        }
         api.getNetworkEventBus().unsubscribe(BorderTransferFailedEvent.class);
     }
 
     @Override
     public void reload() {
+        api.reloadConfig();
         borderConfig = new BorderConfig(api.getConfig());
+        if (borderSpawnController != null) {
+            borderSpawnController.reload(borderConfig);
+        }
+        try {
+            TrueWorldBorderConfig trueBorderConfig = TrueWorldBorderConfig.load(api.getConfig(), borderConfig);
+            if (trueWorldBorderController != null) {
+                trueWorldBorderController.reload(trueBorderConfig);
+            }
+        } catch (IllegalArgumentException error) {
+            getLogger().severe("[WorldBorder] Reload rejected; keeping the current native border: "
+                    + error.getMessage());
+        }
+    }
+
+    private TrueWorldBorderConfig loadTrueWorldBorderConfig() {
+        try {
+            return TrueWorldBorderConfig.load(api.getConfig(), borderConfig);
+        } catch (IllegalArgumentException error) {
+            getLogger().severe("[WorldBorder] Native outer border disabled: " + error.getMessage());
+            return TrueWorldBorderConfig.disabled();
+        }
     }
 
     public void suppressTransfers(UUID playerUuid, long durationMillis) {

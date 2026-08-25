@@ -1,0 +1,118 @@
+icon:
+  material: CHEST
+  name: '&aᴄᴏᴍᴍᴏɴ ᴄʀᴀᴛᴇ'
+  lore:
+    - '&7(Place this crate)'
+  nbt:
+    crate_id: "string:common_crate"
+
+inventory:
+  name: '&8ᴄʜᴏᴏsᴇ 1 ɪᴛᴇᴍ'
+  size: 27
+  background-icon:
+    material: BLACK_STAINED_GLASS_PANE
+    name: '&aᴄᴏᴍᴍᴏɴ ᴄʀᴀᴛᴇ'
+    lore:
+      - '&7With a ᴋᴇʏᴀʟʟ ᴋᴇʏ you can choose'
+      - '&7which of the 7 you want.'
+    glow: false
+
+hologram:
+  1:
+    height: 1.5
+    lines:
+      - '&aᴄᴏᴍᴍᴏɴ ᴄʀᴀᴛᴇ'
+      - '&f/store'
+  2:
+    height: -0.3
+    lines:
+      - '&a%crates_keys_common_crate% &fKeys'
+
+rewards:
+  1:
+    give-icon: true
+    trim:
+      material: emerald
+      pattern: wild
+    item:
+      slot: 10
+      material: DIAMOND_HELMET
+      name: '&aᴄᴏᴍᴍᴏɴ ʜᴇʟᴍᴇᴛ'
+      enchantments:
+        - "PROTECTION:1"
+        - "RESPIRATION:2"
+      unbreakable: true
+
+  2:
+    give-icon: true
+    trim:
+      material: emerald
+      pattern: wild
+    item:
+      slot: 11
+      material: DIAMOND_CHESTPLATE
+      name: '&aᴄᴏᴍᴍᴏɴ ᴄʜᴇsᴛᴘʟᴀᴛᴇ'
+      enchantments:
+        - "PROTECTION:1"
+      unbreakable: true
+
+  3:
+    give-icon: true
+    trim:
+      material: emerald
+      pattern: wild
+    item:
+      slot: 12
+      material: DIAMOND_LEGGINGS
+      name: '&aᴄᴏᴍᴍᴏɴ ʟᴇɢɢɪɴɢs'
+      enchantments:
+        - "PROTECTION:1"
+        - "SWIFT_SNEAK:2"
+      unbreakable: true
+
+  4:
+    give-icon: true
+    trim:
+      material: emerald
+      pattern: wild
+    item:
+      slot: 13
+      material: DIAMOND_BOOTS
+      name: '&aᴄᴏᴍᴍᴏɴ ʙᴏᴏᴛs'
+      enchantments:
+        - "PROTECTION:1"
+        - "DEPTH_STRIDER:2"
+        - "FEATHER_FALLING:2"
+      unbreakable: true
+
+  5:
+    give-icon: true
+    item:
+      slot: 14
+      material: DIAMOND_SWORD
+      name: '&aᴄᴏᴍᴍᴏɴ sᴡᴏʀᴅ'
+      enchantments:
+        - "SHARPNESS:1"
+        - "LOOTING:2"
+      unbreakable: true
+
+  6:
+    give-icon: true
+    item:
+      slot: 15
+      material: DIAMOND_PICKAXE
+      name: '&aᴄᴏᴍᴍᴏɴ ᴘɪᴄᴋᴀxᴇ'
+      enchantments:
+        - "FORTUNE:1"
+        - "EFFICIENCY:2"
+      unbreakable: true
+
+  7:
+    give-icon: true
+    item:
+      slot: 16
+      material: DIAMOND_SHOVEL
+      name: '&aᴄᴏᴍᴍᴏɴ sʜᴏᴠᴇʟ'
+      enchantments:
+        - "EFFICIENCY:3"
+      unbreakable: true

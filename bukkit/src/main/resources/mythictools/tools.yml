@@ -1,0 +1,78 @@
+tools:
+  drill:
+    material: NETHERITE_PICKAXE
+    display-name: "&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴅʀɪʟʟ"
+    lore:
+      - "&#7A7A7ABreaks a 3x3 area."
+      - ""
+      - "&#B466DFMythic Tool"
+    enchantments: [ "MENDING:1", "UNBREAKING:3", "EFFICIENCY:5" ]
+    flags: [ "HIDE_ENCHANTS" ]
+    unbreakable: true
+    glow: true
+    self-destruct: 5d
+    sound:
+      enabled: true
+      sound: BLOCK_ANVIL_LAND
+      pitch: 2.0
+      volume: 0.5
+
+  multi_tool:
+    material: NETHERITE_PICKAXE
+    switch:
+      pickaxe: NETHERITE_PICKAXE
+      shovel: NETHERITE_SHOVEL
+      axe: NETHERITE_AXE
+      sword: NETHERITE_SWORD
+    display-name: "&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴍᴜʟᴛɪᴛᴏᴏʟ"
+    lore:
+      - "&#7A7A7ATurns into the right tool on its own:"
+      - "&#7A7A7Apickaxe, shovel, axe or sword."
+      - ""
+      - "&#B466DFMythic Tool"
+    enchantments: [ "MENDING:1", "UNBREAKING:3", "EFFICIENCY:5" ]
+    flags: [ "HIDE_ENCHANTS" ]
+    unbreakable: true
+    glow: true
+    self-destruct: 5d
+    sound:
+      enabled: true
+      sound: UI_BUTTON_CLICK
+      pitch: 1.35
+      volume: 1.0
+
+  tree_chopper:
+    material: NETHERITE_AXE
+    display-name: "&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴛʀᴇᴇ ᴄʜᴏᴘᴘᴇʀ"
+    lore:
+      - "&#7A7A7AChops connected logs."
+      - ""
+      - "&#B466DFMythic Tool"
+    enchantments: [ "MENDING:1", "UNBREAKING:3", "EFFICIENCY:5", "SILK_TOUCH:1" ]
+    flags: [ "HIDE_ENCHANTS" ]
+    unbreakable: true
+    glow: true
+    self-destruct: 5d
+    sound:
+      enabled: true
+      sound: BLOCK_WOOD_BREAK
+      pitch: 1.0
+      volume: 0.5
+
+  sell_axe:
+    material: NETHERITE_AXE
+    display-name: "&#B466DFѕᴇʟʟ ᴀxᴇ"
+    lore:
+      - "&#7A7A7ARight-click a chest to sell its contents."
+      - ""
+      - "&#B466DFMythic Tool"
+    enchantments: [ "MENDING:1", "UNBREAKING:3", "EFFICIENCY:5" ]
+    flags: [ "HIDE_ENCHANTS" ]
+    unbreakable: true
+    glow: true
+    self-destruct: 5d
+    sound:
+      enabled: true
+      sound: ENTITY_EXPERIENCE_ORB_PICKUP
+      pitch: 1.0
+      volume: 1.0

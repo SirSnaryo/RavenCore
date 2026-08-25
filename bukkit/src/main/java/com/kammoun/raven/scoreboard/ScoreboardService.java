@@ -42,32 +42,50 @@ public class ScoreboardService {
     }
 
     public void reload(ScoreboardConfig config) {
-        clear();
-        this.config = config;
-        if (config.isEnabled()) {
-            showOnlineBatched(Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getUniqueId)
-                    .toList(), 0);
-        }
+        SchedulerUtil.run(() -> {
+            clearGlobal();
+            this.config = config;
+            if (config.isEnabled()) {
+                showOnlineBatched(Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getUniqueId)
+                        .toList(), 0);
+            }
+        });
     }
 
     public void clear() {
+        if (!plugin.isEnabled()) {
+            boards.clear();
+            return;
+        }
+        SchedulerUtil.run(this::clearGlobal);
+    }
+
+    private void clearGlobal() {
         List<Map.Entry<UUID, RavenBoard>> snapshot = new ArrayList<>(boards.entrySet());
         boards.clear();
         deleteBatched(snapshot, 0);
     }
 
     public void showIfAllowed(Player player) {
+        if (!plugin.isEnabled()) {
+            return;
+        }
+        SchedulerUtil.run(() -> showIfAllowedGlobal(player));
+    }
+
+    private void showIfAllowedGlobal(Player player) {
         if (!config.isEnabled()
+                || !player.isOnline()
                 || disabled.contains(player.getUniqueId())
                 || config.isWorldDisabled(player.getWorld().getName())) {
-            remove(player);
+            removeGlobal(player);
             return;
         }
 
         Optional<ScoreboardDefinition> definition = select(player);
         if (definition.isEmpty()) {
-            remove(player);
+            removeGlobal(player);
             return;
         }
 
@@ -76,13 +94,21 @@ public class ScoreboardService {
             return;
         }
 
-        remove(player);
+        removeGlobal(player);
         RavenBoard board = new RavenBoard(player, definition.get(), placeholders);
         boards.put(player.getUniqueId(), board);
         board.create();
     }
 
     public void remove(Player player) {
+        if (!plugin.isEnabled()) {
+            boards.remove(player.getUniqueId());
+            return;
+        }
+        SchedulerUtil.run(() -> removeGlobal(player));
+    }
+
+    private void removeGlobal(Player player) {
         RavenBoard board = boards.remove(player.getUniqueId());
         if (board != null) {
             board.delete();
@@ -163,23 +189,24 @@ public class ScoreboardService {
 
     public void tick(int elapsedTicks) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            SchedulerUtil.execute(player, () -> {
-                RavenBoard board = boards.get(player.getUniqueId());
-                if (board != null && player.isOnline()) {
-                    board.tick(elapsedTicks);
-                }
-            });
+            RavenBoard board = boards.get(player.getUniqueId());
+            if (board != null && player.isOnline()) {
+                board.tick(elapsedTicks);
+            }
         }
     }
 
     public void refreshSelections() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            SchedulerUtil.execute(player, () -> showIfAllowed(player));
+            showIfAllowedGlobal(player);
         }
     }
 
     public void updateEvent(Player player, String eventName) {
-        SchedulerUtil.execute(player, () -> {
+        if (!plugin.isEnabled()) {
+            return;
+        }
+        SchedulerUtil.run(() -> {
             RavenBoard board = boards.get(player.getUniqueId());
             if (board != null && player.isOnline()) {
                 board.updateEvent(eventName);
@@ -202,6 +229,10 @@ public class ScoreboardService {
                     .forEach(line -> names.add(line.eventName()));
         }
         return names;
+    }
+
+    public ScoreboardPlaceholders getPlaceholders() {
+        return placeholders;
     }
 
     private Optional<ScoreboardDefinition> select(Player player) {
@@ -231,7 +262,7 @@ public class ScoreboardService {
         for (int i = start; i < end; i++) {
             Player player = Bukkit.getPlayer(players.get(i));
             if (player != null) {
-                SchedulerUtil.execute(player, () -> showIfAllowed(player));
+                showIfAllowedGlobal(player);
             }
         }
 
@@ -253,11 +284,6 @@ public class ScoreboardService {
         int end = Math.min(entries.size(), start + RELOAD_BATCH_SIZE);
         for (int i = start; i < end; i++) {
             Map.Entry<UUID, RavenBoard> entry = entries.get(i);
-            Player player = Bukkit.getPlayer(entry.getKey());
-            if (player != null) {
-                SchedulerUtil.execute(player, entry.getValue()::delete);
-                continue;
-            }
             entry.getValue().delete();
         }
 

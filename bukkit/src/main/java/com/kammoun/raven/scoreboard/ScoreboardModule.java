@@ -1,11 +1,13 @@
 package com.kammoun.raven.scoreboard;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.library.platform.placeholder.KPlaceholderExpansion;
 import com.kammoun.raven.library.redis.event.BalanceUpdateEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.scoreboard.command.ScoreboardCommand;
 import com.kammoun.raven.scoreboard.config.ScoreboardConfig;
 import com.kammoun.raven.library.module.KModule;
+import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholderExpansion;
 import com.kammoun.raven.scoreboard.stats.ScoreboardStatsRepository;
 import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import lombok.Getter;
@@ -19,10 +21,6 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,11 +44,11 @@ public class ScoreboardModule extends KModule<RavenCore> {
     @Override
     public void onModuleEnable() {
         saveDefaultConfig("config.example.yml");
-        migrateConfigFile();
         reloadConfig();
         statsService = createStatsService();
         statsService.init();
         service = new ScoreboardService(api, new ScoreboardConfig(getConfig()), new ScoreboardToggleStorage(getDataFolder(), getLogger()), statsService);
+        registerPlaceholders();
         registerCommand(new ScoreboardCommand(this), "scoreboard");
         registerListeners();
         startTasks();
@@ -78,7 +76,6 @@ public class ScoreboardModule extends KModule<RavenCore> {
 
     @Override
     public void reload() {
-        migrateConfigFile();
         reloadConfig();
         stopTasks();
         service.reload(new ScoreboardConfig(getConfig()));
@@ -158,25 +155,17 @@ public class ScoreboardModule extends KModule<RavenCore> {
         return new ScoreboardStatsService(repository, getLogger());
     }
 
-    private void migrateConfigFile() {
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.isFile()) {
+    private void registerPlaceholders() {
+        if (!KPlaceholderExpansion.isAvailable()) {
+            getLogger().info("[Scoreboard] PlaceholderAPI not found; %raven_*% placeholders will resolve internally only.");
             return;
         }
 
-        try {
-            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            String updated = content.replace(">NA East <#4CC9F0>", ">%raven_server_display% <#4CC9F0>");
-            if (!updated.contains("# - %raven_server_display%")) {
-                updated = updated.replace("# - %raven_server%\n", "# - %raven_server%\n    # - %raven_server_display%\n");
-                updated = updated.replace("# - %raven_server%\r\n", "# - %raven_server%\r\n    # - %raven_server_display%\r\n");
-            }
-            if (!updated.equals(content)) {
-                Files.writeString(file.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Scoreboard] Migrated server display placeholder in config.yml.");
-            }
-        } catch (IOException e) {
-            getLogger().warning("[Scoreboard] Failed to migrate config.yml: " + e.getMessage());
+        boolean registered = new ScoreboardPlaceholderExpansion(api, service.getPlaceholders()).register();
+        if (registered) {
+            getLogger().info("[Scoreboard] Registered %raven_*% PlaceholderAPI placeholders.");
+        } else {
+            getLogger().warning("[Scoreboard] Could not register %raven_*% placeholders because the identifier is already taken.");
         }
     }
 

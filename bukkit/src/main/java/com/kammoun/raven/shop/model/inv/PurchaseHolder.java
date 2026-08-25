@@ -17,6 +17,7 @@ public class PurchaseHolder implements InventoryHolder {
     private final double pricePerItem;
     private final Category category;
     @Setter private Inventory inventory;
+    private boolean processing;
 
     public PurchaseHolder(ShopItem shopItem, int currentAmount, int maxAmount, double pricePerItem, Category category) {
         this.shopItem = shopItem;
@@ -24,6 +25,16 @@ public class PurchaseHolder implements InventoryHolder {
         this.maxAmount = maxAmount;
         this.pricePerItem = pricePerItem;
         this.category = category;
+    }
+
+    public boolean beginPurchase() {
+        if (processing) return false;
+        processing = true;
+        return true;
+    }
+
+    public void endPurchase() {
+        processing = false;
     }
 
     @Override

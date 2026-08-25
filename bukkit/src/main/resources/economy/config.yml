@@ -1,18 +1,26 @@
 starting-balance: 0.0
 
 currency:
-  singular: "Coin"
-  plural: "Coins"
+  singular: "Money"
+  plural: "Money"
   fractional-digits: 2
 
 confirm:
   enabled: true
   large-amount-threshold: 100000.0
+  # Leave blank so admins/OPs still see the confirmation GUI for large payments.
+  # Set to "raven.economy.confirm.bypass" only if you want a real bypass permission.
+  bypass-permission: ""
   expires-seconds: 30
 
 logs:
   enabled: true
   gui-page-size: 45
+
+balance-mirror:
+  # Coalesces many balance changes into one async MySQL upsert per player.
+  flush-interval-seconds: 10
+  batch-size: 250
 
 sounds:
   confirm-open:

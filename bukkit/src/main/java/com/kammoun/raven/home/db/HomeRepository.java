@@ -42,6 +42,19 @@ public final class HomeRepository {
         }
     }
 
+    public Optional<HomeRecord> findFirst(UUID playerUuid) throws SQLException {
+        String sql = "SELECT home_name, server_id, world, x, y, z, yaw, pitch FROM ravencore_homes "
+                + "WHERE player_uuid=? ORDER BY home_name LIMIT 1";
+        try (Connection connection = database.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, playerUuid.toString());
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next()
+                        ? Optional.of(read(playerUuid, result.getString("home_name"), result))
+                        : Optional.empty();
+            }
+        }
+    }
+
     public List<HomeRecord> findAll(UUID playerUuid) throws SQLException {
         List<HomeRecord> homes = new ArrayList<>();
         String sql = "SELECT home_name, server_id, world, x, y, z, yaw, pitch FROM ravencore_homes "

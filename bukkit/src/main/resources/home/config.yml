@@ -4,18 +4,18 @@ cancel-on-move: true
 cancel-on-damage: true
 
 messages:
-  set: '&aHome &f%home% &ahas been set.'
-  deleted: '&aHome &f%home% &ahas been deleted.'
-  not-found: '&cHome &f%home% &cdoes not exist.'
-  none: '&cYou do not have any homes. Use &f/sethome <name>&c.'
-  invalid-name: '&cHome names may only contain letters, numbers, underscores, and hyphens.'
-  limit-reached: '&cYou have reached your limit of &f%limit% &chomes.'
-  delete-usage: '&cUsage: /delhome <name>'
-  warmup-actionbar: '&d&lHOME &8» &fTeleporting to &d%home% &fin &d%seconds%s&f...'
-  cancelled-move: '&cHome teleport cancelled because you moved.'
-  cancelled-damage: '&cHome teleport cancelled because you took damage.'
-  teleported: '&aTeleported to home &f%home%&a.'
-  connecting: '&7Connecting to &f%server% &7for home &f%home%&7...'
-  transfer-failed: '&cCould not teleport you to home &f%home%&c.'
-  world-missing: '&cThe world &f%world% &cis unavailable.'
-  database-error: '&cHomes are temporarily unavailable. Please try again.'
+  set: "&#55FF55✔ Home &f%home% &#55FF55has been set."
+  deleted: "&#55FF55✔ Home &f%home% &#55FF55has been deleted."
+  not-found: "&#FF4D4D✕ Home &f%home% &#FF4D4Ddoes not exist."
+  none: "&#FF4D4D✕ You do not have any homes. Use &f/sethome <name>&#FF4D4D."
+  invalid-name: "&#FF4D4D✕ Home names may only contain letters, numbers, underscores, and hyphens."
+  limit-reached: "&#FF4D4D✕ You have reached your limit of &f%limit% &#FF4D4Dhomes."
+  delete-usage: "&#FF4D4D✕ Usage: /delhome <name>"
+  warmup-actionbar: "&#00FFFFTeleporting to &f%home% &#00FFFFin &f%seconds% &#00FFFFseconds..."
+  cancelled-move: "&#FF4D4D✕ Home teleport cancelled because you moved."
+  cancelled-damage: "&#FF4D4D✕ Home teleport cancelled because you took damage."
+  teleported: "&#55FF55✔ Teleported to home &f%home%&#55FF55."
+  connecting: "&#00FFFF▸ Connecting to &f%server% &#00FFFFfor home &f%home%&#00FFFF..."
+  transfer-failed: "&#FF4D4D✕ Could not teleport you to home &f%home%&#FF4D4D."
+  world-missing: "&#FF4D4D✕ The world &f%world% &#FF4D4Dis unavailable."
+  database-error: "&#FF4D4D✕ Homes are temporarily unavailable. Please try again."

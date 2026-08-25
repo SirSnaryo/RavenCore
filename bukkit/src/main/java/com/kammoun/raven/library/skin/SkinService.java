@@ -1,8 +1,10 @@
 package com.kammoun.raven.library.skin;
 
 import com.kammoun.raven.library.skin.cache.ConcurrentSkinCache;
+import com.kammoun.raven.library.skin.cache.MySQLSkinStorage;
 import com.kammoun.raven.library.skin.cache.SQLiteSkinStorage;
 import com.kammoun.raven.library.skin.cache.SkinCache;
+import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.skin.model.SkinData;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
@@ -25,9 +27,15 @@ public final class SkinService {
     private final Map<UUID, CompletableFuture<SkinData>> pendingFetches;
     
     public SkinService(@NotNull Plugin plugin) {
+        this(plugin, null);
+    }
+
+    public SkinService(@NotNull Plugin plugin, @Nullable MySQLDBManager database) {
         this.plugin = plugin;
         this.cache = new ConcurrentSkinCache();
-        this.storage = new SQLiteSkinStorage(plugin.getDataFolder(), plugin.getLogger());
+        this.storage = database != null && database.isConnected()
+                ? new MySQLSkinStorage(database, plugin.getLogger())
+                : new SQLiteSkinStorage(plugin.getDataFolder(), plugin.getLogger());
         this.pendingFetches = new ConcurrentHashMap<>();
     }
     

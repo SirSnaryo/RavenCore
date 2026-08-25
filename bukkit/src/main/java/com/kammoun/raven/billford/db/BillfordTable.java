@@ -15,9 +15,11 @@ import java.sql.Statement;
 public class BillfordTable implements KTables {
 
     private final MySQLDBManager db;
+    private final long bootstrapIntervalMillis;
 
-    public BillfordTable(MySQLDBManager db) {
+    public BillfordTable(MySQLDBManager db, long bootstrapIntervalMillis) {
         this.db = db;
+        this.bootstrapIntervalMillis = bootstrapIntervalMillis;
     }
 
     @Override
@@ -33,13 +35,20 @@ public class BillfordTable implements KTables {
                 "id              TINYINT      NOT NULL DEFAULT 1," +
                 "current_preset  VARCHAR(64)  NULL," +
                 "last_change     BIGINT       NOT NULL DEFAULT 0," +
+                "rotation_interval BIGINT     NULL," +
+                "state_version   BIGINT       NOT NULL DEFAULT 0," +
                 "PRIMARY KEY (id)" +
                 ")";
         try (Connection c = db.getConnection(); Statement s = c.createStatement()) {
             s.executeUpdate(presets);
             s.executeUpdate(state);
-            // Seed the single state row so the CAS-based rotation always has a row to update.
-            s.executeUpdate("INSERT IGNORE INTO ravencore_billford_state (id, current_preset, last_change) VALUES (1, NULL, 0)");
+            // First backend to initialize the network wins the bootstrap value. After this row
+            // exists, the interval is changed only through the network-wide admin command.
+            s.executeUpdate("INSERT IGNORE INTO ravencore_billford_state "
+                    + "(id, current_preset, last_change, rotation_interval) VALUES "
+                    + "(1, NULL, 0, " + bootstrapIntervalMillis + ")");
+            s.executeUpdate("UPDATE ravencore_billford_state SET rotation_interval = "
+                    + bootstrapIntervalMillis + " WHERE id = 1 AND rotation_interval IS NULL");
         } catch (SQLException e) {
             throw new RuntimeException("Failed to create Billford tables", e);
         }

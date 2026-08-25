@@ -1,0 +1,14 @@
+
+automatic-key-all:
+  time: 3600
+  keys:
+    common_crate: 1
+    # prime_crate: 1
+    # gold_crate: 1
+    # crimson_crate: 1
+    # amethyst_crate: 1
+  alert:
+    enabled: true
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    actionbar: "&7You just got &#3498db%crate% &7key(s)!"
+    chat-message: "&7You received &#3498db%crate% &7key(s)!\n<click:run_command:/warp crates><hover:show_text:'&aClick to teleport!'>&#3498db[CLICK TO TELEPORT]</hover></click> &7or type &#3498db/warp crates to open it!"

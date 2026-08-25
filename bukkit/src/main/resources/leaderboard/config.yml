@@ -1,0 +1,49 @@
+# Leaderboard Configuration
+
+# How often (in seconds) to refresh the leaderboard cache.
+# Minimum value is 60 seconds.
+refresh-rate: 300
+
+# Number of players shown per page.
+players-per-page: 45
+
+# How many players to cache per leaderboard type.
+cache-size: 100
+
+# PlaceholderAPI placeholders for a given position:
+#   %leaderboard_<type>_name_<position>%   player name
+#   %leaderboard_<type>_value_<position>%  formatted value (1.2k, 3d 4h, ...)
+#   %leaderboard_<type>_raw_<position>%    plain number
+# Example: %leaderboard_money_name_1%, %leaderboard_play_time_value_3%
+# <type> is any entry of enabled-types, <position> starts at 1 and is capped by cache-size.
+placeholders:
+  # How often (in seconds) the placeholder snapshot is rebuilt. It only rebuilds on
+  # the next cache refresh after this delay, so lookups themselves never hit the database.
+  refresh-rate: 1800
+  # Shown when nobody holds that position yet.
+  empty-name: "---"
+  empty-value: "0"
+
+enabled-types:
+  - money
+  - kills
+  - deaths
+  - mob_kills
+  - blocks_broken
+  - blocks_placed
+  - play_time
+  - money_spent
+  - money_made
+
+sounds:
+  click-inventory: BLOCK_TRIPWIRE_CLICK_ON
+  success: ENTITY_PLAYER_LEVELUP
+  error: ENTITY_VILLAGER_NO
+
+messages:
+  # %query% is the text the player typed on the search sign.
+  search-no-results: "&#FF4D4D✕ No player on this leaderboard matches &f%query%&#FF4D4D."
+  search-cleared: "&#55FF55✔ Search cleared."
+  search-unavailable: "&#FF4D4D✕ Search is not available on this server version."
+  # Shown in the search item lore through %filter% while no search is active.
+  search-none: "&#AAAAAA&oNone"

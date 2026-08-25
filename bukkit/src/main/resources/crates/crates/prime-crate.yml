@@ -1,0 +1,133 @@
+icon:
+  material: CHEST
+  name: '&bᴘʀɪᴍᴇ ᴄʀᴀᴛᴇ'
+  lore:
+    - '&7(Place this crate)'
+  nbt:
+    crate_id: "string:prime_crate"
+
+inventory:
+  name: '&8ᴄʜᴏᴏsᴇ 1 ɪᴛᴇᴍ'
+  size: 27
+  background-icon:
+    material: BLACK_STAINED_GLASS_PANE
+    name: '&bᴘʀɪᴍᴇ ᴄʀᴀᴛᴇ'
+    lore:
+      - '&7With a ᴘʀɪᴍᴇ ᴋᴇʏ you can choose'
+      - '&7which of the 7 you want.'
+    glow: false
+
+hologram:
+  1:
+    height: 1.5
+    lines:
+      - '&bᴘʀɪᴍᴇ ᴄʀᴀᴛᴇ'
+      - '&f/store'
+  2:
+    height: -0.3
+    lines:
+      - '&b%crates_keys_prime_crate% &fKeys'
+
+rewards:
+  1:
+    give-icon: true
+    trim:
+      material: diamond
+      pattern: host
+    item:
+      slot: 10
+      material: NETHERITE_HELMET
+      name: '&bᴘʀɪᴍᴇ ʜᴇʟᴍᴇᴛ'
+      enchantments:
+        - "MENDING:1"
+        - "PROTECTION:4"
+        - "RESPIRATION:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  2:
+    give-icon: true
+    trim:
+      material: diamond
+      pattern: host
+    item:
+      slot: 11
+      material: NETHERITE_CHESTPLATE
+      name: '&bᴘʀɪᴍᴇ ᴄʜᴇsᴛᴘʟᴀᴛᴇ'
+      enchantments:
+        - "MENDING:1"
+        - "PROTECTION:4"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  3:
+    give-icon: true
+    trim:
+      material: diamond
+      pattern: host
+    item:
+      slot: 12
+      material: NETHERITE_LEGGINGS
+      name: '&bᴘʀɪᴍᴇ ʟᴇɢɢɪɴɢs'
+      enchantments:
+        - "BLAST_PROTECTION:4"
+        - "MENDING:1"
+        - "SWIFT_SNEAK:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  4:
+    give-icon: true
+    trim:
+      material: diamond
+      pattern: host
+    item:
+      slot: 13
+      material: NETHERITE_BOOTS
+      name: '&bᴘʀɪᴍᴇ ʙᴏᴏᴛs'
+      enchantments:
+        - "MENDING:1"
+        - "SOUL_SPEED:3"
+        - "UNBREAKING:3"
+        - "PROTECTION:4"
+        - "DEPTH_STRIDER:3"
+        - "FEATHER_FALLING:4"
+      unbreakable: true
+
+  5:
+    give-icon: true
+    item:
+      slot: 14
+      material: NETHERITE_SWORD
+      name: '&bᴘʀɪᴍᴇ sᴡᴏʀᴅ'
+      enchantments:
+        - "KNOCKBACK:1"
+        - "MENDING:1"
+        - "SHARPNESS:5"
+        - "UNBREAKING:3"
+        - "LOOTING:3"
+      unbreakable: true
+
+  6:
+    give-icon: true
+    item:
+      slot: 15
+      material: CROSSBOW
+      name: '&bᴘʀɪᴍᴇ ᴄʀᴏssʙᴏw'
+      enchantments:
+        - "MENDING:1"
+        - "MULTISHOT:1"
+        - "QUICK_CHARGE:3"
+        - "UNBREAKING:3"
+      unbreakable: true
+
+  7:
+    give-icon: true
+    item:
+      slot: 16
+      material: ELYTRA
+      name: '&bᴘʀɪᴍᴇ ᴇʟʏᴛʀᴀ'
+      enchantments:
+        - "MENDING:1"
+        - "UNBREAKING:3"
+      unbreakable: true

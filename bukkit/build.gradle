@@ -15,7 +15,10 @@ dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
     compileOnly 'com.mojang:authlib:3.13.56'
     compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'de.oliver:FancyHolograms:2.9.0'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7.1'
+    compileOnly files('libs/RavenSell-API.jar')
+    compileOnly files('libs/Ravs-API.jar')
     // Region detection for the RTP zone. Brings worldedit-bukkit (BukkitAdapter) transitively.
     compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.9'
 
@@ -23,13 +26,14 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.42'
     annotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-    implementation 'de.tr7zw:item-nbt-api:2.15.5'
-    implementation 'fr.mrmicky:fastboard:2.1.5'
+    implementation 'de.tr7zw:item-nbt-api:2.16.0'
     implementation 'de.rapha149.signgui:signgui:2.5.4'
     implementation 'com.zaxxer:HikariCP:5.0.1'
     implementation('com.mysql:mysql-connector-j:8.3.0') {
         exclude group: 'com.google.protobuf'
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 
 }
 
@@ -41,12 +45,15 @@ shadowJar {
     relocate 'org.apache.commons.pool2',   'com.kammoun.raven.libs.pool2'
     relocate 'org.slf4j',                  'com.kammoun.raven.libs.slf4j'
     relocate 'de.tr7zw.changeme.nbtapi',   'com.kammoun.raven.libs.nbtapi'
-    relocate 'fr.mrmicky.fastboard',       'com.kammoun.raven.libs.fastboard'
     relocate 'de.rapha149.signgui',         'com.kammoun.raven.libs.signgui'
 }
 
 tasks.named('jar') {
     archiveVersion.set('')
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 def deployDirs = [

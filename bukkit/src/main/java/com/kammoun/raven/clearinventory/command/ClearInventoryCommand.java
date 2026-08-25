@@ -30,7 +30,7 @@ public class ClearInventoryCommand extends KCommand {
                                  ClearInventoryMessages messages,
                                  boolean requireConfirmation,
                                  int confirmationTimeoutSeconds) {
-        super("clear", null, false);
+        super("clear", "raven.clearinventory.self", false);
         this.networkPlayerManager = networkPlayerManager;
         this.networkEventBus = networkEventBus;
         this.messages = messages;

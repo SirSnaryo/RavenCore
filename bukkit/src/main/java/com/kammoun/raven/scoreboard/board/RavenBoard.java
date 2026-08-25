@@ -1,31 +1,40 @@
 package com.kammoun.raven.scoreboard.board;
 
-import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.scoreboard.model.LineUpdateMode;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
-import fr.mrmicky.fastboard.adventure.FastBoard;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Criteria;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.RenderType;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class RavenBoard {
 
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final String OBJECTIVE_NAME = "raven_sb";
+    private static final int MAX_LINES = 15;
 
-    private final FastBoard board;
     private final Player player;
     private final ScoreboardDefinition definition;
     private final ScoreboardPlaceholders placeholders;
-    private final List<String> renderedLines = new ArrayList<>();
+    private final Scoreboard scoreboard;
+    private final RavenComponentCache componentCache = new RavenComponentCache();
+    private final RavenSidebarLine[] sidebarLines = new RavenSidebarLine[MAX_LINES];
+    private final List<RavenLineRender> renderedLines = new ArrayList<>();
     private final List<Integer> lineIndexes = new ArrayList<>();
+    private Objective objective;
     private String renderedTitle = "";
     private long tickAge;
 
@@ -33,7 +42,10 @@ public class RavenBoard {
         this.player = player;
         this.definition = definition;
         this.placeholders = placeholders;
-        this.board = new FastBoard(player);
+        this.scoreboard = createScoreboard();
+        for (int i = 0; i < sidebarLines.length; i++) {
+            sidebarLines[i] = new RavenSidebarLine(i);
+        }
     }
 
     public ScoreboardDefinition getDefinition() {
@@ -43,7 +55,14 @@ public class RavenBoard {
     public void create() {
         renderedTitle = "";
         renderedLines.clear();
+        lineIndexes.clear();
+        registerObjective();
         updateAll();
+        SchedulerUtil.execute(player, () -> {
+            if (player.isOnline()) {
+                player.setScoreboard(scoreboard);
+            }
+        });
     }
 
     public void tick(int elapsedTicks) {
@@ -72,18 +91,23 @@ public class RavenBoard {
         for (ScoreboardLine line : definition.lines()) {
             addRenderedLine(line.text());
         }
-        board.updateLines(components(renderedLines));
+        applyRenderedLines();
     }
 
     public void delete() {
-        board.delete();
+        Arrays.stream(sidebarLines).forEach(RavenSidebarLine::delete);
+        if (registeredObjective()) {
+            objective.unregister();
+        }
     }
 
     private void updateTitle() {
         String title = render(definition.title());
         if (!Objects.equals(title, renderedTitle)) {
             renderedTitle = title;
-            board.updateTitle(component(title));
+            if (registeredObjective()) {
+                objective.displayName(componentCache.component(title));
+            }
         }
     }
 
@@ -91,13 +115,18 @@ public class RavenBoard {
         return placeholders.apply(player, text);
     }
 
-    private void addRenderedLine(String text) {
+    private void addRenderedLine(String rawText) {
         lineIndexes.add(renderedLines.size());
-        String rendered = render(text);
+        String rendered = render(rawText);
+        if (shouldHide(rawText, rendered)) {
+            lineIndexes.set(lineIndexes.size() - 1, -1);
+            return;
+        }
+
         String[] split = rendered.split("\\\\n|\n", -1);
         for (String line : split) {
-            renderedLines.add(line);
-            if (renderedLines.size() >= 15) {
+            renderedLines.add(RavenLineRender.parse(line));
+            if (renderedLines.size() >= MAX_LINES) {
                 return;
             }
         }
@@ -117,38 +146,64 @@ public class RavenBoard {
         }
 
         int renderedIndex = lineIndexes.get(configIndex);
-        String value = render(line.text());
+        String rendered = render(line.text());
+        if (renderedIndex == -1 || shouldHide(line.text(), rendered)) {
+            updateAll();
+            return;
+        }
+
         if (renderedIndex >= renderedLines.size()) {
             updateAll();
             return;
         }
 
+        RavenLineRender value = RavenLineRender.parse(rendered);
         if (Objects.equals(renderedLines.get(renderedIndex), value)) {
             return;
         }
 
         renderedLines.set(renderedIndex, value);
-        board.updateLine(renderedIndex, component(value));
+        sidebarLines[renderedIndex].show(scoreboard, objective, componentCache, value, MAX_LINES - renderedIndex);
     }
 
-    private List<Component> components(List<String> lines) {
-        return lines.stream().map(this::component).toList();
-    }
-
-    private Component component(String text) {
-        String safe = text == null ? "" : text;
-        if (looksLikeMiniMessage(safe)) {
-            try {
-                return MINI_MESSAGE.deserialize(safe);
-            } catch (RuntimeException ignored) {
-                // Fall back to legacy parsing so one bad tag cannot break the board.
-            }
+    private Scoreboard createScoreboard() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) {
+            throw new IllegalStateException("Scoreboard manager is not available");
         }
-        return LEGACY.deserialize(ChatFormatter.color(safe));
+        return manager.getNewScoreboard();
     }
 
-    private boolean looksLikeMiniMessage(String text) {
-        int open = text.indexOf('<');
-        return open >= 0 && text.indexOf('>', open + 1) > open;
+    private void registerObjective() {
+        Objective existing = scoreboard.getObjective(OBJECTIVE_NAME);
+        if (existing != null) {
+            existing.unregister();
+        }
+        objective = scoreboard.registerNewObjective(
+                OBJECTIVE_NAME,
+                Criteria.DUMMY,
+                Component.empty(),
+                RenderType.INTEGER
+        );
+        objective.numberFormat(NumberFormat.blank());
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+    }
+
+    private void applyRenderedLines() {
+        int visible = Math.min(renderedLines.size(), MAX_LINES);
+        for (int index = 0; index < visible; index++) {
+            sidebarLines[index].show(scoreboard, objective, componentCache, renderedLines.get(index), MAX_LINES - index);
+        }
+        for (int index = visible; index < MAX_LINES; index++) {
+            sidebarLines[index].hide(scoreboard);
+        }
+    }
+
+    private boolean shouldHide(String rawText, String rendered) {
+        return rawText != null && !rawText.isBlank() && rendered.isBlank();
+    }
+
+    private boolean registeredObjective() {
+        return objective != null && scoreboard.getObjective(OBJECTIVE_NAME) != null;
     }
 }

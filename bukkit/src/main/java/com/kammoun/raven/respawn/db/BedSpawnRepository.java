@@ -1,7 +1,7 @@
 package com.kammoun.raven.respawn.db;
 
 import com.kammoun.raven.library.database.MySQLDBManager;
-import com.kammoun.raven.respawn.BedSpawnRecord;
+import com.kammoun.raven.respawn.bed.BedSpawnRecord;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

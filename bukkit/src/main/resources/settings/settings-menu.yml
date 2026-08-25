@@ -1,27 +1,12 @@
-Title: "&8sᴇᴛᴛɪɴɢs"
-Size: 54
-
-# Settings are centered in row 4 (slots 20-26), grouped left-to-right:
-# 20 = TPA requests, 21 = TPAHere requests, 22 = TPAuto, 23 = TPA confirm menu,
-# 24 = Public chat, 25 = Broadcasts, 26 = Scoreboard,
-# 29 = Economy payments, 33 = Economy messages.
-Setting-Slots:
-  - 20
-  - 21
-  - 22
-  - 23
-  - 24
-  - 25
-  - 26
-  - 29
-  - 33
+Title: "&8SETTINGS"
+Size: 45
 
 Status:
   Enabled: "&#33FF66&lON"
-  Disabled: "&#D90429&lOFF"
+  Disabled: "&#FF4D4D&lOFF"
 
 Messages:
-  Updated: "&#FFFFFF%setting% &#7A7A7Aset to %status%&#7A7A7A."
+  Updated: "&#55FF55✔ &#AAAAAA%setting% &fis now %status%"
 
 Sounds:
   Toggle:
@@ -32,8 +17,247 @@ Sounds:
 Navigation:
   Close-Page:
     material: BARRIER
-    name: "&#FF4444&lClose"
-    slot: 49
+    name: "&#FF4D4D&lCLOSE"
+    slot: 31
+    lore:
+      - "&fClose this menu and keep your settings."
+      - ""
+      - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Close"
   Filler-Item:
     material: BLACK_STAINED_GLASS_PANE
     name: " "
+
+Items:
+  tpa-requests:
+    setting: teleport.tpa
+    slot: 10
+    enabled:
+      material: ENDER_PEARL
+      name: "&#33FF66&lTPA REQUESTS"
+      lore:
+        - "&fOthers may ask to teleport to your location."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fPlayers may teleport to you"
+        - "&#55FF55✔ &#AAAAAAControls: &fIncoming /tpa requests"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lTPA REQUESTS"
+      lore:
+        - "&fNobody may ask to teleport to your location."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fNobody may teleport to you"
+        - "&#FF4D4D✕ &#AAAAAAControls: &fIncoming /tpa requests"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  tpahere-requests:
+    setting: teleport.tpahere
+    slot: 11
+    enabled:
+      material: CLOCK
+      name: "&#33FF66&lTPAHERE REQUESTS"
+      lore:
+        - "&fOthers may ask you to come to them."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fPlayers may pull you to them"
+        - "&#55FF55✔ &#AAAAAAControls: &fIncoming /tpahere requests"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lTPAHERE REQUESTS"
+      lore:
+        - "&fNobody may ask you to come to them."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fNobody may pull you to them"
+        - "&#FF4D4D✕ &#AAAAAAControls: &fIncoming /tpahere requests"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  tpauto:
+    setting: teleport.auto
+    slot: 12
+    enabled:
+      material: REDSTONE_TORCH
+      name: "&#33FF66&lTPAUTO"
+      lore:
+        - "&fIncoming requests are accepted for you."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fTPA requests auto-accept"
+        - "&#55FF55✔ &#AAAAAACaution: &fUnsafe near unknown players"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lTPAUTO"
+      lore:
+        - "&fYou approve every request yourself."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fRequests must be accepted manually"
+        - "&#FF4D4D✕ &#AAAAAACaution: &fSafest option"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  tpa-confirm-menu:
+    setting: teleport.confirm-menu
+    slot: 13
+    enabled:
+      material: ENDER_EYE
+      name: "&#33FF66&lTPA CONFIRM MENU"
+      lore:
+        - "&fA review screen opens before each request."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fMenu shown before sending or accepting"
+        - "&#55FF55✔ &#AAAAAAAdvice: &fRecommended for safer teleports"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lTPA CONFIRM MENU"
+      lore:
+        - "&fRequests go out the moment you type them."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fRequests are sent instantly"
+        - "&#FF4D4D✕ &#AAAAAAAdvice: &fEnable for safer teleports"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  public-chat:
+    setting: chat.public
+    slot: 14
+    enabled:
+      material: OAK_SIGN
+      name: "&#33FF66&lPUBLIC CHAT"
+      lore:
+        - "&fYou can see what everyone is saying."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fMember chat is visible"
+        - "&#55FF55✔ &#AAAAAANote: &fYou can still send messages"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lPUBLIC CHAT"
+      lore:
+        - "&fMember chat is hidden from your screen."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fMember chat is hidden"
+        - "&#FF4D4D✕ &#AAAAAANote: &fYou can still send messages"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  broadcasts:
+    setting: chat.broadcast
+    slot: 15
+    enabled:
+      material: BELL
+      name: "&#33FF66&lBROADCASTS"
+      lore:
+        - "&fAutomatic server announcements are shown."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fAuto messages are visible"
+        - "&#55FF55✔ &#AAAAAANote: &fBroadcasts still run on Redis"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lBROADCASTS"
+      lore:
+        - "&fAutomatic server announcements are hidden."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fAuto messages are hidden"
+        - "&#FF4D4D✕ &#AAAAAANote: &fBroadcasts still run on Redis"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  scoreboard:
+    setting: scoreboard.enabled
+    slot: 21
+    enabled:
+      material: NAME_TAG
+      name: "&#33FF66&lSCOREBOARD"
+      lore:
+        - "&fThe sidebar is displayed while you play."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fSidebar is shown"
+        - "&#55FF55✔ &#AAAAAANote: &fSaved per player"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lSCOREBOARD"
+      lore:
+        - "&fThe sidebar stays off while you play."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fSidebar is hidden"
+        - "&#FF4D4D✕ &#AAAAAANote: &fSaved per player"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  payments:
+    setting: economy.payments
+    slot: 22
+    enabled:
+      material: EMERALD
+      name: "&#33FF66&lPAYMENTS"
+      lore:
+        - "&fOthers are allowed to send you Money."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fPlayers may send you money"
+        - "&#55FF55✔ &#AAAAAANote: &fAdmins with bypass can always pay you"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lPAYMENTS"
+      lore:
+        - "&fIncoming Money transfers are blocked."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fNobody may send you money"
+        - "&#FF4D4D✕ &#AAAAAANote: &fAdmins with bypass can always pay you"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
+
+  pay-messages:
+    setting: economy.messages
+    slot: 23
+    enabled:
+      material: PAPER
+      name: "&#33FF66&lPAY MESSAGES"
+      lore:
+        - "&fYou get chat feedback for every transaction."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fPay and shop messages are shown"
+        - "&#55FF55✔ &#AAAAAANote: &fTransactions still log normally"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: GRAY_DYE
+      name: "&#FF4D4D&lPAY MESSAGES"
+      lore:
+        - "&fTransaction chat feedback is silenced."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fPay and shop messages are hidden"
+        - "&#FF4D4D✕ &#AAAAAANote: &fTransactions still log normally"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"

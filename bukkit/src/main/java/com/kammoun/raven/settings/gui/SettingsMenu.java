@@ -2,122 +2,111 @@ package com.kammoun.raven.settings.gui;
 
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.library.item.ItemBuilder;
+import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.platform.sound.KSound;
+import com.kammoun.raven.library.util.PlaceholderHelper;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.settings.model.PlayerSettingDefinition;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsMenu extends KMenu {
 
     private final SettingsModule module;
-    private final List<Integer> settingSlots;
     private final String enabledText;
     private final String disabledText;
     private final String updatedMessage;
     private final KSound toggleSound;
+    private final Map<String, SettingItemTemplate> templates = new HashMap<>();
 
     public SettingsMenu(JavaPlugin plugin, SettingsModule module) {
         super(plugin, "settings/settings-menu.yml");
         this.module = module;
-        this.settingSlots = loadSlots();
-        this.enabledText = config.getString("Status.Enabled", "&#33FF66ON");
-        this.disabledText = config.getString("Status.Disabled", "&#D90429OFF");
+        this.enabledText = config.getString("Status.Enabled", "&#33FF66&lON");
+        this.disabledText = config.getString("Status.Disabled", "&#FF4D4D&lOFF");
         this.updatedMessage = config.getString("Messages.Updated",
                 "&#FFFFFF%setting% &#7A7A7Aset to %status%&#7A7A7A.");
         ConfigurationSection soundSection = config.getConfigurationSection("Sounds.Toggle");
         this.toggleSound = soundSection == null ? null : KSound.getSoundFromConfig(soundSection);
+        loadTemplates();
     }
 
     @Override
     protected void setMenuItems(Player player, String... placeholders) {
-        List<PlayerSettingDefinition> definitions = module.getRegistry().definitions();
-        int count = Math.min(definitions.size(), settingSlots.size());
-        for (int i = 0; i < count; i++) {
-            PlayerSettingDefinition definition = definitions.get(i);
-            setItem(item(player, definition, settingSlots.get(i)));
+        for (PlayerSettingDefinition definition : module.getRegistry().definitions()) {
+            SettingItemTemplate template = templates.get(definition.id().toLowerCase());
+            if (template == null) continue;
+            MenuItem item = item(player, definition, template);
+            if (item != null) setItem(item);
         }
     }
 
-    private MenuItem item(Player player, PlayerSettingDefinition definition, int slot) {
+    private MenuItem item(Player player, PlayerSettingDefinition definition, SettingItemTemplate template) {
         boolean enabled = definition.value(player);
-        List<String> lore = new ArrayList<>();
-        lore.add("&#7A7A7A" + smallCaps(definition.category()));
-        lore.addAll(definition.description());
-        lore.add("");
-        lore.add("&#FFFFFFCurrently: " + (enabled ? enabledText : disabledText));
-        lore.add("&#7A7A7AClick to toggle.");
+        MenuItem base = enabled ? template.enabled() : template.disabled();
+        if (base == null) base = enabled ? template.disabled() : template.enabled();
+        if (base == null || base.getSlot() < 0) return null;
 
-        Material material = enabled ? definition.material() : Material.GRAY_DYE;
-        return MenuItem.of(new ItemBuilder(material)
-                        .name(definition.displayName())
-                        .lore(lore))
-                .slot(slot)
+        ItemStack rendered = PlaceholderHelper.parsePlaceholders(base.getItemStack(),
+                "%setting%", ChatFormatter.strip(definition.displayName()),
+                "%category%", definition.category(),
+                "%status%", ChatFormatter.color(enabled ? enabledText : disabledText),
+                "%enabled%", ChatFormatter.color(enabledText),
+                "%disabled%", ChatFormatter.color(disabledText));
+        return MenuItem.of(new ItemBuilder(rendered))
+                .slot(base.getSlot())
+                .permission(base.getPermission())
                 .onClick(event -> toggle(player, definition, event));
     }
 
     private void toggle(Player player, PlayerSettingDefinition definition, InventoryClickEvent event) {
         boolean newValue = !definition.value(player);
         definition.set(player, newValue);
-        event.getView().getTopInventory().setItem(event.getSlot(), item(player, definition, event.getSlot()).getItemStack());
-        player.updateInventory();
+        open(player);
         if (toggleSound != null) {
             toggleSound.playSound(player);
         }
-        player.sendMessage(ChatFormatter.color(updatedMessage
-                .replace("%setting%", ChatFormatter.strip(definition.displayName()))
-                .replace("%status%", newValue ? enabledText : disabledText)));
+        player.sendMessage(ChatFormatter.color(PlaceholderHelper.parsePlaceholders(updatedMessage,
+                "%setting%", ChatFormatter.strip(definition.displayName()),
+                "%status%", ChatFormatter.color(newValue ? enabledText : disabledText),
+                "%enabled%", ChatFormatter.color(enabledText),
+                "%disabled%", ChatFormatter.color(disabledText))));
     }
 
-    private List<Integer> loadSlots() {
-        List<Integer> slots = config.getIntegerList("Setting-Slots");
-        if (!slots.isEmpty()) {
-            return slots;
+    private void loadTemplates() {
+        ConfigurationSection items = config.getConfigurationSection("Items");
+        if (items == null) return;
+        for (String key : items.getKeys(false)) {
+            ConfigurationSection section = items.getConfigurationSection(key);
+            if (section == null) continue;
+            String id = section.getString("setting", key);
+            MenuItem enabled = readState(section, "enabled");
+            MenuItem disabled = readState(section, "disabled");
+            if (enabled == null && disabled == null) {
+                enabled = ItemReader.readMenuItem(section, plugin);
+            }
+            templates.put(id.toLowerCase(), new SettingItemTemplate(enabled, disabled));
         }
-        return List.of(38, 39, 40, 30, 29);
     }
 
-    private String smallCaps(String value) {
-        StringBuilder builder = new StringBuilder();
-        for (char c : value.toLowerCase().toCharArray()) {
-            builder.append(switch (c) {
-                case 'a' -> 'ᴀ';
-                case 'b' -> 'ʙ';
-                case 'c' -> 'ᴄ';
-                case 'd' -> 'ᴅ';
-                case 'e' -> 'ᴇ';
-                case 'f' -> 'ғ';
-                case 'g' -> 'ɢ';
-                case 'h' -> 'ʜ';
-                case 'i' -> 'ɪ';
-                case 'j' -> 'ᴊ';
-                case 'k' -> 'ᴋ';
-                case 'l' -> 'ʟ';
-                case 'm' -> 'ᴍ';
-                case 'n' -> 'ɴ';
-                case 'o' -> 'ᴏ';
-                case 'p' -> 'ᴘ';
-                case 'q' -> 'ǫ';
-                case 'r' -> 'ʀ';
-                case 's' -> 's';
-                case 't' -> 'ᴛ';
-                case 'u' -> 'ᴜ';
-                case 'v' -> 'ᴠ';
-                case 'w' -> 'ᴡ';
-                case 'x' -> 'x';
-                case 'y' -> 'ʏ';
-                case 'z' -> 'ᴢ';
-                default -> c;
-            });
+    private MenuItem readState(ConfigurationSection section, String state) {
+        ConfigurationSection stateSection = section.getConfigurationSection(state);
+        if (stateSection == null) return null;
+        MenuItem item = ItemReader.readMenuItem(stateSection, plugin);
+        if (item != null && item.getSlot() < 0 && section.contains("slot")) {
+            item.slot(section.getInt("slot"));
         }
-        return builder.toString();
+        return item;
+    }
+
+    private record SettingItemTemplate(MenuItem enabled, MenuItem disabled) {
     }
 }

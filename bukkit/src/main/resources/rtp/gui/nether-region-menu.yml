@@ -1,4 +1,4 @@
-Title: "&8ʀᴛᴘ ⁍ ɴᴇᴛʜᴇʀ"
+Title: "&8RTP > NETHER"
 Size: 27
 
 Item-Slots: [10,11,12,13,14,15,16]
@@ -6,17 +6,29 @@ Item-Slots: [10,11,12,13,14,15,16]
 Items:
   Region:
     material: NETHERRACK
-    name: "&#FF2B2B%region%"
+    name: "&#FF4D4D&l%region%"
     lore:
-      - "&#7A7A7Aʀᴇɢɪᴏɴ &#FFFFFF%region%"
-      - "&#4CC9F0Click to teleport."
+      - "&fTeleport to a random point inside this region."
+      - ""
+      - "&#FF4D4DRegion: &#FFFFFF%region%"
+      - "&#33FF66Players: &#FFFFFF%online%"
+      - ""
+      - "&#FFFF55> &#FFFF55&nCLICK&r &#FF4D4Dto Teleport"
 
 Navigation:
   Go-Back:
     material: ARROW
     slot: 18
-    name: "&#7A7A7ABack"
+    name: "&#4CC9F0&lBACK"
+    lore:
+      - "&fReturn to the previous page."
+      - ""
+      - "&#FFFF55> &#FFFF55&nCLICK&r &#4CC9F0for Previous Page"
   Close-Page:
     material: BARRIER
     slot: 22
-    name: "&#D90429Close"
+    name: "&#FF4D4D&lCLOSE"
+    lore:
+      - "&fClose this menu without teleporting."
+      - ""
+      - "&#FFFF55> &#FFFF55&nCLICK&r &#FF4D4Dto Close"

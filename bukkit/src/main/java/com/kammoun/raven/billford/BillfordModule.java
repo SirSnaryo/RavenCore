@@ -21,6 +21,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,12 +53,12 @@ public class BillfordModule extends KModule<RavenCore> {
             return;
         }
 
-        billfordConfig = new BillfordConfig(getConfig());
+        billfordConfig = new BillfordConfig(getConfig(), loadGuiConfig());
         messages = new BillfordMessages(loadMessages());
 
         BillfordRepository repository = new BillfordRepository(api.getMySqlManager(), api);
         // One-time startup DDL — must complete before the first cache load, so it runs inline.
-        new BillfordTable(api.getMySqlManager()).createTable();
+        new BillfordTable(api.getMySqlManager(), billfordConfig.getIntervalMillis()).createTable();
 
         manager = new BillfordManager(api, repository, billfordConfig, messages);
         guiManager = new GuiManager(billfordConfig, messages, manager, api);
@@ -74,7 +77,8 @@ public class BillfordModule extends KModule<RavenCore> {
         });
         api.getNetworkEventBus().subscribe(BillfordStateUpdatedEvent.class, event -> {
             if (api.getServerId().equals(event.getSourceServer())) return;
-            manager.applyRemoteState(event.getCurrentPreset(), event.getLastChange(), event.isAnnounce());
+            manager.applyRemoteState(event.getCurrentPreset(), event.getLastChange(),
+                    event.getRotationIntervalMillis(), event.getStateVersion(), event.isAnnounce());
         });
 
         if (KPlaceholderExpansion.isAvailable()) {
@@ -109,7 +113,7 @@ public class BillfordModule extends KModule<RavenCore> {
     public void reload() {
         if (manager == null) return; // never enabled (e.g. MySQL was down)
         reloadConfig();
-        billfordConfig = new BillfordConfig(getConfig());
+        billfordConfig = new BillfordConfig(getConfig(), loadGuiConfig());
         messages = new BillfordMessages(loadMessages());
         manager.updateConfig(billfordConfig, messages);
         guiManager.updateRefs(billfordConfig, messages);
@@ -119,6 +123,39 @@ public class BillfordModule extends KModule<RavenCore> {
 
     private FileConfiguration loadMessages() {
         saveDefaultConfig("messages.yml");
-        return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml"));
+        YamlConfiguration messages = YamlConfiguration.loadConfiguration(
+                new File(getDataFolder(), "messages.yml"));
+        try (InputStream bundled = api.getResource("billford/messages.yml")) {
+            if (bundled != null) {
+                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                        new InputStreamReader(bundled, StandardCharsets.UTF_8));
+                messages.setDefaults(defaults);
+            }
+        } catch (Exception error) {
+            getLogger().warning("[Billford] Failed to load bundled message defaults: "
+                    + error.getMessage());
+        }
+        return messages;
     }
+
+    private FileConfiguration loadGuiConfig() {
+        File guiFile = new File(getDataFolder(), "gui.yml");
+        if (!guiFile.isFile()) {
+            saveDefaultConfig("gui.yml");
+        }
+
+        YamlConfiguration gui = YamlConfiguration.loadConfiguration(guiFile);
+        try (InputStream bundled = api.getResource("billford/gui.yml")) {
+            if (bundled != null) {
+                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                        new InputStreamReader(bundled, StandardCharsets.UTF_8));
+                gui.setDefaults(defaults);
+            }
+        } catch (Exception error) {
+            getLogger().warning("[Billford] Failed to load bundled GUI defaults: "
+                    + error.getMessage());
+        }
+        return gui;
+    }
+
 }

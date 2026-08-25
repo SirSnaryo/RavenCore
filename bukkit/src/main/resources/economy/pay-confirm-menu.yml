@@ -1,4 +1,4 @@
-Title: "&8Payment Confirm"
+Title: "&8PAYMENT CONFIRM"
 Size: 27
 
 Navigation:
@@ -10,31 +10,37 @@ Items:
   Cancel:
     material: RED_STAINED_GLASS_PANE
     slot: 10
-    name: "&#D90429ᴄᴀɴᴄᴇʟ"
+    name: "&#FF4D4D&lCANCEL"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#FFFFFF%amount%"
-      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFFFFF%player%"
+      - "&fClose this menu without sending Money."
       - ""
-      - "&#FFFFFFClose without sending money."
+      - "&#FF4D4D✕ &#AAAAAAMoney: &#FF4D4D%amount_formatted%"
+      - "&#FF4D4D✕ &#AAAAAATarget: &#FF4D4D%player%"
+      - ""
+      - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Close"
 
   Player:
     material: PLAYER_HEAD
     slot: 13
     skull-owner: "%player%"
-    name: "&#FFD447%player%"
+    name: "&#FFAA00&l%player%"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#33FF66%amount%"
-      - "&#7A7A7Aʙᴀʟᴀɴᴄᴇ &#FFFFFF%balance%"
-      - "&#7A7A7Aᴀғᴛᴇʀ &#FFFFFF%after%"
-      - "&#7A7A7Aʀᴇᴀsᴏɴ &#FFFFFF%reason%"
-      - "&#7A7A7Aᴇxᴘɪʀᴇs &#FFFFFF%expires%"
+      - "&#FFAA00Information"
+      - ""
+      - "&#FFAA00◈ &#AAAAAAMoney: &#FFCC00%amount_formatted%"
+      - "&#FFAA00◈ &#AAAAAABalance: &#FFCC00%balance_formatted%"
+      - "&#FFAA00◈ &#AAAAAAAfter: &#FFCC00%after_formatted%"
+      - "&#FFAA00◈ &#AAAAAAReason: &#FFCC00%reason%"
+      - "&#FFAA00◈ &#AAAAAAExpires: &#FFCC00%expires%"
 
   Confirm:
     material: LIME_STAINED_GLASS_PANE
     slot: 16
-    name: "&#33FF66ᴄᴏɴғɪʀᴍ"
+    name: "&#33FF66&lCONFIRM"
     lore:
-      - "&#7A7A7Aᴀᴍᴏᴜɴᴛ &#FFFFFF%amount%"
-      - "&#7A7A7Aᴛᴀʀɢᴇᴛ &#FFFFFF%player%"
+      - "&fSend this Money to the player shown above."
       - ""
-      - "&#FFFFFFSend this payment."
+      - "&#55FF55✔ &#AAAAAAMoney: &#55FF55%amount_formatted%"
+      - "&#55FF55✔ &#AAAAAATarget: &#55FF55%player%"
+      - ""
+      - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Send"

@@ -119,16 +119,27 @@ public class EcoCommand extends KCommand {
                             sender.sendMessage(messages.format("eco.operation-failed", "reason", result.failureReason()));
                             return;
                         }
+                        double balance = service.getBalance(target.getUniqueId());
                         String formattedAmount = economy.format(amount);
-                        String newBalance = economy.format(service.getBalance(target.getUniqueId()));
+                        String newBalance = economy.format(balance);
                         String msgKey = "eco.admin-" + action;
                         sender.sendMessage(messages.format(msgKey,
                                 "player", targetName,
                                 "amount", formattedAmount,
-                                "balance", newBalance));
+                                "amount_formatted", formattedAmount,
+                                "amount_full", economy.formatFull(amount),
+                                "amount_raw", amount,
+                                "balance", newBalance,
+                                "balance_formatted", newBalance,
+                                "balance_full", economy.formatFull(balance),
+                                "balance_raw", balance));
 
                         if (target.isOnline()) {
-                            ((Player) target).sendMessage(messages.format("eco.admin-notify", "balance", newBalance));
+                            ((Player) target).sendMessage(messages.format("eco.admin-notify",
+                                    "balance", newBalance,
+                                    "balance_formatted", newBalance,
+                                    "balance_full", economy.formatFull(balance),
+                                    "balance_raw", balance));
                         }
                     });
                 });
@@ -179,7 +190,10 @@ public class EcoCommand extends KCommand {
                         }
                         sender.sendMessage(messages.format("eco.reset-success",
                                 "player", targetName,
-                                "balance", economy.format(0)));
+                                "balance", economy.format(0),
+                                "balance_formatted", economy.format(0),
+                                "balance_full", economy.formatFull(0),
+                                "balance_raw", 0));
 
                         if (target.isOnline()) {
                             ((Player) target).sendMessage(messages.get("eco.reset-notify"));

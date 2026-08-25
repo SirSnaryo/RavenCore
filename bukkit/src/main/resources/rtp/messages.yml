@@ -8,3 +8,9 @@ no-locations-available: "&cNo safe locations are available right now. Try again 
 already-teleporting: "&cA random teleport is already in progress."
 transfer-failed: "&cThe destination server could not be reached. Please try again."
 world-missing: "&cThe destination world is not loaded. Please contact an administrator."
+queue:
+  disabled: "&#D90429RTP Queue is currently disabled."
+  joined: "&#4CC9F0RTP Queue &#7A7A7AYou joined the queue. Waiting for another player..."
+  left: "&#4CC9F0RTP Queue &#7A7A7AYou left the queue."
+  matched: "&#33FF66RTP Queue matched you with &#FFFFFF%player%&#33FF66. Teleporting..."
+  failed: "&#D90429RTP Queue failed to teleport you. Please try again."

@@ -18,7 +18,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import de.rapha149.signgui.SignGUI;
 import de.rapha149.signgui.SignGUIAction;
-import de.rapha149.signgui.exception.SignGUIVersionException;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -86,7 +85,7 @@ public final class TeamMenu extends KMenu {
                             .callHandlerSynchronously(module.getApi())
                             .build()
                             .open(player);
-                } catch (SignGUIVersionException exception) {
+                } catch (Throwable exception) {
                     module.getMessages().send(player, "search-unavailable");
                 }
             });
@@ -117,7 +116,10 @@ public final class TeamMenu extends KMenu {
         }
         MenuItem pvp = item(team.pvpEnabled() ? "Items.pvp-on" : "Items.pvp-off");
         if (pvp != null) {
-            pvp.onClick(event -> module.getService().togglePvp(player));
+            pvp.onClick(event ->{
+                        module.getService().togglePvp(player);
+                        module.openMenu(player, page, sort, filter);
+            } );
             setItem(pvp);
         }
         if (getPrevPage() != null && page > 1) {

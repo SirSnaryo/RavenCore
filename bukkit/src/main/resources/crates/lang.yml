@@ -1,0 +1,30 @@
+prefix: ""
+
+no-key: "&cYou don't have a key for this crate!"
+inventory-full: "&cYour inventory is full! Items dropped on the ground."
+received-reward: "&aYou received: %reward%"
+crate-placed: "&aYou placed a %crate% crate!"
+crate-broken: "&cYou broke a %crate% crate!"
+received-keys: "&aYou received &f%amount% &a%crate% key(s)!"
+received-crate: "&aYou received &f%amount% &a%crate% crate(s)!\n&7Place the chest to spawn the crate with hologram."
+keys-set: "&aYour &f%crate% &akeys have been set to &f%amount%"
+
+gave-keys: "&aGave &f%amount% &a%crate% key(s) to &f%player%"
+gave-crate: "&aGave &f%amount% &a%crate% crate(s) to &f%player%"
+set-keys: "&aSet &f%player%'s &a%crate% keys to &f%amount%"
+
+player-not-found: "&cPlayer not found: &f%player%"
+crate-not-found: "&cCrate not found: &f%crate%"
+invalid-amount: "&cInvalid amount: &f%amount%"
+amount-positive: "&cAmount must be positive!"
+amount-not-negative: "&cAmount cannot be negative!"
+invalid-crate: "&cInvalid crate type!"
+crate-not-configured: "&cThis crate is not configured properly!"
+
+usage-give: "&cUsage: /crate give <player> <crate> [amount]"
+usage-givecrate: "&cUsage: /crate givecrate <player> <crate> [amount]\n&7This gives the physical crate chest item that can be placed."
+usage-setkey: "&cUsage: /crate setkey <player> <crate> <amount>"
+
+no-crates: "&cNo crates configured!"
+reloading: "&eReloading Donut Crates..."
+reloaded: "&aDonut Crates reloaded in &f%time%ms"

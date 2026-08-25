@@ -23,9 +23,9 @@ teleport-countdown:
   sounds:
     # Played once per countdown second.
     tick:
-      sound: ENTITY_ENDERMAN_TELEPORT
-      pitch: 1.9
-      volume: 0.65
+      sound: BLOCK_NOTE_BLOCK_BASS
+      pitch: 0.5
+      volume: 1.0
     # Played when a teleport/menu action is denied or cancelled.
     denied:
       sound: ENTITY_VILLAGER_NO

@@ -1,0 +1,84 @@
+icon:
+  material: CHEST
+  name: '&6ɢᴏʟᴅ ᴄʀᴀᴛᴇ'
+  lore:
+    - '&7(Place this crate)'
+  nbt:
+    crate_id: "string:gold_crate"
+
+inventory:
+  name: '&8ᴄʜᴏᴏsᴇ 1 ɪᴛᴇᴍ'
+  size: 27
+  background-icon:
+    material: BLACK_STAINED_GLASS_PANE
+    name: '&6ɢᴏʟᴅ ᴄʀᴀᴛᴇ'
+    lore:
+      - '&7With a ɢᴏʟᴅ ᴋᴇʏ you can choose'
+      - '&7which of the 6 you want.'
+    glow: false
+
+hologram:
+  1:
+    height: 1.5
+    lines:
+      - '&6ɢᴏʟᴅ ᴄʀᴀᴛᴇ'
+      - '&f/store'
+  2:
+    height: -0.3
+    lines:
+      - '&6%crates_keys_gold_crate% &fKeys'
+
+rewards:
+  1:
+    give-icon: false
+    item:
+      slot: 10
+      material: SPAWNER
+      name: '&dCow Spawner'
+      commands:
+        - 'spawner give %player% cow 1'
+
+  2:
+    give-icon: false
+    item:
+      slot: 11
+      material: SPAWNER
+      name: '&dSpider Spawner'
+      commands:
+        - 'spawner give %player% spider 1'
+
+  3:
+    give-icon: false
+    item:
+      slot: 12
+      material: SPAWNER
+      name: '&dZombie Pigman Spawner'
+      commands:
+        - 'spawner give %player% zombified_piglin 1'
+
+  4:
+    give-icon: false
+    item:
+      slot: 13
+      material: SPAWNER
+      name: '&dSkeleton Spawner'
+      commands:
+        - 'spawner give %player% skeleton 1'
+
+  5:
+    give-icon: false
+    item:
+      slot: 14
+      material: SPAWNER
+      name: '&dBlaze Spawner'
+      commands:
+        - 'spawner give %player% blaze 1'
+
+  6:
+    give-icon: false
+    item:
+      slot: 15
+      material: SPAWNER
+      name: '&dCreeper Spawner'
+      commands:
+        - 'spawner give %player% creeper 1'

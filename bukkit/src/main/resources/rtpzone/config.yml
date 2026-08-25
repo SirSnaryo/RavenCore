@@ -12,7 +12,7 @@
 # ---------------------------------------------------------------------------
 
 # Seconds a player must stand in the zone before the group is teleported.
-timer: 30
+timer: 15
 
 # WorldGuard region ids that act as the RTP zone (matched case-insensitively,
 # in whichever world the player is standing in).
@@ -22,22 +22,22 @@ regions:
 titles:
   # Shown every second during the countdown. %time% = seconds remaining.
   countdown:
-    header: "&#FF2B2B&lRTP ZONE"
-    footer: "&#FFFFFFTeleporting in &#FFD447%time%&#FFFFFFs"
+    header: "&#FFAA00&lRTP ZONE"
+    footer: "&#00FFFFTeleporting in &f%time%s&#00FFFF..."
     fade_in: 0
     stay: 25
     fade_out: 5
   # Shown once, as the player is whisked away.
   teleported:
-    header: "&#FF2B2B&lRTP ZONE"
-    footer: "&#33FF66Whoosh!"
+    header: "&#FFAA00&lRTP ZONE"
+    footer: "&#55FF55✔ Whoosh!"
     fade_in: 10
     stay: 40
     fade_out: 10
 
 messages:
   # Sent if no safe destination could be pulled from the pool in time.
-  pool-empty: "&#D90429Couldn't find a safe destination right now — try again shortly."
+  pool-empty: "&#FF4D4D✕ Couldn't find a safe destination right now — try again shortly."
 
 sounds:
   enter:

@@ -7,6 +7,7 @@ import com.kammoun.raven.billford.model.BillfordPreset;
 import com.kammoun.raven.library.item.ItemBuilder;
 import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -55,7 +56,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
         this.plugin = plugin;
         this.preset = preset;
 
-        FileConfiguration cfg = config.getConfig();
+        FileConfiguration cfg = config.getGuiConfig();
         this.size = cfg.getInt("editor.size", 54);
         this.requiredSlots = cfg.getIntegerList("editor.required-items-slots");
         this.tradeSlot = cfg.getInt("editor.trade-slot", 25);
@@ -66,7 +67,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
     }
 
     public void open(Player player) {
-        FileConfiguration cfg = config.getConfig();
+        FileConfiguration cfg = config.getGuiConfig();
         String title = ChatFormatter.menuTitle(config.getEditorTitle().replace("%preset%", preset.getName()));
         inventory = Bukkit.createInventory(this, size, title);
 
@@ -147,7 +148,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
         preset.setRequiredItems(required);
         preset.setTradeItem(trade.clone());
 
-        manager.savePreset(preset, ok -> {
+        manager.savePreset(preset, ok -> SchedulerUtil.execute(player, () -> {
             if (!player.isOnline()) return;
             if (ok) {
                 messages.send(player, "preset.saved", "preset", preset.getName());
@@ -156,7 +157,7 @@ public class BillfordPresetEditorGui implements InventoryHolder {
             } else {
                 messages.send(player, "preset.save-failed", "preset", preset.getName());
             }
-        });
+        }));
     }
 
     private boolean isRealItem(ItemStack item) {

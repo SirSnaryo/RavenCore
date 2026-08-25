@@ -16,11 +16,11 @@ public final class HomeMessages {
         for (int i = 0; i + 1 < replacements.length; i += 2) {
             value = value.replace(replacements[i], replacements[i + 1]);
         }
-        return value;
+        return ChatFormatter.color(value);
     }
 
     public void send(CommandSender sender, String key, String... replacements) {
         String value = get(key, replacements);
-        if (!value.isBlank()) sender.sendMessage(ChatFormatter.color(value));
+        if (!value.isBlank()) sender.sendMessage(value);
     }
 }

@@ -1,0 +1,24 @@
+# How often pending local increments are atomically added to shared MySQL.
+flush-interval-seconds: 10
+
+# Reload online totals periodically so administrative database changes appear locally.
+refresh-interval-seconds: 60
+
+# Stats uses its own bounded executor so join waves and flushes cannot flood
+# RavenCore's shared MySQL pool. Two workers are enough because writes/refreshes
+# are batched; do not match this to the online player count.
+database-workers: 2
+# Requires a restart to resize because the queue is allocated when Stats starts.
+database-queue-capacity: 4096
+
+# Maximum rows per JDBC executeBatch / bulk-refresh query.
+database-batch-size: 250
+
+tracking:
+  kills: true
+  deaths: true
+  blocks-broken: true
+  blocks-placed: true
+  mob-kills: true
+  play-time: true
+  money-changes: true

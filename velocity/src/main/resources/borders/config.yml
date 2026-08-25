@@ -1,0 +1,3 @@
+# The Velocity borders module reads the main proxy config for routing.
+# This file is present so the generic module loader can seed borders/config.yml
+# without warning on first startup.

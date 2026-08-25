@@ -1,6 +1,28 @@
-Title: '&c&lDisband Team'
+Title: '&8DISBAND TEAM'
 Size: 27
 Navigation:
   Filler-Item:
     material: GRAY_STAINED_GLASS_PANE
     name: ' '
+Items:
+  Cancel:
+    slot: 11
+    material: RED_CONCRETE
+    name: '&#00FFFF&lCANCEL'
+    lore:
+      - '&fLeave your team exactly as it is.'
+      - ''
+      - '&#00FFFF✦ &#AAAAAAAction: &fKeep your team'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Go Back'
+  Confirm:
+    slot: 15
+    material: LIME_CONCRETE
+    name: '&#FF4D4D&lCONFIRM DISBAND'
+    lore:
+      - '&fBreaks up the team for every member.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAAAction: &fDisband your team'
+      - '&#FF4D4D✕ &#AAAAAAWarning: &fThis cannot be undone'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Disband'

@@ -52,7 +52,7 @@ public class SpawnModule extends KModule<RavenCore> {
 
         int countdownSeconds = getConfig().getInt("teleport-countdown.seconds", 5);
         countdown = new TeleportCountdown(api, messages, countdownSeconds,
-                readSound("teleport-countdown.sounds.tick", Sound.ENTITY_ENDERMAN_TELEPORT, 1.9f, 0.65f),
+                readSound("teleport-countdown.sounds.tick", Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, 1.0f),
                 readSound("teleport-countdown.sounds.denied", Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f));
         countdown.start();
 

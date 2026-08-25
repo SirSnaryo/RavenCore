@@ -2,14 +2,21 @@ package com.kammoun.raven;
 
 import com.kammoun.raven.billford.BillfordModule;
 import com.kammoun.raven.borders.BorderModule;
+import com.kammoun.raven.endportal.EndPortalModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
+import com.kammoun.raven.nightvision.NightVisionModule;
 import com.kammoun.raven.command.RavenCoreCommand;
+import com.kammoun.raven.crates.CratesModule;
 import com.kammoun.raven.economy.EconomyModule;
+import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.home.HomeModule;
+import com.kammoun.raven.joinfix.JoinFixModule;
 import com.kammoun.raven.lastlocation.LastLocationModule;
+import com.kammoun.raven.leaderboard.LeaderboardModule;
 import com.kammoun.raven.locationPool.LocationPoolModule;
+import com.kammoun.raven.mythictools.MythicToolsModule;
 import com.kammoun.raven.library.bootstrap.PluginClassPreloader;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.gui.KMenu;
@@ -17,19 +24,22 @@ import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.pearlstasis.PearlStasisModule;
 import com.kammoun.raven.respawn.RespawnModule;
-import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
+import com.kammoun.raven.serverinfo.ServerInfoModule;
+import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
 import com.kammoun.raven.spawn.SpawnModule;
+import com.kammoun.raven.stats.StatsModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
 import com.kammoun.raven.library.network.NetworkPlayerManager;
 import com.kammoun.raven.library.platform.ServerRole;
 import com.kammoun.raven.library.redis.RedisCredentials;
 import com.kammoun.raven.library.redis.RedisMessenger;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
+import com.kammoun.raven.library.skin.api.SkinCacheAPI;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
@@ -39,14 +49,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -73,6 +79,7 @@ public final class RavenCore extends JavaPlugin {
     private LocationPoolModule locationPoolModule;
     private EconomyModule economyModule;
     private ClearInventoryModule clearInventoryModule;
+    private NightVisionModule nightVisionModule;
     private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
@@ -83,19 +90,26 @@ public final class RavenCore extends JavaPlugin {
     private TeamModule teamModule;
     private CombatModule combatModule;
     private ShopModule shopModule;
+    private MythicToolsModule mythicToolsModule;
+    private GlobalModule globalModule;
     private ChatModule chatModule;
-    private ScoreboardModule scoreboardModule;
     private SettingsModule settingsModule;
+    private ServerInfoModule serverInfoModule;
+    private ScoreboardModule scoreboardModule;
     private BillfordModule billfordModule;
+    private StatsModule statsModule;
+    private LeaderboardModule leaderboardModule;
     private BorderModule borderModule;
     private PearlStasisModule pearlStasisModule;
+    private EndPortalModule endPortalModule;
+    private CratesModule cratesModule;
+    private JoinFixModule joinFixModule;
 
     @Override
     public void onEnable() {
         long startedAt = System.currentTimeMillis();
         instance = this;
         saveDefaultConfig();
-        migrateCoreConfigFile();
         reloadConfig();
         SchedulerUtil.init(this);
         PluginClassPreloader.preload(this);
@@ -141,6 +155,10 @@ public final class RavenCore extends JavaPlugin {
         networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(),
                 serverId, serverDisplayName, networkEventBus);
 
+        serverInfoModule = new ServerInfoModule();
+        serverInfoModule.onEnable(this);
+        enabledModules.add("ServerInfo");
+
         mySqlManager = new MySQLDBManager(getConfig());
         mySqlManager.connect();
         if (mySqlManager.isConnected()) {
@@ -148,6 +166,8 @@ public final class RavenCore extends JavaPlugin {
         } else {
             getLogger().warning("MySQL connection failed. Persistent data will not be saved.");
         }
+
+        initializeSkinCache();
 
         locationPoolModule = new LocationPoolModule();
         locationPoolModule.onEnable(this);
@@ -160,6 +180,12 @@ public final class RavenCore extends JavaPlugin {
         respawnModule = new RespawnModule();
         respawnModule.onEnable(this);
         enabledModules.add("Respawn");
+
+        if (serverRole == ServerRole.SURVIVAL || serverRole == ServerRole.END) {
+            joinFixModule = new JoinFixModule();
+            joinFixModule.onEnable(this);
+            enabledModules.add("JoinFix");
+        }
 
         homeModule = new HomeModule();
         homeModule.onEnable(this);
@@ -189,26 +215,50 @@ public final class RavenCore extends JavaPlugin {
         shopModule.onEnable(this);
         enabledModules.add("Shop");
 
+        mythicToolsModule = new MythicToolsModule();
+        mythicToolsModule.onEnable(this);
+        enabledModules.add("MythicTools");
+
 
         billfordModule = new BillfordModule();
         billfordModule.onEnable(this);
         enabledModules.add("Billford");
 
+        statsModule = new StatsModule();
+        statsModule.onEnable(this);
+        enabledModules.add("Stats");
+
+        leaderboardModule = new LeaderboardModule();
+        leaderboardModule.onEnable(this);
+        enabledModules.add("Leaderboard");
+
+        cratesModule = new CratesModule();
+        cratesModule.onEnable(this);
+        enabledModules.add("Crates");
+
         clearInventoryModule = new ClearInventoryModule();
         clearInventoryModule.onEnable(this);
         enabledModules.add("ClearInventory");
+
+        nightVisionModule = new NightVisionModule();
+        nightVisionModule.onEnable(this);
+        enabledModules.add("NightVision");
+
+        globalModule = new GlobalModule();
+        globalModule.onEnable(this);
+        enabledModules.add("Global");
 
         chatModule = new ChatModule();
         chatModule.onEnable(this);
         enabledModules.add("Chat");
 
-        scoreboardModule = new ScoreboardModule();
-        scoreboardModule.onEnable(this);
-        enabledModules.add("Scoreboard");
-
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
         enabledModules.add("Teleport");
+
+        scoreboardModule = new ScoreboardModule();
+        scoreboardModule.onEnable(this);
+        enabledModules.add("Scoreboard");
 
         settingsModule = new SettingsModule();
         settingsModule.onEnable(this);
@@ -239,6 +289,14 @@ public final class RavenCore extends JavaPlugin {
             pearlStasisModule = new PearlStasisModule();
             pearlStasisModule.onEnable(this);
             enabledModules.add("PearlStasis");
+        }
+
+        // Survival servers hand their End portals to the dedicated End backend; the End
+        // backend sends players leaving through the exit portal back to an overworld.
+        if (serverRole == ServerRole.SURVIVAL || serverRole == ServerRole.END) {
+            endPortalModule = new EndPortalModule();
+            endPortalModule.onEnable(this);
+            enabledModules.add("EndPortal");
         }
 
         if (getCommand("ravencore") != null) {
@@ -289,10 +347,17 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "core", null);
         putModule(modules, "economy", economyModule);
         putModule(modules, "shop", shopModule);
+        putModule(modules, "mythictools", mythicToolsModule);
         putModule(modules, "billford", billfordModule);
+        putModule(modules, "stats", statsModule);
+        putModule(modules, "leaderboard", leaderboardModule);
+        putModule(modules, "crates", cratesModule);
         putModule(modules, "clearinventory", clearInventoryModule);
+        putModule(modules, "nightvision", nightVisionModule);
+        putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
         putModule(modules, "scoreboard", scoreboardModule);
+        putModule(modules, "serverinfo", serverInfoModule);
         putModule(modules, "settings", settingsModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
@@ -301,12 +366,14 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "locationpool", locationPoolModule);
         putModule(modules, "rtp", rtpModule);
         putModule(modules, "respawn", respawnModule);
+        putModule(modules, "joinfix", joinFixModule);
         putModule(modules, "home", homeModule);
         putModule(modules, "team", teamModule);
         putModule(modules, "combat", combatModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
         putModule(modules, "pearlstasis", pearlStasisModule);
+        putModule(modules, "endportal", endPortalModule);
         return modules;
     }
 
@@ -333,211 +400,9 @@ public final class RavenCore extends JavaPlugin {
 
         @Override
         public void reload() {
-            RavenCore.this.migrateCoreConfigFile();
             RavenCore.this.reloadConfig();
         }
     }
-
-    /**
-     * Bukkit only copies config.yml the first time. This adds new core keys to
-     * existing installs with a tiny line-based migration so comments/order stay intact.
-     */
-    private void migrateCoreConfigFile() {
-        File configFile = new File(getDataFolder(), "config.yml");
-        if (!configFile.isFile()) {
-            return;
-        }
-
-        try {
-            List<String> lines = Files.readAllLines(configFile.toPath(), StandardCharsets.UTF_8);
-            List<String> updated = new ArrayList<>(lines);
-            boolean changed = false;
-
-            if (!hasNetworkKey(updated, "server-display-name")) {
-                List<String> displayNameBlock = List.of(
-                        "  # Friendly server name shown in GUI lore/messages.",
-                        "  # Example: \"NA East\", \"SMP World NA\", \"Spawn\".",
-                        "  # Leave empty to reuse network.server-id.",
-                        "  server-display-name: ''"
-                );
-                int networkLine = findTopLevelSection(updated, "network");
-                if (networkLine == -1) {
-                    if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
-                    updated.add("network:");
-                    updated.add("  server-id: ''");
-                    updated.addAll(displayNameBlock);
-                } else {
-                    int serverIdLine = findSectionKey(updated, networkLine, "server-id");
-                    updated.addAll(serverIdLine == -1 ? networkLine + 1 : serverIdLine + 1, displayNameBlock);
-                }
-                changed = true;
-            }
-
-            YamlConfiguration existing = YamlConfiguration.loadConfiguration(configFile);
-            int cellSize = existing.getInt("grid.cell-size", 5000);
-            int ratio = Math.max(1, existing.getInt("grid.nether-ratio", 8));
-            int cellX = existing.getInt("grid.cell-x", 0);
-            int cellZ = existing.getInt("grid.cell-z", 0);
-            int margin = Math.max(0, existing.getInt("grid.border-safety-margin", 300));
-            long overworldMinX = (long) cellX * cellSize + margin;
-            long overworldMinZ = (long) cellZ * cellSize + margin;
-            long overworldMaxX = (long) (cellX + 1) * cellSize - margin;
-            long overworldMaxZ = (long) (cellZ + 1) * cellSize - margin;
-            int netherSize = cellSize / ratio;
-            int netherMargin = (int) Math.ceil(margin / (double) ratio);
-            long netherMinX = (long) cellX * netherSize + netherMargin;
-            long netherMinZ = (long) cellZ * netherSize + netherMargin;
-            long netherMaxX = (long) (cellX + 1) * netherSize - netherMargin;
-            long netherMaxZ = (long) (cellZ + 1) * netherSize - netherMargin;
-
-            int locationLine = findTopLevelSection(updated, "location-library");
-            if (locationLine == -1) {
-                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
-                updated.add("location-library:");
-                updated.add("  refill-interval-seconds: 45");
-                updated.add("  nether-pool-enabled: true");
-                locationLine = updated.size() - 3;
-                changed = true;
-            }
-
-            List<String> additions = new ArrayList<>();
-            if (findSectionKey(updated, locationLine, "bounds") == -1) {
-                additions.addAll(List.of(
-                        "  bounds:",
-                        "    overworld:",
-                        "      min: { x: " + overworldMinX + ", y: -64, z: " + overworldMinZ + " }",
-                        "      max: { x: " + overworldMaxX + ", y: 320, z: " + overworldMaxZ + " }",
-                        "    nether:",
-                        "      min: { x: " + netherMinX + ", y: 5, z: " + netherMinZ + " }",
-                        "      max: { x: " + netherMaxX + ", y: 120, z: " + netherMaxZ + " }",
-                        "    end:",
-                        "      min: { x: -5000, y: 1, z: -5000 }",
-                        "      max: { x: 5000, y: 255, z: 5000 }"
-                ));
-            }
-            if (findSectionKey(updated, locationLine, "blacklisted-blocks") == -1) {
-                additions.addAll(List.of(
-                        "  blacklisted-blocks:",
-                        "    - WATER", "    - LAVA", "    - CACTUS", "    - BEDROCK",
-                        "    - KELP", "    - MAGMA_BLOCK", "    - FIRE", "    - SOUL_FIRE",
-                        "    - CAMPFIRE", "    - SOUL_CAMPFIRE", "    - POWDER_SNOW",
-                        "    - SWEET_BERRY_BUSH", "    - OAK_LEAVES", "    - SPRUCE_LEAVES",
-                        "    - BIRCH_LEAVES", "    - JUNGLE_LEAVES", "    - ACACIA_LEAVES",
-                        "    - DARK_OAK_LEAVES", "    - MANGROVE_LEAVES", "    - CHERRY_LEAVES",
-                        "    - PALE_OAK_LEAVES"
-                ));
-            }
-            if (findSectionKey(updated, locationLine, "blacklisted-biomes") == -1) {
-                additions.addAll(List.of("  blacklisted-biomes:", "    - BEACH"));
-            }
-            if (!additions.isEmpty()) {
-                updated.addAll(findSectionEnd(updated, locationLine), additions);
-                changed = true;
-            }
-
-            int boundsLine = findSectionKey(updated, locationLine, "bounds");
-            if (boundsLine != -1 && !containsExactLine(updated, "    end:")) {
-                updated.addAll(findNestedSectionEnd(updated, boundsLine, 4), List.of(
-                        "    end:",
-                        "      min: { x: -5000, y: 1, z: -5000 }",
-                        "      max: { x: 5000, y: 255, z: 5000 }"
-                ));
-                changed = true;
-            }
-
-            int pearlStasisLine = findTopLevelSection(updated, "pearl-stasis");
-            if (pearlStasisLine == -1) {
-                if (!updated.isEmpty() && !updated.get(updated.size() - 1).isBlank()) updated.add("");
-                updated.addAll(List.of(
-                        "# Cross-server Ender Pearl stasis chambers settings.",
-                        "pearl-stasis:",
-                        "  # Whether cross-server stasis handling is enabled.",
-                        "  enabled: true",
-                        "  # How long (seconds) a pending pearl landing record stays valid in MySQL/Redis before expiring.",
-                        "  pending-record-ttl-seconds: 300",
-                        "  sound:",
-                        "    name: ENTITY_ENDERMAN_TELEPORT",
-                        "    pitch: 1.75",
-                        "    volume: 0.9"
-                ));
-                changed = true;
-            }
-
-            if (changed) {
-                Files.write(configFile.toPath(), updated, StandardCharsets.UTF_8);
-                getLogger().info("[Config] Added missing RavenCore configuration defaults.");
-            }
-        } catch (IOException e) {
-            getLogger().warning("[Config] Failed to migrate config.yml: " + e.getMessage());
-        }
-    }
-
-    private boolean hasNetworkKey(List<String> lines, String key) {
-        return findSectionKey(lines, findTopLevelSection(lines, "network"), key) != -1;
-    }
-
-    private int findTopLevelSection(List<String> lines, String section) {
-        String expected = section + ":";
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line == null || line.isBlank() || line.startsWith(" ") || line.startsWith("\t")) {
-                continue;
-            }
-            if (line.trim().equals(expected)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findSectionKey(List<String> lines, int sectionLine, String key) {
-        if (sectionLine < 0) {
-            return -1;
-        }
-
-        String expected = key + ":";
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            String trimmed = line.trim();
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                continue;
-            }
-            if (!line.startsWith(" ") && !line.startsWith("\t")) {
-                return -1;
-            }
-            if (trimmed.equals(expected) || trimmed.startsWith(expected + " ")) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findSectionEnd(List<String> lines, int sectionLine) {
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (!line.isBlank() && !line.startsWith(" ") && !line.startsWith("\t")
-                    && !line.trim().startsWith("#")) {
-                return i;
-            }
-        }
-        return lines.size();
-    }
-
-    private int findNestedSectionEnd(List<String> lines, int sectionLine, int childIndent) {
-        for (int i = sectionLine + 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.isBlank() || line.trim().startsWith("#")) continue;
-            int indent = 0;
-            while (indent < line.length() && line.charAt(indent) == ' ') indent++;
-            if (indent < childIndent) return i;
-        }
-        return lines.size();
-    }
-
-    private boolean containsExactLine(List<String> lines, String expected) {
-        return lines.stream().anyMatch(expected::equals);
-    }
-
     /** Console banner shown at the very start of enable, before modules load. */
     private void printBanner() {
         var console = Bukkit.getConsoleSender();
@@ -575,6 +440,28 @@ public final class RavenCore extends JavaPlugin {
                     if (event.getClickedInventory() == null
                             || !event.getClickedInventory().equals(event.getView().getTopInventory())) return;
                     menu.handleClick(event);
+                }, this
+        );
+    }
+
+    private void initializeSkinCache() {
+        SkinCacheAPI.init(this, mySqlManager != null && mySqlManager.isConnected() ? mySqlManager : null)
+                .thenAccept(api -> {
+                    getLogger().info("[SkinCache] Initialized "
+                            + (mySqlManager != null && mySqlManager.isConnected() ? "with MySQL storage." : "with SQLite fallback."));
+                    Bukkit.getOnlinePlayers().forEach(api::cacheOnlinePlayer);
+                })
+                .exceptionally(error -> {
+                    getLogger().warning("[SkinCache] Failed to initialize: " + error.getMessage());
+                    return null;
+                });
+
+        Bukkit.getPluginManager().registerEvent(
+                PlayerJoinEvent.class, new Listener() {}, EventPriority.MONITOR,
+                (listener, event) -> {
+                    if (SkinCacheAPI.isInitialized()) {
+                        SkinCacheAPI.getInstance().cacheOnlinePlayer(((PlayerJoinEvent) event).getPlayer());
+                    }
                 }, this
         );
     }
@@ -713,10 +600,13 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (scoreboardModule != null) scoreboardModule.onDisable(this);
+        if (serverInfoModule != null) serverInfoModule.onDisable(this);
         if (combatModule != null) combatModule.onDisable(this);
         if (teamModule != null) teamModule.onDisable(this);
         if (homeModule != null) homeModule.onDisable(this);
         if (respawnModule != null) respawnModule.onDisable(this);
+        if (joinFixModule != null) joinFixModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
         if (spawnModule != null) spawnModule.onDisable(this);
         if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
@@ -724,23 +614,39 @@ public final class RavenCore extends JavaPlugin {
         if (teleportModule != null) teleportModule.onDisable(this);
         if (borderModule != null) borderModule.onDisable(this);
         if (pearlStasisModule != null) pearlStasisModule.onDisable(this);
+        if (endPortalModule != null) endPortalModule.onDisable(this);
         if (timeSyncModule != null) {
             timeSyncModule.onDisable(this);
         }
         if (clearInventoryModule != null) {
             clearInventoryModule.onDisable(this);
         }
+        if (nightVisionModule != null) {
+            nightVisionModule.onDisable(this);
+        }
+        if (globalModule != null) {
+            globalModule.onDisable(this);
+        }
         if (chatModule != null) {
             chatModule.onDisable(this);
-        }
-        if (scoreboardModule != null) {
-            scoreboardModule.onDisable(this);
         }
         if (shopModule != null) {
             shopModule.onDisable(this);
         }
+        if (mythicToolsModule != null) {
+            mythicToolsModule.onDisable(this);
+        }
         if (billfordModule != null) {
             billfordModule.onDisable(this);
+        }
+        if (statsModule != null) {
+            statsModule.onDisable(this);
+        }
+        if (leaderboardModule != null) {
+            leaderboardModule.onDisable(this);
+        }
+        if (cratesModule != null) {
+            cratesModule.onDisable(this);
         }
 
 
@@ -756,6 +662,9 @@ public final class RavenCore extends JavaPlugin {
         }
         if (redisMessenger != null) {
             redisMessenger.close();
+        }
+        if (SkinCacheAPI.isInitialized()) {
+            SkinCacheAPI.shutdown().join();
         }
         if (mySqlManager != null) {
             mySqlManager.disconnect();

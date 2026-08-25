@@ -30,6 +30,7 @@ public class EconomyConfirmationService {
     private final KSound cancelSound;
     private final KSound failSound;
     private final boolean enabled;
+    private final String bypassPermission;
     private final double threshold;
     private final long expiresMillis;
     private EconomyConfirmationMenu menu;
@@ -38,7 +39,7 @@ public class EconomyConfirmationService {
                                       EconomySettingsService settings, NetworkEventBus eventBus,
                                       EconomyMessages messages, KSound openSound, KSound successSound,
                                       KSound cancelSound, KSound failSound,
-                                      boolean enabled, double threshold, int expiresSeconds) {
+                                      boolean enabled, String bypassPermission, double threshold, int expiresSeconds) {
         this.plugin = plugin;
         this.service = service;
         this.economy = economy;
@@ -50,6 +51,7 @@ public class EconomyConfirmationService {
         this.cancelSound = cancelSound;
         this.failSound = failSound;
         this.enabled = enabled;
+        this.bypassPermission = bypassPermission == null ? "" : bypassPermission.trim();
         this.threshold = threshold;
         this.expiresMillis = Math.max(5, expiresSeconds) * 1_000L;
     }
@@ -59,7 +61,7 @@ public class EconomyConfirmationService {
     }
 
     public void startPay(Player player, UUID targetUuid, String targetName, double amount, String rawCommand) {
-        if (!enabled || amount < threshold || player.hasPermission("raven.economy.confirm.bypass")) {
+        if (!enabled || amount < threshold || canBypassConfirm(player)) {
             executePay(player, action(player, targetUuid, targetName, amount, rawCommand));
             return;
         }
@@ -78,7 +80,12 @@ public class EconomyConfirmationService {
 
     public void cancel(Player player, PendingEconomyAction action) {
         play(cancelSound, player);
-        player.sendMessage(messages.format("pay.confirm-cancelled", "amount", economy.format(action.amount()), "player", action.targetName()));
+        player.sendMessage(messages.format("pay.confirm-cancelled",
+                "amount", economy.format(action.amount()),
+                "amount_formatted", economy.format(action.amount()),
+                "amount_full", economy.formatFull(action.amount()),
+                "amount_raw", action.amount(),
+                "player", action.targetName()));
     }
 
     private PendingEconomyAction action(Player player, UUID targetUuid, String targetName, double amount, String rawCommand) {
@@ -93,6 +100,10 @@ public class EconomyConfirmationService {
                 rawCommand,
                 System.currentTimeMillis() + expiresMillis
         );
+    }
+
+    private boolean canBypassConfirm(Player player) {
+        return !bypassPermission.isBlank() && player.hasPermission(bypassPermission);
     }
 
     private void executePay(Player player, PendingEconomyAction action) {
@@ -128,8 +139,12 @@ public class EconomyConfirmationService {
             String key = "INSUFFICIENT_FUNDS".equalsIgnoreCase(result.failureReason())
                     ? "pay.insufficient-funds"
                     : "pay.operation-failed";
+            double balance = service.getBalance(player.getUniqueId());
             player.sendMessage(messages.format(key,
-                    "balance", economy.format(service.getBalance(player.getUniqueId())),
+                    "balance", economy.format(balance),
+                    "balance_formatted", economy.format(balance),
+                    "balance_full", economy.formatFull(balance),
+                    "balance_raw", balance,
                     "reason", result.failureReason()));
             return;
         }
@@ -137,10 +152,20 @@ public class EconomyConfirmationService {
         String formattedAmount = economy.format(action.amount());
         play(successSound, player);
         if (settings.paymentMessages(player.getUniqueId())) {
-            player.sendMessage(messages.format("pay.sent", "amount", formattedAmount, "player", action.targetName()));
+            player.sendMessage(messages.format("pay.sent",
+                    "amount", formattedAmount,
+                    "amount_formatted", formattedAmount,
+                    "amount_full", economy.formatFull(action.amount()),
+                    "amount_raw", action.amount(),
+                    "player", action.targetName()));
         }
 
-        String receivedMsg = messages.format("pay.received", "amount", formattedAmount, "player", action.actorName());
+        String receivedMsg = messages.format("pay.received",
+                "amount", formattedAmount,
+                "amount_formatted", formattedAmount,
+                "amount_full", economy.formatFull(action.amount()),
+                "amount_raw", action.amount(),
+                "player", action.actorName());
         Player localTarget = Bukkit.getPlayer(action.targetUuid());
         if (localTarget != null) {
             if (settings.paymentMessages(localTarget.getUniqueId())) {

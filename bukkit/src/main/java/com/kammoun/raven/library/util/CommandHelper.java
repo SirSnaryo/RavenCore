@@ -15,7 +15,10 @@ public final class CommandHelper {
         for (String command : commands) {
             final String processed = command
                     .replace("%player%", player.getName())
-                    .replace("%player_uuid%", player.getUniqueId().toString());
+                    .replace("%player_uuid%", player.getUniqueId().toString())
+                    .replaceFirst("(?i)^\\s*\\[(server|console)]\\s*", "")
+                    .trim();
+            if (processed.isEmpty()) continue;
             SchedulerUtil.run(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processed));
         }
     }

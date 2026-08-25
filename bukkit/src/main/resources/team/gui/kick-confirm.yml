@@ -1,6 +1,28 @@
-Title: '&c&lKick Player'
+Title: '&8KICK PLAYER'
 Size: 27
 Navigation:
   Filler-Item:
     material: GRAY_STAINED_GLASS_PANE
     name: ' '
+Items:
+  Cancel:
+    slot: 11
+    material: RED_CONCRETE
+    name: '&#00FFFF&lCANCEL'
+    lore:
+      - '&fLeave your roster exactly as it is.'
+      - ''
+      - '&#00FFFF✦ &#AAAAAAAction: &fKeep this player'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#00FFFFto Go Back'
+  Confirm:
+    slot: 15
+    material: LIME_CONCRETE
+    name: '&#FF4D4D&lCONFIRM KICK'
+    lore:
+      - '&fRemoves this player from your team.'
+      - ''
+      - '&#FF4D4D✕ &#AAAAAAAction: &fRemove this player'
+      - '&#FF4D4D✕ &#AAAAAAWarning: &fThis cannot be undone'
+      - ''
+      - '&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Kick'

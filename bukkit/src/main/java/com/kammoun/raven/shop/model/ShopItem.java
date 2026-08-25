@@ -12,21 +12,24 @@ public class ShopItem {
     private final double price;
     private final int maxStack;
     private final String purchaseTitle;
+    private final ShopCurrency currency;
 
-    public ShopItem(MenuItem icon, double price, int maxStack, String purchaseTitle) {
+    public ShopItem(MenuItem icon, double price, int maxStack, String purchaseTitle, ShopCurrency currency) {
         this.icon = icon;
         this.price = price;
         this.maxStack = maxStack;
         this.purchaseTitle = purchaseTitle;
+        this.currency = currency;
     }
 
-    public static ShopItem fromConfig(ConfigurationSection section) {
+    public static ShopItem fromConfig(ConfigurationSection section, ShopCurrency fallbackCurrency) {
         if (section == null) return null;
         MenuItem icon = ItemReader.readMenuItem(section);
         if (icon == null) return null;
         double price = section.getDouble("price", 0.0);
         int maxStack = section.getInt("max-stack", 64);
         String title = section.getString("purchase-inventory-title", "Purchase");
-        return new ShopItem(icon, price, maxStack, title);
+        ShopCurrency currency = ShopCurrency.parse(section.getString("currency"), fallbackCurrency);
+        return new ShopItem(icon, price, maxStack, title, currency);
     }
 }

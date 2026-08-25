@@ -1,0 +1,27 @@
+command:
+  help:
+    - "&#FFAA00&lMYTHICTOOLS ADMIN"
+    - "&#00FFFF▸ &#FFFFFF/mythictools give <player> <tool> [amount] &#AAAAAA- Give a tool"
+    - "&#00FFFF▸ &#FFFFFF/mythictools list &#AAAAAA- List configured tools"
+    - "&#00FFFF▸ &#FFFFFF/mythictools reload &#AAAAAA- Reload configuration"
+  give-usage: "&#00FFFF▸ Usage: &#FFFFFF/mythictools give <player> <tool> [amount]"
+  player-not-found: "&#FF4D4D✕ Player not found."
+  invalid-tool: "&#FF4D4D✕ Invalid or unconfigured Mythic Tool."
+  invalid-amount: "&#FF4D4D✕ Invalid amount."
+  give-success: "&#55FF55✔ Gave &f%amount%x %tool% &#55FF55to &f%player%&#55FF55."
+  give-received: "&#55FF55✔ You received &f%amount%x %tool%&#55FF55."
+  player-only: "&#FF4D4D✕ This command can only be used by a player."
+  invalid-duration: "&#FF4D4D✕ Invalid duration. Examples: &f5d&#FF4D4D, &f12h&#FF4D4D, &f30m&#FF4D4D, &f45s&#FF4D4D."
+  no-item: "&#FF4D4D✕ Hold an item first."
+  list-header: "&#FFAA00&lCONFIGURED MYTHIC TOOLS"
+  list-entry: "&#555555○ &f%tool% &#AAAAAA(%duration%)"
+  reload: "&#55FF55✔ Mythic Tools configuration reloaded."
+
+tool:
+  expired: "&#FF4D4D✕ Your &f%tool% &#FF4D4Dhas expired."
+  sell-axe:
+    chest-only: "&#FF4D4D✕ The Sell Axe only works on chests."
+    unavailable: "&#FF4D4D✕ The selling service is currently unavailable."
+    empty: "&#FF4D4D✕ This chest contains no sellable items."
+    deposit-failed: "&#FF4D4D✕ The sale could not be deposited. Contact an administrator."
+    success: "&#55FF55✔ Sold &f%items% &#55FF55items for &#FFFF55$%money%&#55FF55."

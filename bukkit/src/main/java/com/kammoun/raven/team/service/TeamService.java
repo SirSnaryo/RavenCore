@@ -166,13 +166,21 @@ public final class TeamService {
     }
 
     public void setHome(Player player) {
+        setHome(player, null);
+    }
+
+    public void setHome(Player player, Runnable afterSuccess) {
         Location location = player.getLocation().clone();
         HomeDestination destination = HomeDestination.from("Team Home", plugin.getServerId(), location);
-        mutate(player, () -> repository.setHome(player.getUniqueId(), destination), "home-set");
+        mutate(player, () -> repository.setHome(player.getUniqueId(), destination), "home-set", afterSuccess);
     }
 
     public void deleteHome(Player player) {
-        mutate(player, () -> repository.setHome(player.getUniqueId(), null), "home-deleted");
+        deleteHome(player, null);
+    }
+
+    public void deleteHome(Player player, Runnable afterSuccess) {
+        mutate(player, () -> repository.setHome(player.getUniqueId(), null), "home-deleted", afterSuccess);
     }
 
     public void home(Player player) {
@@ -251,6 +259,14 @@ public final class TeamService {
     private void mutate(Player player, SqlSupplier<TeamRepository.MutationResult> action,
                         String success, String... replacements) {
         async(player, action, result -> handleMutation(player, result, success, replacements));
+    }
+
+    private void mutate(Player player, SqlSupplier<TeamRepository.MutationResult> action,
+                        String success, Runnable afterSuccess, String... replacements) {
+        async(player, action, result -> {
+            handleMutation(player, result, success, replacements);
+            if (result == TeamRepository.MutationResult.SUCCESS && afterSuccess != null) afterSuccess.run();
+        });
     }
 
     private void handleMutation(Player player, TeamRepository.MutationResult result,

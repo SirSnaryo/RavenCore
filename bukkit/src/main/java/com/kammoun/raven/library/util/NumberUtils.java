@@ -60,6 +60,37 @@ public final class NumberUtils {
         return DECIMAL_FORMAT.format(value);
     }
 
+    public static String compact(long value) {
+        return compact((double) value);
+    }
+
+    public static String compact(double value) {
+        return compact(value, "");
+    }
+
+    public static String compactMoney(double value) {
+        return compact(value, "$");
+    }
+
+    private static String compact(double value, String smallSuffix) {
+        double absolute = Math.abs(value);
+        String sign = value < 0 ? "-" : "";
+
+        if (absolute < 1_000D) return sign + trimOneDecimal(absolute) + smallSuffix;
+        if (absolute < 1_000_000D) return sign + trimOneDecimal(absolute / 1_000D) + "k";
+        if (absolute < 1_000_000_000D) return sign + trimOneDecimal(absolute / 1_000_000D) + "m";
+        if (absolute < 1_000_000_000_000D) return sign + trimOneDecimal(absolute / 1_000_000_000D) + "b";
+        return sign + trimOneDecimal(absolute / 1_000_000_000_000D) + "t";
+    }
+
+    private static String trimOneDecimal(double value) {
+        double rounded = Math.round(value * 10D) / 10D;
+        if (rounded == Math.rint(rounded)) {
+            return String.valueOf((long) rounded);
+        }
+        return String.format(java.util.Locale.US, "%.1f", rounded);
+    }
+
     public static String formatDouble(double value, int places) {
         if (places < 0) places = 0;
         DecimalFormat df = new DecimalFormat("#,##0" + (places > 0 ? "." + "0".repeat(places) : ""));
