@@ -13,7 +13,7 @@ public class BalTopCommand extends KCommand {
     private final LeaderboardModule module;
 
     public BalTopCommand(LeaderboardModule module) {
-        super("baltop", "", true);
+        super("baltop", "raven.leaderboard", true);
         this.module = module;
     }
 

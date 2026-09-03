@@ -134,6 +134,9 @@ public final class PearlStasisImpactListener implements Listener {
                 transferEvent.setZ(finalImpactLoc.getZ());
                 transferEvent.setYaw(finalImpactLoc.getYaw());
                 transferEvent.setPitch(finalImpactLoc.getPitch());
+                if (plugin.getCombatModule() != null) {
+                    plugin.getCombatModule().markNetworkTransfer(finalOwnerUuid);
+                }
                 plugin.getNetworkEventBus().publish(transferEvent);
             } catch (Exception e) {
                 plugin.getLogger().warning("[PearlStasis] Failed to record stasis landing for "

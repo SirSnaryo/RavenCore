@@ -16,17 +16,12 @@ public final class RavsHook {
     }
 
     public long balance(UUID playerId) {
-        Object api = api();
-        if (api == null || !isOnlineCached(api, playerId)) return 0L;
-        Object val = call(api, "getBalance", playerId);
-        return val instanceof Number number ? Math.max(0L, number.longValue()) : 0L;
+        return cached(playerId) ? Math.max(0L, number(call("getBalance", playerId))) : 0L;
     }
 
     public boolean has(UUID playerId, long amount) {
         if (amount <= 0L) return true;
-        Object api = api();
-        if (api == null || !isOnlineCached(api, playerId)) return false;
-        return balance(playerId) >= amount;
+        return cached(playerId) && number(call("getBalance", playerId)) >= amount;
     }
 
     /**
@@ -36,48 +31,44 @@ public final class RavsHook {
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> withdraw(UUID playerId, long amount) {
         if (amount <= 0L) return CompletableFuture.completedFuture(true);
-        Object api = api();
-        if (api == null || !isOnlineCached(api, playerId) || balance(playerId) < amount) {
+        if (!cached(playerId) || number(call("getBalance", playerId)) < amount) {
             return CompletableFuture.completedFuture(false);
         }
-        Object result = call(api, "removeBalance", playerId, amount);
-        if (result instanceof CompletableFuture<?> future) {
-            return ((CompletableFuture<Object>) future)
-                    .thenApply(balance -> true)
-                    .exceptionally(error -> false);
-        }
-        return CompletableFuture.completedFuture(false);
+        return future(call("removeBalance", playerId, amount));
     }
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> deposit(UUID playerId, long amount) {
         if (amount <= 0L) return CompletableFuture.completedFuture(true);
-        Object api = api();
-        if (api == null) return CompletableFuture.completedFuture(false);
-        Object result = call(api, "addBalance", playerId, amount);
-        if (result instanceof CompletableFuture<?> future) {
-            return ((CompletableFuture<Object>) future)
-                    .thenApply(balance -> true)
-                    .exceptionally(error -> false);
+        if (api() == null) return CompletableFuture.completedFuture(false);
+        return future(call("addBalance", playerId, amount));
+    }
+
+    private boolean cached(UUID playerId) {
+        return Boolean.TRUE.equals(call("isOnlineCached", playerId));
+    }
+
+    private CompletableFuture<Boolean> future(Object value) {
+        if (value instanceof CompletableFuture<?> future) {
+            return future.thenApply(result -> true).exceptionally(error -> false);
         }
         return CompletableFuture.completedFuture(false);
     }
 
-    private boolean isOnlineCached(Object api, UUID playerId) {
-        Object val = call(api, "isOnlineCached", playerId);
-        return Boolean.TRUE.equals(val);
+    private long number(Object value) {
+        return value instanceof Number number ? number.longValue() : 0L;
     }
 
-    private Object call(Object target, String methodName, Object... args) {
+    private Object call(String methodName, Object... args) {
         try {
-            for (Method method : target.getClass().getMethods()) {
-                if (method.getName().equals(methodName) && method.getParameterCount() == args.length) {
-                    return method.invoke(target, args);
-                }
+            Object api = api();
+            if (api == null) {
+                return null;
             }
+            return find(api.getClass(), methodName, args.length).invoke(api, args);
         } catch (ReflectiveOperationException | LinkageError ignored) {
+            return null;
         }
-        return null;
     }
 
     private Object api() {
@@ -88,5 +79,14 @@ public final class RavsHook {
             missing = true;
             return null;
         }
+    }
+
+    private Method find(Class<?> type, String name, int parameters) throws NoSuchMethodException {
+        for (Method method : type.getMethods()) {
+            if (method.getName().equals(name) && method.getParameterCount() == parameters) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodException(type.getName() + "#" + name);
     }
 }

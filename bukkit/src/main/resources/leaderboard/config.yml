@@ -17,9 +17,7 @@ cache-size: 100
 # Example: %leaderboard_money_name_1%, %leaderboard_play_time_value_3%
 # <type> is any entry of enabled-types, <position> starts at 1 and is capped by cache-size.
 placeholders:
-  # How often (in seconds) the placeholder snapshot is rebuilt. It only rebuilds on
-  # the next cache refresh after this delay, so lookups themselves never hit the database.
-  refresh-rate: 1800
+  # Rebuilt after each leaderboard cache refresh; lookups themselves never hit the database.
   # Shown when nobody holds that position yet.
   empty-name: "---"
   empty-value: "0"

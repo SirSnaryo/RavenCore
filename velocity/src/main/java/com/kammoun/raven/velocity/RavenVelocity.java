@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "1.0.12",
+        version = "2.6",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )
@@ -67,6 +67,7 @@ public class RavenVelocity {
     private LobbyModule lobbyModule;
     private BorderTransferModule borderTransferModule;
     private final Map<UUID, Long> combatTags = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> internalTransfers = new ConcurrentHashMap<>();
 
     @Inject
     public RavenVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -109,7 +110,7 @@ public class RavenVelocity {
         proxyCommandFilterModule = new ProxyCommandFilterModule();
         proxyCommandFilterModule.onEnable(this, server, dataDirectory);
 
-        privateMessageModule = new PrivateMessageModule();
+        privateMessageModule = new PrivateMessageModule(this);
         privateMessageModule.onEnable(this, server, dataDirectory);
 
         lobbyModule = new LobbyModule();
@@ -161,21 +162,18 @@ public class RavenVelocity {
             logger.warning("[Teleport] Invalid transfer UUID: " + event.getPlayerUuid());
             return;
         }
-        if (isInCombat(playerUuid)) {
-            server.getPlayer(playerUuid).ifPresent(player -> player.sendMessage(
-                    Component.text("You cannot change servers while in combat!", NamedTextColor.RED)));
-            return;
-        }
-
         server.getScheduler().buildTask(this, () ->
                 server.getPlayer(playerUuid).ifPresent(player -> server.getServer(event.getTargetServer()).ifPresentOrElse(
-                        target -> player.createConnectionRequest(target).connect()
+                        target -> {
+                            markInternalTransfer(playerUuid, 15_000L);
+                            player.createConnectionRequest(target).connect()
                                 .thenAccept(result -> {
                                     if (!result.isSuccessful()) {
                                         logger.warning("[Teleport] Failed to send " + player.getUsername()
                                                 + " to " + event.getTargetServer() + ": " + result.getStatus());
                                     }
-                                }),
+                                });
+                        },
                         () -> logger.warning("[Teleport] Unknown target server: " + event.getTargetServer())
                 ))
         ).schedule();
@@ -184,6 +182,7 @@ public class RavenVelocity {
     @Subscribe
     public void onServerPreConnect(ServerPreConnectEvent event) {
         if (event.getPlayer().getCurrentServer().isEmpty() || !isInCombat(event.getPlayer().getUniqueId())) return;
+        if (isInternalTransfer(event.getPlayer().getUniqueId())) return;
         String current = event.getPlayer().getCurrentServer().get().getServerInfo().getName();
         if (current.equalsIgnoreCase(event.getOriginalServer().getServerInfo().getName())) return;
         event.setResult(ServerPreConnectEvent.ServerResult.denied());
@@ -211,6 +210,18 @@ public class RavenVelocity {
         if (expiry == null) return false;
         if (expiry > System.currentTimeMillis()) return true;
         combatTags.remove(uuid, expiry);
+        return false;
+    }
+
+    public void markInternalTransfer(UUID uuid, long durationMillis) {
+        internalTransfers.put(uuid, System.currentTimeMillis() + durationMillis);
+    }
+
+    private boolean isInternalTransfer(UUID uuid) {
+        Long expiry = internalTransfers.get(uuid);
+        if (expiry == null) return false;
+        if (expiry > System.currentTimeMillis()) return true;
+        internalTransfers.remove(uuid, expiry);
         return false;
     }
 
@@ -249,6 +260,8 @@ public class RavenVelocity {
         modules.put("core", this::reloadRootConfig);
         if (infoModule != null) modules.put("info", infoModule::reload);
         if (proxyCommandFilterModule != null) modules.put("proxycommandfilter", proxyCommandFilterModule::reload);
+        if (proxyCommandFilterModule != null) modules.put("antitab", proxyCommandFilterModule::reload);
+        if (proxyCommandFilterModule != null) modules.put("tab", proxyCommandFilterModule::reload);
         if (privateMessageModule != null) modules.put("privatemessage", privateMessageModule::reload);
         if (lobbyModule != null) modules.put("lobby", lobbyModule::reload);
         if (borderTransferModule != null) modules.put("borders", borderTransferModule::reload);

@@ -1,5 +1,6 @@
 package com.kammoun.raven.globalcontrol.listener;
 
+import com.kammoun.raven.combat.listener.CombatListener;
 import com.kammoun.raven.globalcontrol.GlobalMessageRenderer;
 import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.globalcontrol.config.GlobalConfig;
@@ -23,6 +24,7 @@ import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.Locale;
 import java.util.Map;
@@ -69,6 +71,13 @@ public final class GlobalListener implements Listener {
         }
 
         if (!config.deathMessages().enabled()) return;
+        String combatLogoutMessage = combatLogoutMessage(event);
+        if (combatLogoutMessage != null && !combatLogoutMessage.isBlank()) {
+            Component message = renderer.render(combatLogoutMessage, Map.of());
+            sendNearby(event.getEntity().getLocation().clone(), config.deathMessages().radiusSquared(),
+                    player -> player.sendMessage(message));
+            return;
+        }
         sendCustomDeathMessage(event, config.deathMessages());
     }
 
@@ -128,6 +137,19 @@ public final class GlobalListener implements Listener {
                 "%cause%", cause
         ));
         sendNearby(victim.getLocation().clone(), config.radiusSquared(), player -> player.sendMessage(message));
+    }
+
+    private String combatLogoutMessage(PlayerDeathEvent event) {
+        Player victim = event.getEntity();
+        if (!victim.hasMetadata(CombatListener.LOGOUT_DEATH_MESSAGE_METADATA)) {
+            return null;
+        }
+        for (MetadataValue value : victim.getMetadata(CombatListener.LOGOUT_DEATH_MESSAGE_METADATA)) {
+            if (value.getOwningPlugin() == module.getApi()) {
+                return value.asString();
+            }
+        }
+        return null;
     }
 
     private void playNearby(Location origin, double radiusSquared, Sound sound,

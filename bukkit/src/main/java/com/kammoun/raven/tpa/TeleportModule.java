@@ -9,6 +9,7 @@ import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
 import com.kammoun.raven.library.redis.event.TpaNotificationEvent;
 import com.kammoun.raven.library.redis.event.TpaRequestEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
+import com.kammoun.raven.tpa.command.SpeedCommand;
 import com.kammoun.raven.tpa.command.tp.TeleportCommand;
 import com.kammoun.raven.tpa.command.tp.TeleportHereCommand;
 import com.kammoun.raven.tpa.command.tpa.TpaAcceptCommand;
@@ -79,6 +80,7 @@ public class TeleportModule extends KModule<RavenCore> {
         registerCommand(new TpaToggleCommand(this), "tpatoggle");
         registerCommand(new TpaHereToggleCommand(this), "tpaheretoggle");
         registerCommand(new TpAutoCommand(this), "tpauto");
+        registerCommand(new SpeedCommand(), "speed");
         cleanupTask = SchedulerUtil.runTimer(() -> tpaManager.cleanup(), 1200L, 1200L);
         getLogger().info("[Teleport] Enabled.");
     }
@@ -299,6 +301,16 @@ public class TeleportModule extends KModule<RavenCore> {
         if (world == null) {
             send(sender, "&#D90429World &#FFD447" + target.world() + " &#D90429is not loaded.");
             return false;
+        }
+        if (api.getBorderModule() != null) {
+            var cell = api.getBorderModule().getBorderConfig().cellFor(world.getEnvironment());
+            if (cell != null && !cell.contains(target.x(), target.z())) {
+                send(sender, "&#D90429Target location is outside this server border cell.");
+                api.getLogger().warning("[Teleport] Rejected local coordinate teleport for "
+                        + player.getName() + " at " + target.x() + "," + target.z()
+                        + " because it is outside " + api.getServerId() + "'s border cell.");
+                return false;
+            }
         }
         Location location = new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
         player.teleportAsync(location);

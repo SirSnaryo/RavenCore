@@ -1,6 +1,7 @@
 package com.kammoun.raven.stats.gui;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.ItemBuilder;
@@ -46,22 +47,36 @@ public final class StatsMenu extends KMenu {
     }
 
     private String[] placeholders(StatsSnapshot stats, long ravs) {
-        double money = api.getEconomyModule() == null ? 0D
-                : api.getEconomyModule().getEconomyService().getBalance(stats.uuid());
+        double money = balance(stats);
         return new String[]{
                 "%player%", stats.playerName(),
-                "%kills%", NumberUtils.format(stats.kills()),
-                "%deaths%", NumberUtils.format(stats.deaths()),
+                "%kills%", NumberUtils.compact(stats.kills()),
+                "%deaths%", NumberUtils.compact(stats.deaths()),
                 "%kd%", String.format(Locale.US, "%.2f", stats.kd()),
-                "%blocks_broken%", NumberUtils.format(stats.blocksBroken()),
-                "%blocks_placed%", NumberUtils.format(stats.blocksPlaced()),
-                "%mob_kills%", NumberUtils.format(stats.mobKills()),
+                "%blocks_broken%", NumberUtils.compact(stats.blocksBroken()),
+                "%blocks_placed%", NumberUtils.compact(stats.blocksPlaced()),
+                "%mob_kills%", NumberUtils.compact(stats.mobKills()),
                 "%play_time%", formatDuration(stats.playTime()),
-                "%money%", NumberUtils.format(money),
-                "%ravs%", NumberUtils.format(ravs),
-                "%money_spent%", NumberUtils.format(stats.moneySpent()),
-                "%money_made%", NumberUtils.format(stats.moneyMade())
+                "%money%", formatMoney(money),
+                "%ravs%", NumberUtils.compact(ravs),
+                "%money_spent%", NumberUtils.compactMoney(stats.moneySpent()),
+                "%money_made%", NumberUtils.compactMoney(stats.moneyMade())
         };
+    }
+
+    private String formatMoney(double amount) {
+        if (api.getEconomyModule() == null || api.getEconomyModule().getEconomy() == null) {
+            return NumberUtils.compactMoney(amount);
+        }
+        RavenEconomy economy = api.getEconomyModule().getEconomy();
+        return economy.formatCompact(amount);
+    }
+
+    private double balance(StatsSnapshot stats) {
+        if (api.getEconomyModule() == null || api.getEconomyModule().getEconomyService() == null) {
+            return 0D;
+        }
+        return api.getEconomyModule().getEconomyService().getBalance(stats.uuid());
     }
 
     public static String formatDuration(long seconds) {

@@ -9,6 +9,7 @@ import com.kammoun.raven.library.item.ItemBuilder;
 import com.kammoun.raven.library.item.ItemReader;
 import com.kammoun.raven.library.item.MenuItem;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -17,7 +18,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import de.rapha149.signgui.SignGUI;
-import de.rapha149.signgui.SignGUIAction;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -79,10 +79,10 @@ public final class TeamMenu extends KMenu {
                             .setLine(2, "SEARCH")
                             .setHandler((searchPlayer, result) -> {
                                 String input = result.getLineWithoutColor(0).trim();
-                                return List.of(SignGUIAction.run(() ->
-                                        module.openMenu(searchPlayer, 1, sort, input.isEmpty() ? null : input)));
+                                SchedulerUtil.execute(searchPlayer, () ->
+                                        module.openMenu(searchPlayer, 1, sort, input.isEmpty() ? null : input));
+                                return List.of();
                             })
-                            .callHandlerSynchronously(module.getApi())
                             .build()
                             .open(player);
                 } catch (Throwable exception) {

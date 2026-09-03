@@ -43,7 +43,9 @@ public class BorderTransferModule extends VModule {
                 .buildTask(ravenVelocity, () ->
                         ravenVelocity.getServer().getPlayer(uuid).ifPresent(player ->
                                 ravenVelocity.getServer().getServer(event.getTargetServer()).ifPresentOrElse(
-                                        target -> player.createConnectionRequest(target).connect()
+                                        target -> {
+                                            ravenVelocity.markInternalTransfer(uuid, 15_000L);
+                                            player.createConnectionRequest(target).connect()
                                                 .thenAccept(result -> {
                                                     if (!result.isSuccessful()
                                                             && !"ALREADY_CONNECTED".equals(
@@ -61,7 +63,8 @@ public class BorderTransferModule extends VModule {
                                                                     + ": " + error.getMessage());
                                                     notifyFailure(event, error.getMessage());
                                                     return null;
-                                                }),
+                                                });
+                                        },
                                         () -> {
                                             Logger.getLogger("RavenCore/borders").warning(
                                                     "[Borders] Unknown target server: " + event.getTargetServer());

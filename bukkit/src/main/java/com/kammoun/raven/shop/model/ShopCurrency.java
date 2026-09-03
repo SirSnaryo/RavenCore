@@ -20,7 +20,7 @@ public enum ShopCurrency {
 
     public String format(double amount) {
         return this == RAVS
-                ? NumberUtils.format(Math.round(amount))
-                : NumberUtils.formatDouble(amount);
+                ? NumberUtils.compact(Math.round(amount))
+                : NumberUtils.compactMoney(amount);
     }
 }

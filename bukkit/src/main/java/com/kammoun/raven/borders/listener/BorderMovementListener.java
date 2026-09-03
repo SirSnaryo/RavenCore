@@ -10,6 +10,7 @@ import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -61,7 +62,16 @@ public class BorderMovementListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        suppress(event.getPlayer().getUniqueId(), 5_000L);
+        Player player = event.getPlayer();
+        suppress(player.getUniqueId(), 5_000L);
+        SchedulerUtil.runLater(() -> SchedulerUtil.execute(player, () -> {
+            if (!player.isOnline()) return;
+            Location location = player.getLocation();
+            World world = location.getWorld();
+            if (world == null) return;
+            checkAndTransfer(player, location.getX(), location.getY(), location.getZ(),
+                    location.getYaw(), location.getPitch(), world.getEnvironment(), null);
+        }), 101L);
     }
 
     @EventHandler
@@ -104,8 +114,8 @@ public class BorderMovementListener implements Listener {
     // -------------------------------------------------------------------------
 
     private void checkAndTransfer(Player player, double x, double y, double z,
-                                   float yaw, float pitch, World.Environment env,
-                                   org.bukkit.event.Cancellable event) {
+                                  float yaw, float pitch, World.Environment env,
+                                  org.bukkit.event.Cancellable event) {
         Long suppressionExpiry = suppressedUntil.get(player.getUniqueId());
         if (suppressionExpiry != null) {
             if (suppressionExpiry > System.currentTimeMillis()) return;
@@ -119,27 +129,22 @@ public class BorderMovementListener implements Listener {
         GridCell.Direction dir = cell.exitDirection(x, z);
         if (dir == null) return; // still inside
 
-        if (plugin.getCombatModule() != null && !plugin.getCombatModule().canTransfer(player, true)) {
-            event.setCancelled(true);
-            return;
-        }
-
         int neighborCellX = config.cellX() + dir.dx;
         int neighborCellZ = config.cellZ() + dir.dz;
         String dimension = env.name();
 
         String targetServer = registry.resolve(config.cluster(), dimension, neighborCellX, neighborCellZ);
         if (targetServer == null) {
-            event.setCancelled(true);
+            if (event != null) event.setCancelled(true);
             kickForTransferFailure(player);
             return;
         }
         if (targetServer.equalsIgnoreCase(sourceServer)) {
-            event.setCancelled(true);
+            if (event != null) event.setCancelled(true);
             return;
         }
 
-        event.setCancelled(true);
+        if (event != null) event.setCancelled(true);
         if (player.isInsideVehicle()) {
             player.leaveVehicle();
             if (player.isInsideVehicle()) {
@@ -148,6 +153,9 @@ public class BorderMovementListener implements Listener {
         }
 
         inTransfer.add(player.getUniqueId());
+        if (plugin.getCombatModule() != null) {
+            plugin.getCombatModule().markNetworkTransfer(player.getUniqueId());
+        }
 
         transferStore.store(player.getUniqueId(), dimension, x, y, z, yaw, pitch);
 

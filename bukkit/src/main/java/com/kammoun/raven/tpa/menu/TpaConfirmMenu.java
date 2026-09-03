@@ -7,6 +7,8 @@ import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.util.PlaceholderHelper;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.tpa.model.TpaRequest;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -40,7 +42,8 @@ public class TpaConfirmMenu extends KMenu {
     public void open(Player player, TpaRequest request) {
         contexts.put(player.getUniqueId(), new Context(null, request));
         super.open(player, placeholders(request.requesterName(),
-                displayServer(request.requesterServer(), request.requesterServerDisplayName()), null, request.requesterId()));
+                displayServer(request.requesterServer(), request.requesterServerDisplayName()),
+                localWorld(request.requesterId()), request.requesterId()));
     }
 
     @Override
@@ -52,6 +55,12 @@ public class TpaConfirmMenu extends KMenu {
             MenuItem item = ItemReader.readMenuItem(section.getConfigurationSection(key), plugin);
             if (item == null) continue;
             ItemStack stack = PlaceholderHelper.parsePlaceholders(item.getItemStack(), placeholders);
+            if (key.equalsIgnoreCase("Location")) {
+                Material material = Material.matchMaterial(placeholder(placeholders, "%location_material%"));
+                if (material != null) {
+                    stack.setType(material);
+                }
+            }
             MenuItem display = MenuItem.of(new com.kammoun.raven.library.item.ItemBuilder(stack))
                     .slot(item.getSlot())
                     .permission(item.getPermission())
@@ -93,9 +102,11 @@ public class TpaConfirmMenu extends KMenu {
     private String[] placeholders(String playerName, String server, String world, UUID playerId) {
         return new String[]{
                 "%player%", playerName == null ? "Unknown" : playerName,
-                "%server%", server == null ? "Unknown" : server,
+                "%server%", "",
                 "%world%", world == null ? "Unknown" : module.getTeleportConfig().worldNickname(world),
-                "%is_flying%", flyingText(playerId)
+                "%ping%", pingText(playerId),
+                "%is_flying%", pingText(playerId),
+                "%location_material%", locationMaterial(world)
         };
     }
 
@@ -103,15 +114,46 @@ public class TpaConfirmMenu extends KMenu {
         return displayName == null || displayName.isBlank() ? id : displayName;
     }
 
-    private String flyingText(UUID playerId) {
+    private String localWorld(UUID playerId) {
+        if (playerId == null) {
+            return null;
+        }
+        Player player = Bukkit.getPlayer(playerId);
+        return player == null ? null : player.getWorld().getName();
+    }
+
+    private String pingText(UUID playerId) {
         if (playerId == null) {
             return "Unknown";
         }
-        Player player = org.bukkit.Bukkit.getPlayer(playerId);
+        Player player = Bukkit.getPlayer(playerId);
         if (player == null) {
             return "Unknown";
         }
-        return player.isFlying() ? "Yes" : "No";
+        return player.getPing() + "ms";
+    }
+
+    private String locationMaterial(String world) {
+        if (world == null) {
+            return "GRASS_BLOCK";
+        }
+        String normalized = world.toLowerCase(java.util.Locale.ROOT);
+        if (normalized.contains("nether")) {
+            return "NETHERRACK";
+        }
+        if (normalized.contains("end")) {
+            return "END_STONE";
+        }
+        return "GRASS_BLOCK";
+    }
+
+    private String placeholder(String[] placeholders, String key) {
+        for (int i = 0; i + 1 < placeholders.length; i += 2) {
+            if (placeholders[i].equalsIgnoreCase(key)) {
+                return placeholders[i + 1];
+            }
+        }
+        return "";
     }
 
     public enum Mode {

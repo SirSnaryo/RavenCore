@@ -9,6 +9,7 @@ import com.kammoun.raven.clearinventory.ClearInventoryModule;
 import com.kammoun.raven.nightvision.NightVisionModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.crates.CratesModule;
+import com.kammoun.raven.docs.DocsGenerator;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.home.HomeModule;
@@ -277,10 +278,13 @@ public final class RavenCore extends JavaPlugin {
             enabledModules.add("RtpZone");
         }
 
-        if (serverRole == ServerRole.SURVIVAL) {
+        if (serverRole == ServerRole.SURVIVAL || serverRole == ServerRole.SPAWN) {
             timeSyncModule = new TimeSyncModule();
             timeSyncModule.onEnable(this);
             enabledModules.add("TimeSync");
+        }
+
+        if (serverRole == ServerRole.SURVIVAL) {
 
             borderModule = new BorderModule();
             borderModule.onEnable(this);
@@ -304,6 +308,7 @@ public final class RavenCore extends JavaPlugin {
             getCommand("ravencore").setExecutor(command);
             getCommand("ravencore").setTabCompleter(command);
         }
+        DocsGenerator.write(this);
         printReady(System.currentTimeMillis() - startedAt);
     }
 

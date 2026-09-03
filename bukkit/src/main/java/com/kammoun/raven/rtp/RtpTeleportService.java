@@ -14,6 +14,8 @@ import com.kammoun.raven.tpa.transfer.TeleportTransferStore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
@@ -206,6 +208,11 @@ public final class RtpTeleportService {
             return;
         }
         Location location = new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
+        if (!isSafeLocalLanding(location)) {
+            messages.send(player, RtpMessage.NO_LOCATIONS);
+            sounds.play(player, "warmup-cancelled");
+            return;
+        }
         player.teleportAsync(location).thenAccept(success -> SchedulerUtil.execute(player, () -> {
             if (!success || !player.isOnline()) {
                 messages.send(player, RtpMessage.TRANSFER_FAILED);
@@ -214,5 +221,29 @@ public final class RtpTeleportService {
             }
             complete(player);
         }));
+    }
+
+    private boolean isSafeLocalLanding(Location location) {
+        World world = location.getWorld();
+        if (world == null) return false;
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        Block ground = world.getBlockAt(x, y - 1, z);
+        if (ground.getType().isAir() || unsafeLiquid(ground)) return false;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (unsafeLiquid(world.getBlockAt(x + dx, y, z + dz))
+                        || unsafeLiquid(world.getBlockAt(x + dx, y + 1, z + dz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean unsafeLiquid(Block block) {
+        return block.isLiquid()
+                || (block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged());
     }
 }

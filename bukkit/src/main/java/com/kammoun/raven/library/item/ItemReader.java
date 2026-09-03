@@ -30,6 +30,10 @@ public final class ItemReader {
             Bukkit.getLogger().warning("[ItemReader] Unknown material: " + matName);
             return null;
         }
+        if (!material.isItem()) {
+            Bukkit.getLogger().warning("[ItemReader] Material is not an inventory item: " + matName);
+            return null;
+        }
 
         ItemBuilder builder = (material == Material.PLAYER_HEAD && plugin != null)
                 ? new SkullBuilder(plugin)

@@ -113,6 +113,20 @@ public final class CombatService {
         }
     }
 
+    public void unloadLocal(UUID uuid) {
+        tags.remove(uuid);
+        ScheduledTask task = actionBars.remove(uuid);
+        if (task != null) task.cancel();
+    }
+
+    public void markNetworkTransfer(UUID uuid) {
+        store.markNetworkTransfer(uuid, 15);
+    }
+
+    public boolean isNetworkTransfer(UUID uuid) {
+        return store.isNetworkTransfer(uuid);
+    }
+
     public void clearLocal() {
         actionBars.values().forEach(ScheduledTask::cancel);
         actionBars.clear();

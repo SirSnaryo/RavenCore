@@ -21,6 +21,9 @@ import java.util.UUID;
 
 public final class PearlStasisJoinListener implements Listener {
 
+    private static final int MAX_ATTEMPTS = 6;
+    private static final long RETRY_DELAY_TICKS = 10L;
+
     private final RavenCore plugin;
     private final PearlStasisConfig config;
     private final PearlStasisRepository repository;
@@ -41,27 +44,30 @@ public final class PearlStasisJoinListener implements Listener {
         }
 
         Player player = event.getPlayer();
+        consumePending(player, 1);
+    }
+
+    private void consumePending(Player player, int attempt) {
         UUID playerUuid = player.getUniqueId();
-
-        // Fast-gate: check Redis marker first to bypass database for normal joins
-        if (!store.hasMarker(playerUuid)) {
-            return;
-        }
-
         SchedulerUtil.runAsync(() -> {
             try {
+                boolean marked = store.hasMarker(playerUuid);
                 Optional<PearlStasisRecord> pendingOpt = repository.consumeOldestPending(
                         playerUuid, plugin.getServerId(), config.getTtlMillis());
 
                 if (pendingOpt.isEmpty()) {
-                    store.clearMarker(playerUuid);
+                    if (marked && attempt < MAX_ATTEMPTS) {
+                        SchedulerUtil.runAsyncLater(() -> consumePending(player, attempt + 1), RETRY_DELAY_TICKS);
+                    } else if (!repository.hasPending(playerUuid, config.getTtlMillis())) {
+                        store.clearMarker(playerUuid);
+                    }
                     return;
                 }
 
                 PearlStasisRecord record = pendingOpt.get();
 
                 // If no more pending landings remain for this player, clear the fast-gate marker
-                if (repository.countPending(playerUuid, plugin.getServerId(), config.getTtlMillis()) == 0) {
+                if (!repository.hasPending(playerUuid, config.getTtlMillis())) {
                     store.clearMarker(playerUuid);
                 }
 

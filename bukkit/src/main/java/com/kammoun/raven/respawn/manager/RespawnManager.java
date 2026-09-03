@@ -6,6 +6,8 @@ import com.kammoun.raven.library.locationpool.LocationDimension;
 import com.kammoun.raven.library.locationpool.LocationPool;
 import com.kammoun.raven.library.locationpool.RtpLocation;
 import com.kammoun.raven.library.location.NetworkLocation;
+import com.kammoun.raven.library.location.LocationType;
+import com.kammoun.raven.library.network.NetworkPlayerInfo;
 import com.kammoun.raven.library.platform.bungee.BungeeHelper;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.redis.event.CrossServerTeleportEvent;
@@ -36,6 +38,8 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -325,7 +329,7 @@ public final class RespawnManager implements Listener {
         SchedulerUtil.runAsync(() -> {
             Optional<NetworkLocation> spawn;
             try {
-                spawn = spawnLocations.findSpawn(config.spawnServer());
+                spawn = selectSpawnDestination();
             } catch (SQLException | RuntimeException error) {
                 plugin.getLogger().warning("[Respawn] Failed to load spawn location for " + player.getName()
                         + ": " + error.getMessage());
@@ -370,15 +374,7 @@ public final class RespawnManager implements Listener {
                     return;
                 }
 
-                Optional<RtpLocation> random = randomFallbackLocation();
-                if (random.isPresent()) {
-                    future.complete(DeathPlan.rtp(random.get()));
-                    return;
-                }
-
-                Optional<NetworkLocation> spawn = spawnLocations.findSpawn(config.spawnServer());
-                future.complete(spawn.map(location ->
-                        DeathPlan.destination(RespawnDestination.spawn(location))).orElseGet(DeathPlan::none));
+                future.complete(randomFallbackPlan());
             } catch (SQLException | RuntimeException error) {
                 plugin.getLogger().warning("[Respawn] Failed to pre-resolve respawn for " + playerName
                         + ": " + error.getMessage());
@@ -400,10 +396,9 @@ public final class RespawnManager implements Listener {
             }
             SchedulerUtil.runAsync(() -> {
                 try {
-                    Optional<RtpLocation> random = randomFallbackLocation();
-                    future.complete(random.map(DeathPlan::rtp).orElseGet(DeathPlan::none));
-                } catch (RuntimeException error) {
-                    plugin.getLogger().warning("[Respawn] Failed to precompute random fallback for "
+                    future.complete(randomFallbackPlan());
+                } catch (SQLException | RuntimeException error) {
+                    plugin.getLogger().warning("[Respawn] Failed to precompute spawn fallback for "
                             + playerName + ": " + error.getMessage());
                     future.completeExceptionally(error);
                 }
@@ -420,6 +415,53 @@ public final class RespawnManager implements Listener {
             return pool.getRandomLocationAcrossClusters(config.clusters(), LocationDimension.OVERWORLD);
         }
         return pool.getRandomLocationGlobal(LocationDimension.OVERWORLD);
+    }
+
+    private DeathPlan randomFallbackPlan() throws SQLException {
+        Optional<RtpLocation> random = randomFallbackLocation();
+        if (random.isPresent()) {
+            return DeathPlan.rtp(random.get());
+        }
+        Optional<NetworkLocation> spawn = selectSpawnDestination();
+        return spawn.map(location -> DeathPlan.destination(RespawnDestination.spawn(location)))
+                .orElseGet(DeathPlan::none);
+    }
+
+    private Optional<NetworkLocation> selectSpawnDestination() throws SQLException {
+        String preferred = config.spawnServer();
+        if (preferred != null && !preferred.isBlank()) {
+            return spawnLocations.findSpawn(preferred);
+        }
+
+        List<NetworkLocation> spawns = spawnLocations.findAll().stream()
+                .filter(location -> location.getType() == LocationType.SPAWN)
+                .filter(NetworkLocation::isEnabled)
+                .toList();
+        if (spawns.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, Long> online = onlineByServer();
+        return spawns.stream()
+                .filter(location -> location.getMaxPlayers() <= 0
+                        || online.getOrDefault(location.getServerName(), 0L) < location.getMaxPlayers())
+                .min(Comparator
+                        .comparingLong((NetworkLocation location) ->
+                                online.getOrDefault(location.getServerName(), 0L))
+                        .thenComparing(NetworkLocation::getServerName));
+    }
+
+    private Map<String, Long> onlineByServer() {
+        Map<String, Long> counts = new ConcurrentHashMap<>();
+        if (plugin.getNetworkPlayerManager() == null) {
+            counts.put(plugin.getServerId(), (long) Bukkit.getOnlinePlayers().size());
+            return counts;
+        }
+        for (NetworkPlayerInfo info : plugin.getNetworkPlayerManager().getOnlineNetworkPlayers()) {
+            if (info.getServerId() == null || info.getServerId().isBlank()) continue;
+            counts.merge(info.getServerId(), 1L, Long::sum);
+        }
+        return counts;
     }
 
     private void useDestination(Player player, long attemptId, RespawnDestination destination) {

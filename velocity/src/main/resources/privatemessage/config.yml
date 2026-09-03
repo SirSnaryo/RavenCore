@@ -1,11 +1,14 @@
-# Permission required to use /msg and /r.
-permission: "raven.msg"
+# Permission required to use /msg and /r. Leave blank to allow every player.
+permission: ""
 
 format:
   sent: "&7[You -> &f%target%&7]: &f%message%"
   received: "&7[&f%sender%&7 -> You]: &f%message%"
 
+no-permission: "&cYou don't have permission to use private messages."
+usage: "&cUsage: %usage%"
 player-not-found: "&cPlayer &f%player%&c is not online."
+delivery-failed: "&cCould not deliver your message to &f%player%&c."
 cannot-message-self: "&cYou cannot message yourself."
 no-reply-target: "&cYou have no one to reply to."
 reply-target-offline: "&cThat player is no longer online."

@@ -45,7 +45,7 @@ public final class SchedulerUtil {
     /** Runs a task on the main thread next tick. */
     public static void run(Runnable runnable) {
         if (isFolia)
-            Bukkit.getGlobalRegionScheduler().execute(plugin, runnable);
+            Bukkit.getGlobalRegionScheduler().run(plugin, task -> runnable.run());
         else
             Bukkit.getScheduler().runTask(plugin, runnable);
     }

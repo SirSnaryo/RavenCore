@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Pre-rendered leaderboard positions for PlaceholderAPI, so a placeholder lookup is an
  * array read instead of a list scan plus number formatting. Rebuilt from the leaderboard
- * cache at most once per {@code placeholders.refresh-rate}, never from the database.
+ * cache after each leaderboard refresh, never from the database.
  */
 public final class LeaderboardPlaceholderCache {
     private record Snapshot(String[] names, String[] values, String[] raw) {}
@@ -22,7 +22,6 @@ public final class LeaderboardPlaceholderCache {
     private final LeaderboardService service;
     private final Map<LeaderboardType, Snapshot> snapshots = new ConcurrentHashMap<>();
     private volatile LeaderboardConfig config;
-    private long lastRebuild;
 
     public LeaderboardPlaceholderCache(LeaderboardService service, LeaderboardConfig config) {
         this.service = service;
@@ -30,14 +29,12 @@ public final class LeaderboardPlaceholderCache {
     }
 
     public void start() {
-        service.setRefreshListener(this::rebuildIfDue);
+        service.setRefreshListener(this::rebuild);
     }
 
     public void updateConfig(LeaderboardConfig config) {
         this.config = config;
-        synchronized (this) {
-            lastRebuild = 0L;
-        }
+        rebuild();
     }
 
     public void shutdown() {
@@ -68,14 +65,7 @@ public final class LeaderboardPlaceholderCache {
         return snapshot.raw()[position - 1];
     }
 
-    private synchronized void rebuildIfDue() {
-        long now = System.currentTimeMillis();
-        if (lastRebuild != 0L && now - lastRebuild < config.placeholderRefreshMillis()) return;
-        lastRebuild = now;
-        rebuild();
-    }
-
-    private void rebuild() {
+    private synchronized void rebuild() {
         Set<LeaderboardType> enabled = config.enabledTypes();
         for (LeaderboardType type : enabled) {
             List<LeaderboardEntry> entries = service.entries(type);

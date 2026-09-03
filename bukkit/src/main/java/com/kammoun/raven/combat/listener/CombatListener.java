@@ -4,9 +4,9 @@ import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.combat.config.CombatConfig;
 import com.kammoun.raven.combat.service.CombatService;
 import com.kammoun.raven.combat.service.ProtectedRegionChecker;
-import com.kammoun.raven.library.redis.event.ChatBroadcastEvent;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,12 +17,14 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
 public final class CombatListener implements Listener {
+    public static final String LOGOUT_DEATH_MESSAGE_METADATA = "raven_combat_logout_death_message";
+
     private final RavenCore plugin;
     private final CombatService combat;
     private final CombatConfig config;
@@ -55,21 +57,22 @@ public final class CombatListener implements Listener {
             combat.remove(otherId, true, true);
         }
 
-        if (killer != null) {
-            stealMoney(killer, event.getPlayer());
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         if (!combat.isTagged(player) || plugin.getCombatModule().isServerStopping()) return;
+        if (plugin.getCombatModule().isNetworkTransfer(player.getUniqueId())) {
+            plugin.getCombatModule().unloadLocal(player.getUniqueId());
+            return;
+        }
         combat.remove(player.getUniqueId(), false, true);
         if (!config.killOnLogout()) return;
+        player.setMetadata(LOGOUT_DEATH_MESSAGE_METADATA,
+                new FixedMetadataValue(plugin, config.message("logout-death", "%player%", player.getName())));
+        dropInventory(player);
         player.setHealth(0.0);
-        ChatBroadcastEvent broadcast = new ChatBroadcastEvent();
-        broadcast.setMessage(config.message("logout-death", "%player%", player.getName()));
-        plugin.getNetworkEventBus().publish(broadcast);
     }
 
     @EventHandler
@@ -97,7 +100,7 @@ public final class CombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         ItemStack item = event.getItem();
-        if (item != null && item.getType() == Material.ENDER_PEARL && config.disableEnderPearls()
+        if (item != null && item.getType() == Material.ENDER_PEARL && config.blockVanillaEnderPearls()
                 && combat.isTagged(event.getPlayer())) {
             event.setCancelled(true);
             config.send(event.getPlayer(), "enderpearl-blocked");
@@ -107,7 +110,7 @@ public final class CombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onLaunch(ProjectileLaunchEvent event) {
         if (event.getEntity() instanceof EnderPearl pearl && pearl.getShooter() instanceof Player player
-                && config.disableEnderPearls() && combat.isTagged(player)) {
+                && config.blockVanillaEnderPearls() && combat.isTagged(player)) {
             event.setCancelled(true);
             config.send(player, "enderpearl-blocked");
         }
@@ -116,7 +119,7 @@ public final class CombatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
         if (!combat.isTagged(event.getPlayer())) return;
-        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL && config.disableEnderPearls()) {
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL && config.blockVanillaEnderPearls()) {
             event.setCancelled(true);
             config.send(event.getPlayer(), "enderpearl-blocked");
             return;
@@ -165,22 +168,24 @@ public final class CombatListener implements Listener {
         return null;
     }
 
-    private void stealMoney(Player killer, Player victim) {
-        if (!config.moneyStealEnabled() || plugin.getEconomyModule() == null
-                || plugin.getEconomyModule().getEconomyService() == null) return;
-        var economy = plugin.getEconomyModule().getEconomyService();
-        double balance = economy.getBalance(victim.getUniqueId());
-        if (balance <= 0.0) return;
-        double stolen = balance * config.moneyStealPercentage() / 100.0;
-        if (config.moneyStealMinimum() > 0.0 && stolen < config.moneyStealMinimum()) {
-            stolen = Math.min(config.moneyStealMinimum(), balance);
+    private void dropInventory(Player player) {
+        Location location = player.getLocation();
+        if (location.getWorld() == null) return;
+        for (ItemStack item : player.getInventory().getContents()) {
+            drop(location, item);
         }
-        if (config.moneyStealMaximum() > 0.0) stolen = Math.min(stolen, config.moneyStealMaximum());
-        stolen = Math.min(stolen, balance);
-        if (stolen <= 0.0 || !economy.withdraw(victim.getUniqueId(), stolen)) return;
-        economy.deposit(killer.getUniqueId(), stolen);
-        String amount = String.format(java.util.Locale.US, "%.2f", stolen);
-        config.send(killer, "money-stolen-killer", "%amount%", amount, "%victim%", victim.getName());
-        config.send(victim, "money-stolen-victim", "%amount%", amount, "%killer%", killer.getName());
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            drop(location, item);
+        }
+        drop(location, player.getInventory().getItemInOffHand());
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+        player.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
     }
+
+    private void drop(Location location, ItemStack item) {
+        if (item == null || item.getType().isAir() || item.getAmount() <= 0) return;
+        location.getWorld().dropItemNaturally(location, item.clone());
+    }
+
 }

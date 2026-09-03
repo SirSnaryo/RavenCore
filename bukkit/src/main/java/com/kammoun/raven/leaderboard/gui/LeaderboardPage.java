@@ -13,7 +13,6 @@ import com.kammoun.raven.library.skin.api.SkinCacheAPI;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
 import com.kammoun.raven.library.util.PlaceholderHelper;
 import de.rapha149.signgui.SignGUI;
-import de.rapha149.signgui.SignGUIAction;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -144,9 +143,9 @@ public final class LeaderboardPage extends KMenu {
                     .setLine(2, "SEARCH")
                     .setHandler((searchPlayer, result) -> {
                         String input = result.getLineWithoutColor(0).trim();
-                        return List.of(SignGUIAction.run(() -> applySearch(searchPlayer, input)));
+                        SchedulerUtil.execute(searchPlayer, () -> applySearch(searchPlayer, input));
+                        return List.of();
                     })
-                    .callHandlerSynchronously(module.getApi())
                     .build()
                     .open(player);
         } catch (Throwable exception) {

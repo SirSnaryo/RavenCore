@@ -10,7 +10,6 @@ public final class LeaderboardConfig {
     private final long refreshIntervalTicks;
     private final int cacheSize;
     private final int playersPerPage;
-    private final long placeholderRefreshMillis;
     private final String placeholderEmptyName;
     private final String placeholderEmptyValue;
     private final Set<LeaderboardType> enabledTypes;
@@ -22,7 +21,6 @@ public final class LeaderboardConfig {
         refreshIntervalTicks = Math.max(1_200L, refreshSeconds * 20L);
         cacheSize = Math.max(10, Math.min(1000, config.getInt("cache-size", 100)));
         playersPerPage = Math.max(1, Math.min(45, config.getInt("players-per-page", 9)));
-        placeholderRefreshMillis = Math.max(60L, config.getLong("placeholders.refresh-rate", 1_800L)) * 1_000L;
         placeholderEmptyName = config.getString("placeholders.empty-name", "---");
         placeholderEmptyValue = config.getString("placeholders.empty-value", "0");
         enabledTypes = EnumSet.noneOf(LeaderboardType.class);
@@ -38,7 +36,6 @@ public final class LeaderboardConfig {
     public long refreshIntervalTicks() { return refreshIntervalTicks; }
     public int cacheSize() { return cacheSize; }
     public int playersPerPage() { return playersPerPage; }
-    public long placeholderRefreshMillis() { return placeholderRefreshMillis; }
     public String placeholderEmptyName() { return placeholderEmptyName; }
     public String placeholderEmptyValue() { return placeholderEmptyValue; }
     public Set<LeaderboardType> enabledTypes() { return Set.copyOf(enabledTypes); }

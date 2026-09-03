@@ -47,20 +47,29 @@ public final class LocationPoolConfig {
         int netherRatio = Math.max(1, root.getInt("grid.nether-ratio", 8));
         int cellX = root.getInt("grid.cell-x", 0);
         int cellZ = root.getInt("grid.cell-z", 0);
+        long originX = root.getLong("grid.origin-x", 0L);
+        long originZ = root.getLong("grid.origin-z", 0L);
         int margin = Math.max(0, root.getInt("grid.border-safety-margin", 300));
+        boolean useGridBounds = module.getBoolean("location-library.use-grid-xz-bounds", true);
 
         Map<LocationDimension, LocationSearchBounds> bounds = new EnumMap<>(LocationDimension.class);
         if (role == ServerRole.SURVIVAL) {
-            LocationSearchBounds overworld = readBounds(module, "overworld");
-            validateInsideGrid(overworld, GridCell.of(cellSize, netherRatio, cellX, cellZ, World.Environment.NORMAL),
-                    margin, "overworld");
+            GridCell overworldCell = GridCell.of(cellSize, netherRatio, cellX, cellZ,
+                    originX, originZ, World.Environment.NORMAL);
+            LocationSearchBounds overworld = useGridBounds
+                    ? readGridBounds(module, "overworld", overworldCell, margin)
+                    : readBounds(module, "overworld");
+            validateInsideGrid(overworld, overworldCell, margin, "overworld");
             bounds.put(LocationDimension.OVERWORLD, overworld);
 
             if (netherEnabled) {
-                LocationSearchBounds nether = readBounds(module, "nether");
                 int netherMargin = (int) Math.ceil(margin / (double) netherRatio);
-                validateInsideGrid(nether, GridCell.of(cellSize, netherRatio, cellX, cellZ, World.Environment.NETHER),
-                        netherMargin, "nether");
+                GridCell netherCell = GridCell.of(cellSize, netherRatio, cellX, cellZ,
+                        originX, originZ, World.Environment.NETHER);
+                LocationSearchBounds nether = useGridBounds
+                        ? readGridBounds(module, "nether", netherCell, netherMargin)
+                        : readBounds(module, "nether");
+                validateInsideGrid(nether, netherCell, netherMargin, "nether");
                 bounds.put(LocationDimension.NETHER, nether);
             }
         } else if (role == ServerRole.END) {
@@ -81,6 +90,34 @@ public final class LocationPoolConfig {
         return new LocationSearchBounds(
                 root.getInt(path + ".min.x"), root.getInt(path + ".min.y"), root.getInt(path + ".min.z"),
                 root.getInt(path + ".max.x"), root.getInt(path + ".max.y"), root.getInt(path + ".max.z"));
+    }
+
+    private static LocationSearchBounds readGridBounds(FileConfiguration root, String name,
+                                                       GridCell cell, int margin) {
+        String path = "location-library.bounds." + name;
+        requireInt(root, path + ".min.y");
+        requireInt(root, path + ".max.y");
+        long safeMinX = cell.minX() + margin;
+        long safeMinZ = cell.minZ() + margin;
+        long safeMaxX = cell.maxX() - margin;
+        long safeMaxZ = cell.maxZ() - margin;
+        return new LocationSearchBounds(
+                toIntExact(safeMinX, name + ".min.x"), root.getInt(path + ".min.y"),
+                toIntExact(safeMinZ, name + ".min.z"), toIntExact(safeMaxX, name + ".max.x"),
+                root.getInt(path + ".max.y"), toIntExact(safeMaxZ, name + ".max.z"));
+    }
+
+    private static void requireInt(FileConfiguration root, String path) {
+        if (!root.contains(path)) {
+            throw new IllegalArgumentException("Missing LocationPool bound: " + path);
+        }
+    }
+
+    private static int toIntExact(long value, String name) {
+        if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("LocationPool " + name + " is outside integer coordinate range");
+        }
+        return (int) value;
     }
 
     private static void validateInsideGrid(LocationSearchBounds bounds, GridCell cell,
@@ -133,4 +170,17 @@ public final class LocationPoolConfig {
     public Set<LocationDimension> dimensions() { return bounds.keySet(); }
     public Set<Material> blacklistedBlocks() { return blacklistedBlocks; }
     public Set<Biome> blacklistedBiomes() { return blacklistedBiomes; }
+
+    public String safetySignature(LocationDimension dimension) {
+        LocationSearchBounds b = bounds(dimension);
+        String materials = blacklistedBlocks.stream().map(Enum::name).sorted()
+                .collect(java.util.stream.Collectors.joining(","));
+        String biomes = blacklistedBiomes.stream().map(String::valueOf).sorted()
+                .collect(java.util.stream.Collectors.joining(","));
+        return b.minX() + ":" + b.minY() + ":" + b.minZ() + ":"
+                + b.maxX() + ":" + b.maxY() + ":" + b.maxZ()
+                + "|materials=" + materials
+                + "|biomes=" + biomes
+                + "|waterlogged=true";
+    }
 }

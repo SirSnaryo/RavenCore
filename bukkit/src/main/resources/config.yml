@@ -49,13 +49,18 @@ grid:
   # Size of one grid cell in blocks, per edge, measured in Overworld
   # coordinates. Nether cell size is this value divided by nether-ratio.
   # Must be identical across every server in the network.
-  cell-size: 5000
+  cell-size: 50000
+  # Shared grid origin in Overworld coordinates. With the default values below,
+  # cell 0:0 owns X/Z -25000..25000, so 0,0 is centered inside server 1.
+  # Server 2 east should use cell-x: 1 and keeps the same origin.
+  origin-x: -25000
+  origin-z: -25000
   # Overworld:Nether coordinate ratio. Vanilla default is 8. Only change
   # this if you're running a modified Nether scale.
   nether-ratio: 8
   # This server's position within its cluster's grid, in cell units (not
-  # blocks). E.g. cell-x: 0, cell-z: 0 is the origin cell; cell-x: 1 is the
-  # next cell to the east, etc.
+  # blocks). E.g. cell-x: 0, cell-z: 0 is the first 50k square; cell-x: 1 is
+  # the next square to the east, etc.
   cell-x: 0
   cell-z: 0
   # How many blocks of buffer to keep between any RTP-generated location

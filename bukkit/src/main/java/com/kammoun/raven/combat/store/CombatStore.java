@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public final class CombatStore {
     private static final String PREFIX = "raven:combat:tag:";
+    private static final String NETWORK_TRANSFER_PREFIX = "raven:combat:network-transfer:";
     private static final Gson GSON = new Gson();
     private final JedisPool pool;
 
@@ -38,6 +39,20 @@ public final class CombatStore {
         if (pool == null) return;
         try (Jedis jedis = pool.getResource()) {
             jedis.del(PREFIX + playerUuid);
+        }
+    }
+
+    public void markNetworkTransfer(UUID playerUuid, int ttlSeconds) {
+        if (pool == null) return;
+        try (Jedis jedis = pool.getResource()) {
+            jedis.setex(NETWORK_TRANSFER_PREFIX + playerUuid, Math.max(1, ttlSeconds), "1");
+        }
+    }
+
+    public boolean isNetworkTransfer(UUID playerUuid) {
+        if (pool == null) return false;
+        try (Jedis jedis = pool.getResource()) {
+            return jedis.exists(NETWORK_TRANSFER_PREFIX + playerUuid);
         }
     }
 }

@@ -1,4 +1,5 @@
-default-home-limit: 1
+default-home-limit: 5
+max-home-limit: 5
 warmup-seconds: 3
 cancel-on-move: true
 cancel-on-damage: true

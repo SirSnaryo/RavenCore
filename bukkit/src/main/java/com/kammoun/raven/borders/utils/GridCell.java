@@ -18,9 +18,20 @@ public record GridCell(long minX, long minZ, long maxX, long maxZ) {
      * @param env         dimension to compute for
      */
     public static GridCell of(int cellSize, int netherRatio, int cellX, int cellZ, World.Environment env) {
+        return of(cellSize, netherRatio, cellX, cellZ, 0L, 0L, env);
+    }
+
+    /**
+     * Build the cell from a shared grid origin. Origin values are in overworld
+     * coordinates; Nether cells are scaled by the configured ratio.
+     */
+    public static GridCell of(int cellSize, int netherRatio, int cellX, int cellZ,
+                              long originX, long originZ, World.Environment env) {
         long size = env == World.Environment.NETHER ? (long) cellSize / netherRatio : cellSize;
-        long minX = (long) cellX * size;
-        long minZ = (long) cellZ * size;
+        long dimensionOriginX = env == World.Environment.NETHER ? Math.floorDiv(originX, netherRatio) : originX;
+        long dimensionOriginZ = env == World.Environment.NETHER ? Math.floorDiv(originZ, netherRatio) : originZ;
+        long minX = dimensionOriginX + (long) cellX * size;
+        long minZ = dimensionOriginZ + (long) cellZ * size;
         return new GridCell(minX, minZ, minX + size, minZ + size);
     }
 

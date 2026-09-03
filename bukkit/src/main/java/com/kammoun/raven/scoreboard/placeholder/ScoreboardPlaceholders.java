@@ -105,7 +105,7 @@ public class ScoreboardPlaceholders {
             case "server" -> safe(plugin.getServerId());
             case "server_display" -> serverDisplay();
             case "role", "server_role" -> role();
-            case "online" -> String.valueOf(Bukkit.getOnlinePlayers().size());
+            case "online" -> NumberUtils.compact(Bukkit.getOnlinePlayers().size());
             case "network_online" -> networkOnline();
             case "balance", "balance_formatted", "balance_compact", "money", "money_formatted" -> compactMoney(player);
             case "balance_full" -> fullMoney(player);
@@ -236,9 +236,9 @@ public class ScoreboardPlaceholders {
 
     private String networkOnline() {
         if (plugin.getNetworkPlayerManager() == null) {
-            return String.valueOf(Bukkit.getOnlinePlayers().size());
+            return NumberUtils.compact(Bukkit.getOnlinePlayers().size());
         }
-        return String.valueOf(plugin.getNetworkPlayerManager().getNetworkPlayerNames().size());
+        return NumberUtils.compact(plugin.getNetworkPlayerManager().getNetworkPlayerNames().size());
     }
 
     private String serverDisplay() {

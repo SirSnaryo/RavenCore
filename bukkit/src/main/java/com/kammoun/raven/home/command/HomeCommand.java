@@ -28,7 +28,10 @@ public final class HomeCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         switch (command.getName().toLowerCase()) {
-            case "sethome" -> module.getService().set(player, args.length == 0 ? "home" : args[0]);
+            case "sethome" -> {
+                if (args.length == 0) module.getService().setNext(player);
+                else module.getService().set(player, args[0]);
+            }
             case "delhome" -> {
                 if (args.length == 0) module.getMessages().send(player, "delete-usage");
                 else module.getService().delete(player, args[0]);
@@ -38,7 +41,8 @@ public final class HomeCommand implements CommandExecutor, TabCompleter {
                 if (args.length == 0 || args[0].equalsIgnoreCase("list")) {
                     module.openMenu(player);
                 } else if (args[0].equalsIgnoreCase("set")) {
-                    module.getService().set(player, args.length > 1 ? args[1] : "home");
+                    if (args.length > 1) module.getService().set(player, args[1]);
+                    else module.getService().setNext(player);
                 } else if (args[0].equalsIgnoreCase("del") || args[0].equalsIgnoreCase("delete")) {
                     if (args.length < 2) module.getMessages().send(player, "delete-usage");
                     else module.getService().delete(player, args[1]);

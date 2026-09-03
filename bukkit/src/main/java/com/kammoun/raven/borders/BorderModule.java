@@ -3,6 +3,7 @@ package com.kammoun.raven.borders;
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.borders.config.BorderConfig;
 import com.kammoun.raven.borders.config.TrueWorldBorderConfig;
+import com.kammoun.raven.borders.listener.BorderEntityBoundaryListener;
 import com.kammoun.raven.borders.listener.BorderInteractionListener;
 import com.kammoun.raven.borders.listener.BorderMovementListener;
 import com.kammoun.raven.borders.listener.PlayerListener;
@@ -48,6 +49,7 @@ public class BorderModule extends KModule<RavenCore> {
         movementListener = new BorderMovementListener(
                 api, borderConfig, registry, transferStore, api.getNetworkEventBus());
         registerEvent(movementListener);
+        registerEvent(new BorderEntityBoundaryListener(this));
         registerEvent(new BorderInteractionListener(this));
         registerEvent(new PlayerListener(this));
         registerEvent(particleRenderer);

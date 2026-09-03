@@ -1,4 +1,4 @@
-Title: "&8ᴄᴏɴꜰɪʀᴍ ᴛᴘᴀ"
+Title: "&8TPA Accept"
 Size: 27
 
 Navigation:
@@ -10,36 +10,36 @@ Items:
   Cancel:
     material: RED_STAINED_GLASS_PANE
     slot: 10
-    name: "&#D90429ᴅᴇɴʏ"
+    name: "&#D90429Deny"
     lore:
-      - "&#7A7A7Aᴛᴇʟᴇᴘᴏʀᴛ ᴀᴄᴛɪᴏɴ"
+      - "&#7A7A7ATeleport action"
       - "&#FFFFFFClose without accepting."
   Location:
     material: GRASS_BLOCK
     slot: 12
-    name: "&#33FF66ʟᴏᴄᴀᴛɪᴏɴ"
+    name: "&#33FF66Location"
     lore:
-      - "&#7A7A7Aꜱᴇʀᴠᴇʀ"
-      - "&#4CC9F0%server%"
+      - "&#7A7A7AWorld"
+      - "&#FFFFFF%world%"
   Player:
     material: PLAYER_HEAD
     slot: 13
     skull-owner: "%player%"
     name: "&#FFD447%player%"
     lore:
-      - "&#7A7A7Aᴘʟᴀʏᴇʀ"
+      - "&#7A7A7APlayer"
       - "&#FFFFFFIncoming teleport request."
-  Flying:
-    material: FEATHER
+  Ping:
+    material: CLOCK
     slot: 14
-    name: "&#4CC9F0ɪs ꜰʟʏɪɴɢ"
+    name: "&#4CC9F0Ping"
     lore:
-      - "&#7A7A7Aꜱᴛᴀᴛᴜꜱ"
-      - "&#FFFFFF%is_flying%"
+      - "&#7A7A7ANetwork"
+      - "&#FFFFFF%ping%"
   Confirm:
     material: LIME_STAINED_GLASS_PANE
     slot: 16
-    name: "&#33FF66ᴀᴄᴄᴇᴘᴛ"
+    name: "&#33FF66Accept"
     lore:
-      - "&#7A7A7Aᴛᴇʟᴇᴘᴏʀᴛ ᴀᴄᴛɪᴏɴ"
+      - "&#7A7A7ATeleport action"
       - "&#FFFFFFLet &#FFD447%player% &#FFFFFFteleport to you."

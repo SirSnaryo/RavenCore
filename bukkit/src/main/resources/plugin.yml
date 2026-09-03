@@ -107,6 +107,12 @@ commands:
     permission: raven.teleport.tpa
     permission-message: You don't have permission to use this command.
 
+  speed:
+    description: Set your current movement speed
+    usage: /speed <0-10>
+    permission: raven.speed
+    permission-message: You don't have permission to change speed.
+
   settings:
     description: Open your player settings
     usage: /settings
@@ -255,6 +261,8 @@ commands:
     description: Open the network-wide balance leaderboard
     usage: /baltop
     aliases: [baltops, baltop, balancetop]
+    permission: raven.leaderboard
+    permission-message: You don't have permission to view leaderboards.
   crates:
     description: Manage and open virtual-key crates
     usage: /crates <list|setblock|give|set|reload|time>
@@ -285,6 +293,9 @@ permissions:
   raven.teleport.tpa:
     description: Use TPA requests and personal teleport settings
     default: true
+  raven.speed:
+    description: Change your current walk or fly speed
+    default: op
   raven.settings:
     description: Open and change personal settings
     default: true

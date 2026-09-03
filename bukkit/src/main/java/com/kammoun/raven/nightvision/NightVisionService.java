@@ -45,10 +45,10 @@ public class NightVisionService {
         boolean nowEnabled = !enabled.contains(uuid);
         if (nowEnabled) {
             enabled.add(uuid);
-            apply(player);
+            SchedulerUtil.execute(player, () -> apply(player));
         } else {
             enabled.remove(uuid);
-            remove(player);
+            SchedulerUtil.execute(player, () -> remove(player));
         }
         SchedulerUtil.runAsync(() -> {
             try {
@@ -60,13 +60,13 @@ public class NightVisionService {
     }
 
     public void onJoin(Player player) {
-        if (enabled.contains(player.getUniqueId())){
-            SchedulerUtil.runLater(()->apply(player),10L);
+        if (enabled.contains(player.getUniqueId())) {
+            SchedulerUtil.runLater(() -> SchedulerUtil.execute(player, () -> {
+                if (player.isOnline() && enabled.contains(player.getUniqueId())) {
+                    apply(player);
+                }
+            }), 10L);
         }
-    }
-
-    public void onQuit(Player player) {
-        remove(player);
     }
 
     private void apply(Player player) {

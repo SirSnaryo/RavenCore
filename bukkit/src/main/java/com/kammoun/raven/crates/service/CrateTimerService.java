@@ -102,11 +102,19 @@ public final class CrateTimerService {
 
     public String formattedTimeLeft() {
         long seconds = secondsLeft();
+        if (seconds <= 0L) {
+            return "Ready";
+        }
         long hours = seconds / 3600;
         long minutes = (seconds % 3600) / 60;
         long secs = seconds % 60;
-        if (hours > 0) return String.format("%02d:%02d:%02d", hours, minutes, secs);
-        return String.format("%02d:%02d", minutes, secs);
+        if (hours > 0) {
+            return hours + "h " + minutes + "m";
+        }
+        if (minutes > 0) {
+            return minutes + "m " + secs + "s";
+        }
+        return secs + "s";
     }
 
     public long cycleId() {

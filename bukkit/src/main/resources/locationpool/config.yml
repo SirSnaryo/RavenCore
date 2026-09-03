@@ -3,17 +3,21 @@ location-library:
   # How often the asynchronous refill controller checks each pool.
   refill-interval-seconds: 45
   nether-pool-enabled: true
+  use-grid-xz-bounds: true
 
   # Absolute search bounds. Minimum values are inclusive and maximum values
-  # are exclusive. Survival X/Z bounds must fit within the server's grid cell
-  # and border safety margin from the main RavenCore config.yml.
+  # are exclusive. With use-grid-xz-bounds enabled, survival X/Z are derived
+  # from the main RavenCore grid cell, origin, and border safety margin. That
+  # lets every server use the same file without Server 2 generating Server 1
+  # locations. In that mode only min.y/max.y are used for overworld/nether.
+  # Set use-grid-xz-bounds false only when manually managing per-server bounds.
   bounds:
     overworld:
-      min: { x: 300, y: -64, z: 300 }
-      max: { x: 4700, y: 320, z: 4700 }
+      min: { x: -24700, y: -64, z: -24700 }
+      max: { x: 24700, y: 320, z: 24700 }
     nether:
-      min: { x: 38, y: 5, z: 38 }
-      max: { x: 587, y: 120, z: 587 }
+      min: { x: -3087, y: 5, z: -3087 }
+      max: { x: 3087, y: 120, z: 3087 }
     end:
       min: { x: -5000, y: 1, z: -5000 }
       max: { x: 5000, y: 255, z: 5000 }
@@ -21,6 +25,10 @@ location-library:
   blacklisted-blocks:
     - WATER
     - LAVA
+    - BUBBLE_COLUMN
+    - SEAGRASS
+    - TALL_SEAGRASS
+    - KELP_PLANT
     - CACTUS
     - BEDROCK
     - KELP
@@ -44,3 +52,14 @@ location-library:
 
   blacklisted-biomes:
     - BEACH
+    - RIVER
+    - FROZEN_RIVER
+    - OCEAN
+    - DEEP_OCEAN
+    - COLD_OCEAN
+    - DEEP_COLD_OCEAN
+    - LUKEWARM_OCEAN
+    - DEEP_LUKEWARM_OCEAN
+    - WARM_OCEAN
+    - FROZEN_OCEAN
+    - DEEP_FROZEN_OCEAN

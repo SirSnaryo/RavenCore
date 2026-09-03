@@ -1,11 +1,10 @@
-# Keeps the overworld time of day AND weather identical across every survival server.
+# Keeps overworld time scoped by server role.
 #
-# One server is automatically elected as the "authority": it runs the normal day/night and
-# weather cycles and broadcasts them to Redis; every other survival server mirrors it and turns
-# its own daylight/weather cycles off. If the authority goes down, another survival server takes
-# over automatically within a few seconds.
+# Survival servers sync time together. Spawn servers use their own sync scope and
+# keep a frozen lobby time by default.
 #
-# This module only enables on servers with server-role: survival.
+# Weather is not forced every tick by default. Manual /weather commands can still
+# be synced once to the matching scope.
 enabled: true
 
 # How often (in ticks) the authority broadcasts its clock. 20 ticks = 1 second. Lower it for a
@@ -19,3 +18,12 @@ heartbeat-seconds: 5
 # claim it. Keep this comfortably larger than heartbeat-seconds so brief hiccups don't cause the
 # authority to flap between servers.
 lock-ttl-seconds: 12
+
+weather:
+  sync-automatically: false
+  sync-manual-commands: true
+
+spawn:
+  freeze-time: true
+  default-time: 1000
+  freeze-weather-cycle: true

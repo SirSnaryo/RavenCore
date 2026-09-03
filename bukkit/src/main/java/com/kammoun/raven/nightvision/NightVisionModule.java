@@ -6,7 +6,6 @@ import com.kammoun.raven.nightvision.command.NightVisionCommand;
 import com.kammoun.raven.nightvision.db.NightVisionRepository;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.sql.SQLException;
 
@@ -42,7 +41,6 @@ public class NightVisionModule extends KModule<RavenCore> {
         registerCommand(new NightVisionCommand(service, msgOn, msgOff), "nv");
 
         onEvent(PlayerJoinEvent.class, e -> service.onJoin(e.getPlayer()));
-        onEvent(PlayerQuitEvent.class, e -> service.onQuit(e.getPlayer()));
 
         getLogger().info("[NightVision] Enabled.");
     }

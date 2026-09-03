@@ -27,17 +27,19 @@ public class ItemBuilder {
     }
 
     public ItemBuilder(Material material) {
-        this.itemStack = new ItemStack(material);
+        this.itemStack = new ItemStack(material == null || !material.isItem() ? Material.BARRIER : material);
         this.meta = itemStack.getItemMeta();
     }
 
     public ItemBuilder(ItemStack existing) {
-        this.itemStack = existing.clone();
+        this.itemStack = existing == null || !existing.getType().isItem()
+                ? new ItemStack(Material.BARRIER)
+                : existing.clone();
         this.meta = this.itemStack.getItemMeta();
     }
 
     public ItemBuilder name(String name) {
-        if (name != null)
+        if (name != null && meta != null)
             meta.setDisplayName(ChatFormatter.color(name));
         return this;
     }
@@ -48,7 +50,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder lore(List<String> lore) {
-        if (lore != null && !lore.isEmpty())
+        if (lore != null && !lore.isEmpty() && meta != null)
             meta.setLore(lore.stream()
                     .map(ChatFormatter::color)
                     .collect(Collectors.toList()));
@@ -60,12 +62,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder enchant(Enchantment enchantment, int level) {
-        meta.addEnchant(enchantment, level, true);
+        if (meta != null) meta.addEnchant(enchantment, level, true);
         return this;
     }
 
     public ItemBuilder flag(ItemFlag... flags) {
-        meta.addItemFlags(flags);
+        if (meta != null) meta.addItemFlags(flags);
         return this;
     }
 
@@ -76,12 +78,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder unbreakable(boolean value) {
-        meta.setUnbreakable(value);
+        if (meta != null) meta.setUnbreakable(value);
         return this;
     }
 
     public ItemBuilder modelData(int data) {
-        meta.setCustomModelData(data);
+        if (meta != null) meta.setCustomModelData(data);
         return this;
     }
 
@@ -121,12 +123,12 @@ public class ItemBuilder {
     }
 
     public ItemBuilder modifyMeta(Consumer<ItemMeta> consumer) {
-        consumer.accept(meta);
+        if (meta != null) consumer.accept(meta);
         return this;
     }
 
     public ItemStack build() {
-        itemStack.setItemMeta(meta);
+        if (meta != null) itemStack.setItemMeta(meta);
         if (nbtTags.isEmpty()) return itemStack;
 
         NBTItem nbt = new NBTItem(itemStack);

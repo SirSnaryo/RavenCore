@@ -3,6 +3,9 @@ combat:
   kill-on-logout: true
   disable-elytra: true
   disable-enderpearls: true
+  # RavenCore keeps pearls usable in combat so stasis/cross-server pearl systems work.
+  # Set this false only if you want vanilla pearl teleports blocked during combat.
+  allow-enderpearls-in-combat: true
   worldguard-block: true
   ignore-op: false
   actionbar:
@@ -23,12 +26,6 @@ blocked-commands:
   - rtp
   - afk
 
-kill-money-steal:
-  enabled: true
-  percentage: 10.0
-  min-steal: 0.0
-  max-steal: 0.0
-
 messages:
   prefix: ''
   enter-combat: '&#FF4D4D⚔ You are now in combat!'
@@ -39,5 +36,3 @@ messages:
   enderpearl-blocked: '&#FF4D4D✕ You cannot use Ender Pearls during combat!'
   region-blocked: '&#FF4D4D✕ You cannot enter protected areas while in combat!'
   logout-death: '&#FF4D4D☠ &f%player% &#FF4D4Dlogged out during combat!'
-  money-stolen-killer: '&#55FF55✔ You stole &#FFFF55$%amount% &#55FF55from &f%victim%&#55FF55!'
-  money-stolen-victim: '&#FF4D4D✕ &f%killer% &#FF4D4Dstole &#FFFF55$%amount% &#FF4D4Dfrom you!'

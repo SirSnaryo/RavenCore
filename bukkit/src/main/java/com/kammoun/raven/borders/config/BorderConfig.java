@@ -16,6 +16,8 @@ public class BorderConfig {
     private final int netherRatio;
     private final int cellX;
     private final int cellZ;
+    private final long originX;
+    private final long originZ;
     private final String cluster;
     private final String denyMessage;
     private final double detectionDistance;
@@ -28,6 +30,8 @@ public class BorderConfig {
         this.netherRatio = root.getInt("grid.nether-ratio", 8);
         this.cellX       = root.getInt("grid.cell-x", 0);
         this.cellZ       = root.getInt("grid.cell-z", 0);
+        this.originX     = root.getLong("grid.origin-x", 0L);
+        this.originZ     = root.getLong("grid.origin-z", 0L);
         this.cluster     = root.getString("network.cluster", "default");
         this.denyMessage = root.getString("border.deny-message", "");
         this.detectionDistance = Math.max(0, root.getDouble("border.detection-distance", 30));
@@ -51,7 +55,7 @@ public class BorderConfig {
     /** Returns the cell boundary for the given dimension, or null for unsupported dimensions. */
     public GridCell cellFor(World.Environment env) {
         if (env == World.Environment.NORMAL || env == World.Environment.NETHER) {
-            return GridCell.of(cellSize, netherRatio, cellX, cellZ, env);
+            return GridCell.of(cellSize, netherRatio, cellX, cellZ, originX, originZ, env);
         }
         return null;
     }

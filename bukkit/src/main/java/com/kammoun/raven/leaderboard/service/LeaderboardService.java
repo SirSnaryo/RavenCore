@@ -105,7 +105,7 @@ public final class LeaderboardService {
         if (type == LeaderboardType.PLAY_TIME) {
             return formatDuration((long) value);
         }
-        return type.decimal() ? NumberUtils.format(value) : NumberUtils.format((long) value);
+        return type.decimal() ? NumberUtils.compactMoney(value) : NumberUtils.compact((long) value);
     }
 
     private void schedule() {

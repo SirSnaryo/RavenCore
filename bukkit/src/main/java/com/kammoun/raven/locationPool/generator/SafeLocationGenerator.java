@@ -10,6 +10,7 @@ import com.kammoun.raven.locationPool.protection.LocationProtection;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -87,17 +88,17 @@ public final class SafeLocationGenerator {
             Block feet = world.getBlockAt(x, groundY + 1, z);
             Block head = world.getBlockAt(x, groundY + 2, z);
 
-            if (!ground.getType().isSolid() || ground.isLiquid()
-                    || config.blacklistedBlocks().contains(ground.getType())) {
+            if (!ground.getType().isSolid() || isUnsafeBlock(ground)) {
                 continue;
             }
-            if (!feet.isPassable() || feet.isLiquid() || config.blacklistedBlocks().contains(feet.getType())) {
+            if (!feet.isPassable() || isUnsafeBlock(feet)) {
                 continue;
             }
-            if (!head.isPassable() || head.isLiquid() || config.blacklistedBlocks().contains(head.getType())) {
+            if (!head.isPassable() || isUnsafeBlock(head)) {
                 continue;
             }
-            if (config.blacklistedBiomes().contains(feet.getBiome())) {
+            if (config.blacklistedBiomes().contains(feet.getBiome())
+                    || config.blacklistedBiomes().contains(ground.getBiome())) {
                 continue;
             }
 
@@ -116,6 +117,13 @@ public final class SafeLocationGenerator {
                     landing.getX(), landing.getY(), landing.getZ(), landing.getYaw(), landing.getPitch()));
         }
         return Optional.empty();
+    }
+
+    private boolean isUnsafeBlock(Block block) {
+        if (block.isLiquid() || config.blacklistedBlocks().contains(block.getType())) {
+            return true;
+        }
+        return block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged();
     }
 
     private World findWorld(LocationDimension dimension) {

@@ -19,8 +19,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public final class HomeService implements HomeTeleportGateway {
     private final RavenCore plugin;
@@ -43,6 +45,35 @@ public final class HomeService implements HomeTeleportGateway {
 
     public void set(Player player, String rawName) {
         set(player, rawName, null);
+    }
+
+    public void setNext(Player player) {
+        setNext(player, null);
+    }
+
+    public void setNext(Player player, Runnable afterSuccess) {
+        Location snapshot = player.getLocation().clone();
+        UUID uuid = player.getUniqueId();
+        int homeLimit = limit(player);
+        SchedulerUtil.runAsync(() -> {
+            try {
+                List<HomeRecord> homes = repository.findAll(uuid);
+                String name = nextHomeName(homes, homeLimit);
+                if (name == null) {
+                    SchedulerUtil.execute(player, () -> messages.send(player, "limit-reached",
+                            "%limit%", String.valueOf(homeLimit)));
+                    return;
+                }
+                repository.upsert(HomeRecord.from(uuid, name, plugin.getServerId(), snapshot));
+                SchedulerUtil.execute(player, () -> {
+                    if (!player.isOnline()) return;
+                    messages.send(player, "set", "%home%", name);
+                    if (afterSuccess != null) afterSuccess.run();
+                });
+            } catch (SQLException | RuntimeException e) {
+                fail(player, e);
+            }
+        });
     }
 
     public void set(Player player, String rawName, Runnable afterSuccess) {
@@ -173,8 +204,12 @@ public final class HomeService implements HomeTeleportGateway {
 
     private int limit(Player player) {
         int limit = config.defaultLimit();
-        for (int i = 1; i <= 20; i++) if (player.hasPermission("raven.home.max." + i)) limit = Math.max(limit, i);
-        return limit;
+        for (int i = 1; i <= config.maxLimit(); i++) {
+            if (player.hasPermission("raven.home.max." + i)) {
+                limit = Math.max(limit, i);
+            }
+        }
+        return Math.min(limit, config.maxLimit());
     }
 
     public int limitFor(Player player) {
@@ -185,6 +220,20 @@ public final class HomeService implements HomeTeleportGateway {
         if (raw == null) return null;
         String name = raw.trim().toLowerCase(Locale.ROOT);
         return name.matches("[a-z0-9_-]{1,32}") ? name : null;
+    }
+
+    private String nextHomeName(List<HomeRecord> homes, int limit) {
+        Set<String> names = homes.stream()
+                .map(HomeRecord::name)
+                .map(name -> name.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toSet());
+        for (int i = 1; i <= limit; i++) {
+            String name = "home" + i;
+            if (!names.contains(name)) {
+                return name;
+            }
+        }
+        return null;
     }
 
     private void fail(Player player, Exception e) {

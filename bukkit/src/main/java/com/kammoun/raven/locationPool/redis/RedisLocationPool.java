@@ -159,8 +159,25 @@ public final class RedisLocationPool implements LocationPool {
         }
         try (Jedis jedis = pool.getResource()) {
             jedis.del(LocationPoolKeys.serverPool(serverId, dimension));
+            jedis.del(LocationPoolKeys.poolDefinition(serverId, dimension));
         } catch (Exception e) {
             logger.warning("[LocationPool] Failed to clear " + serverId + "/" + dimension + ": " + e.getMessage());
+        }
+    }
+
+    public void unregisterServer(String cluster, String serverId, Collection<LocationDimension> dimensions) {
+        if (pool == null || serverId == null || serverId.isBlank() || dimensions == null) {
+            return;
+        }
+        try (Jedis jedis = pool.getResource()) {
+            for (LocationDimension dimension : dimensions) {
+                if (cluster != null && !cluster.isBlank()) {
+                    removeServerRegistrations(jedis, LocationPoolKeys.clusterRegistry(cluster, dimension), serverId);
+                }
+                removeServerRegistrations(jedis, LocationPoolKeys.globalGridRegistry(dimension), serverId);
+            }
+        } catch (Exception e) {
+            logger.warning("[LocationPool] Failed to unregister " + serverId + ": " + e.getMessage());
         }
     }
 
@@ -190,11 +207,16 @@ public final class RedisLocationPool implements LocationPool {
 
     public boolean resetIfDefinitionChanged(String serverId, LocationDimension dimension,
                                             LocationSearchBounds bounds) {
+        String definition = bounds.minX() + ":" + bounds.minY() + ":" + bounds.minZ() + ":"
+                + bounds.maxX() + ":" + bounds.maxY() + ":" + bounds.maxZ();
+        return resetIfDefinitionChanged(serverId, dimension, definition);
+    }
+
+    public boolean resetIfDefinitionChanged(String serverId, LocationDimension dimension,
+                                            String definition) {
         if (pool == null) {
             return false;
         }
-        String definition = bounds.minX() + ":" + bounds.minY() + ":" + bounds.minZ() + ":"
-                + bounds.maxX() + ":" + bounds.maxY() + ":" + bounds.maxZ();
         String definitionKey = LocationPoolKeys.poolDefinition(serverId, dimension);
         try (Jedis jedis = pool.getResource()) {
             String previous = jedis.get(definitionKey);

@@ -102,8 +102,12 @@ $RECYCLE.BIN/
 *.lnk
 
 .gradle
+.gradle-codex/
+.gradle-codex-build/
 build/
 .claude
+codex-output/
+graphify-out/
 
 # Ignore Gradle GUI config
 gradle-app.setting

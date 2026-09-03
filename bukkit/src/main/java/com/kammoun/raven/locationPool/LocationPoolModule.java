@@ -17,6 +17,7 @@ import org.bukkit.World;
 import org.bukkit.event.world.WorldLoadEvent;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 public final class LocationPoolModule extends KModule<RavenCore> {
@@ -69,6 +70,7 @@ public final class LocationPoolModule extends KModule<RavenCore> {
                     getConfig(), api.getConfig(), getLogger(), api.getServerRole());
             tryStartGeneration();
         } catch (IllegalArgumentException e) {
+            clearStalePools();
             poolConfig = null;
             refillController = null;
             getLogger().severe("[LocationPool] Generation disabled: " + e.getMessage());
@@ -97,6 +99,7 @@ public final class LocationPoolModule extends KModule<RavenCore> {
                 validateWorldBounds(dimension);
             }
         } catch (IllegalArgumentException e) {
+            clearStalePools();
             poolConfig = null;
             getLogger().severe("[LocationPool] Generation disabled: " + e.getMessage());
             return;
@@ -106,7 +109,7 @@ public final class LocationPoolModule extends KModule<RavenCore> {
                 new AllowAllLocationProtection());
         poolConfig.dimensions().forEach(dimension ->
                 locationPool.resetIfDefinitionChanged(
-                        api.getServerId(), dimension, poolConfig.bounds(dimension)));
+                        api.getServerId(), dimension, poolConfig.safetySignature(dimension)));
         registerServerPools();
         refillController = new LocationPoolRefillController(api.getServerId(), poolConfig,
                 locationPool, generator, getLogger());
@@ -131,6 +134,20 @@ public final class LocationPoolModule extends KModule<RavenCore> {
             getLogger().severe("[LocationPool] RTP cluster discovery is unavailable because "
                     + api.getServerId() + " could not be registered in the Redis grid.");
         }
+    }
+
+    private void clearStalePools() {
+        if (locationPool == null) {
+            return;
+        }
+        Set<LocationDimension> dimensions = api.getServerRole() == ServerRole.END
+                ? Set.of(LocationDimension.END)
+                : Set.of(LocationDimension.OVERWORLD, LocationDimension.NETHER);
+        dimensions.forEach(dimension -> locationPool.clear(api.getServerId(), dimension));
+        locationPool.unregisterServer(api.getConfig().getString("network.cluster", "").trim(),
+                api.getServerId(), dimensions);
+        getLogger().warning("[LocationPool] Cleared stale Redis pools for " + api.getServerId()
+                + " because location generation is not valid on this server.");
     }
 
     private void stopGeneration() {

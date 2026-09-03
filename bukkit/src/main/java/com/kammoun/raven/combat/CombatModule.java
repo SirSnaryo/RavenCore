@@ -13,6 +13,8 @@ import com.kammoun.raven.library.redis.event.CombatUntagEvent;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 
+import java.util.UUID;
+
 @Getter
 public final class CombatModule extends KModule<RavenCore> {
     private CombatConfig combatConfig;
@@ -57,6 +59,18 @@ public final class CombatModule extends KModule<RavenCore> {
         if (!isInCombat(player)) return true;
         if (sendMessage) combatConfig.send(player, "transfer-blocked");
         return false;
+    }
+
+    public void markNetworkTransfer(UUID playerUuid) {
+        if (service != null) service.markNetworkTransfer(playerUuid);
+    }
+
+    public boolean isNetworkTransfer(UUID playerUuid) {
+        return service != null && service.isNetworkTransfer(playerUuid);
+    }
+
+    public void unloadLocal(UUID playerUuid) {
+        if (service != null) service.unloadLocal(playerUuid);
     }
 
     private void loadState() {

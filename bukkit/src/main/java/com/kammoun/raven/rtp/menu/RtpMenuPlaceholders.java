@@ -1,6 +1,7 @@
 package com.kammoun.raven.rtp.menu;
 
 import com.kammoun.raven.library.util.PlaceholderHelper;
+import com.kammoun.raven.library.util.NumberUtils;
 import com.kammoun.raven.rtp.RtpModule;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,7 +23,7 @@ final class RtpMenuPlaceholders {
             pairs.addAll(List.of(placeholders));
         }
         pairs.add("%online%");
-        pairs.add(String.valueOf(online.online(serverIds)));
+        pairs.add(NumberUtils.compact(online.online(serverIds)));
 
         ItemStack parsed = PlaceholderHelper.parsePlaceholders(item, pairs.toArray(String[]::new));
         if (parsed == null || !parsed.hasItemMeta()) {

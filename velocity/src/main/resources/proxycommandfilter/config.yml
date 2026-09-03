@@ -1,9 +1,226 @@
-# Players with this permission can see and use the blocked proxy commands.
-bypass-permission: "raven.proxycommandfilter.bypass"
+# RavenCore Velocity command visibility.
+#
+# Inspired by proven command whitelist / anti-tab plugins: keep a small visible
+# command set per group, hide plugin namespace commands, and block hidden command
+# execution when strict mode is enabled.
 
-# Commands are matched by their root label only.
+enabled: true
+bypass-permission: "raven.proxycommandfilter.bypass"
+deny-message: "&#D90429This command is not available."
+
+# When true, unknown commands seen in Velocity's available command tree are
+# learned into the default group. This lets backend plugin commands appear
+# naturally without manually copying every command after installing a plugin.
+auto-discover:
+  enabled: true
+  target-group: "default"
+  save-to-config: false
+
+# Only these commands may be learned into the default group automatically.
+# Everything else must be added intentionally with /ravencorevelo tab add.
+safe-auto-discover-commands:
+  - "discord"
+  - "store"
+  - "rules"
+  - "help"
+  - "lobby"
+  - "hub"
+  - "msg"
+  - "w"
+  - "tell"
+  - "pm"
+  - "message"
+  - "r"
+  - "reply"
+  - "media"
+  - "baltop"
+  - "balancetop"
+  - "baltops"
+  - "balance"
+  - "bal"
+  - "money"
+
+strict-execution: true
+block-namespace-commands: true
+namespace-bypass-permission: "raven.proxycommandfilter.namespace"
+
 blocked-commands:
   - "server"
   - "queue"
+  - "pl"
+  - "plugins"
+  - "bukkit:pl"
+  - "bukkit:plugins"
+  - "version"
+  - "ver"
+  - "about"
+  - "icanhasbukkit"
+  - "minecraft:help"
+  - "bukkit:help"
 
-deny-message: "&cYou do not have permission to use this command."
+# These commands are never allowed in the default tab list, even if an older
+# config learned them before this filter became strict.
+reserved-default-commands:
+  - "ravencore"
+  - "rc"
+  - "ravencorevelo"
+  - "rcvelo"
+  - "ravenauction"
+  - "ravenauctionadmin"
+  - "auctionadmin"
+  - "cratemanager"
+  - "statsmanager"
+  - "combatmanager"
+  - "billfordpreset"
+  - "setspawn"
+  - "setafk"
+  - "tool"
+  - "worldedit"
+  - "we"
+  - "brush"
+  - "br"
+  - "wand"
+  - "pos1"
+  - "pos2"
+  - "hpos1"
+  - "hpos2"
+  - "copy"
+  - "paste"
+  - "schem"
+  - "schematic"
+  - "undo"
+  - "redo"
+  - "replace"
+  - "set"
+  - "walls"
+  - "sphere"
+  - "hsphere"
+  - "cyl"
+  - "hcyl"
+  - "pyramid"
+  - "hpyramid"
+  - "drain"
+  - "fixwater"
+  - "fixlava"
+  - "region"
+  - "rg"
+  - "lp"
+  - "luckperms"
+  - "op"
+  - "deop"
+  - "ban"
+  - "ban-ip"
+  - "pardon"
+  - "pardon-ip"
+  - "kick"
+  - "stop"
+  - "restart"
+  - "reload"
+  - "timings"
+  - "spark"
+  - "paper"
+  - "bukkit"
+  - "minecraft"
+
+group-order:
+  - "raven"
+  - "supreme"
+  - "titan"
+  - "mvp"
+  - "vip"
+  - "custom"
+  - "default"
+
+groups:
+  default:
+    permission: ""
+    inherits: []
+    commands:
+      - "discord"
+      - "store"
+      - "rules"
+      - "help"
+      - "lobby"
+      - "hub"
+      - "msg"
+      - "w"
+      - "tell"
+      - "pm"
+      - "message"
+      - "r"
+      - "reply"
+      - "media"
+      - "spawn"
+      - "afk"
+      - "rtp"
+      - "rtpq"
+      - "tpa"
+      - "tpahere"
+      - "tpaccept"
+      - "tpadeny"
+      - "tpdeny"
+      - "tpacancel"
+      - "tpatoggle"
+      - "tpaheretoggle"
+      - "tpauto"
+      - "settings"
+      - "chattoggle"
+      - "broadcasttoggle"
+      - "home"
+      - "homes"
+      - "sethome"
+      - "delhome"
+      - "shop"
+      - "spawner"
+      - "ah"
+      - "stats"
+      - "leaderboard"
+      - "baltop"
+      - "balancetop"
+      - "baltops"
+      - "scoreboard"
+      - "sb"
+      - "nv"
+      - "pay"
+      - "paytoggle"
+      - "paymsg"
+      - "balance"
+      - "bal"
+      - "money"
+      - "sell"
+      - "team"
+      - "billford"
+      - "crates"
+  custom:
+    permission: "raven.proxycommandfilter.group.custom"
+    inherits: ["default"]
+    commands: []
+  vip:
+    permission: "raven.proxycommandfilter.group.vip"
+    inherits: ["default"]
+    commands: []
+  mvp:
+    permission: "raven.proxycommandfilter.group.mvp"
+    inherits: ["vip"]
+    commands: []
+  titan:
+    permission: "raven.proxycommandfilter.group.titan"
+    inherits: ["mvp"]
+    commands: []
+  supreme:
+    permission: "raven.proxycommandfilter.group.supreme"
+    inherits: ["titan"]
+    commands: []
+  raven:
+    permission: "raven.proxycommandfilter.group.raven"
+    inherits: ["supreme"]
+    commands:
+      - "ravencore"
+      - "rc"
+      - "ravencorevelo"
+      - "rcvelo"
+      - "ravenauction"
+      - "cratemanager"
+      - "statsmanager"
+      - "combatmanager"
+      - "billfordpreset"
