@@ -1,6 +1,7 @@
 package com.kammoun.raven.borders;
 
 import com.kammoun.raven.RavenCore;
+import com.kammoun.raven.borders.command.BorderManagerCommand;
 import com.kammoun.raven.borders.config.BorderConfig;
 import com.kammoun.raven.borders.config.TrueWorldBorderConfig;
 import com.kammoun.raven.borders.listener.BorderEntityBoundaryListener;
@@ -13,11 +14,8 @@ import com.kammoun.raven.borders.utils.BorderTransferStore;
 import com.kammoun.raven.borders.world.BorderSpawnController;
 import com.kammoun.raven.borders.world.TrueWorldBorderController;
 import com.kammoun.raven.library.module.KModule;
-import com.kammoun.raven.library.platform.chat.ChatFormatter;
 import com.kammoun.raven.library.redis.event.BorderTransferFailedEvent;
-import com.kammoun.raven.library.tasks.SchedulerUtil;
 import lombok.Getter;
-import org.bukkit.entity.Player;
 import org.bukkit.event.world.WorldLoadEvent;
 
 import java.util.UUID;
@@ -63,6 +61,7 @@ public class BorderModule extends KModule<RavenCore> {
         borderSpawnController.applyLoadedWorlds();
         particleRenderer.start();
         api.getNetworkEventBus().subscribe(BorderTransferFailedEvent.class, this::onTransferFailed);
+        registerCommand(new BorderManagerCommand(this), "bordermanager");
 
         getLogger().info("[Borders] Enabled — cluster=" + borderConfig.cluster()
                 + " cell=(" + borderConfig.cellX() + "," + borderConfig.cellZ() + ")");
@@ -83,6 +82,10 @@ public class BorderModule extends KModule<RavenCore> {
     public void reload() {
         api.reloadConfig();
         borderConfig = new BorderConfig(api.getConfig());
+        if (particleRenderer != null) {
+            particleRenderer.close();
+            particleRenderer.start();
+        }
         if (borderSpawnController != null) {
             borderSpawnController.reload(borderConfig);
         }
@@ -131,10 +134,8 @@ public class BorderModule extends KModule<RavenCore> {
             return;
         }
 
-        Player player = api.getServer().getPlayer(playerUuid);
-        if (player != null) {
-            SchedulerUtil.execute(player, () ->
-                    player.kickPlayer(ChatFormatter.color(borderConfig.transferFailureMessage())));
+        if (movementListener != null) {
+            movementListener.onTransferFailed(playerUuid);
         }
     }
 }

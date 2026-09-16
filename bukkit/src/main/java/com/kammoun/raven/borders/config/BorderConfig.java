@@ -20,9 +20,16 @@ public class BorderConfig {
     private final long originZ;
     private final String cluster;
     private final String denyMessage;
+    private final boolean particleAnimationEnabled;
+    private final long particleRenderPeriodTicks;
     private final double detectionDistance;
+    private final double arrivalInsetBlocks;
+    private final boolean cleanupClientEntitiesOnTransfer;
+    private final double cleanupClientEntitiesRadius;
+    private final int cleanupClientEntitiesMax;
     private final double particleSpacing;
     private final double wallHeight;
+    private final int maxParticlesPerRender;
     private final Particle particle;
 
     public BorderConfig(FileConfiguration root) {
@@ -34,22 +41,41 @@ public class BorderConfig {
         this.originZ     = root.getLong("grid.origin-z", 0L);
         this.cluster     = root.getString("network.cluster", "default");
         this.denyMessage = root.getString("border.deny-message", "");
-        this.detectionDistance = Math.max(0, root.getDouble("border.detection-distance", 30));
-        this.particleSpacing = Math.max(0.25, root.getDouble("border.particle-spacing", 1.5));
-        this.wallHeight = Math.max(0, root.getDouble("border.wall-height", 50));
+        this.particleAnimationEnabled = root.getBoolean("border.particles.enabled",
+                root.getBoolean("border.animation-enabled", true));
+        this.particleRenderPeriodTicks = Math.max(10L, root.getLong("border.particles.render-period-ticks", 40L));
+        this.detectionDistance = Math.max(0, root.getDouble("border.detection-distance", 10));
+        this.arrivalInsetBlocks = Math.max(0.001, root.getDouble("border.arrival-inset-blocks", 0.01));
+        this.cleanupClientEntitiesOnTransfer = root.getBoolean("border.cleanup-client-entities-on-transfer", true);
+        this.cleanupClientEntitiesRadius = Math.max(8.0, root.getDouble("border.cleanup-client-entities-radius", 48.0));
+        this.cleanupClientEntitiesMax = Math.max(0, root.getInt("border.cleanup-client-entities-max", 64));
+        this.particleSpacing = Math.max(0.25, root.getDouble("border.particle-spacing", 6.0));
+        this.wallHeight = Math.max(0, root.getDouble("border.wall-height", 8));
+        this.maxParticlesPerRender = Math.max(8, root.getInt("border.max-particles-per-render", 18));
         this.particle = parseParticle(root.getString("border.particle", "DUST_PLUME"));
     }
 
     public int cellX() { return cellX; }
     public int cellZ() { return cellZ; }
+    public int cellSize() { return cellSize; }
+    public int netherRatio() { return netherRatio; }
+    public long originX() { return originX; }
+    public long originZ() { return originZ; }
     public String cluster() { return cluster; }
     public String denyMessage() { return denyMessage; }
     public String transferFailureMessage() {
         return denyMessage == null || denyMessage.isBlank() ? DEFAULT_TRANSFER_FAILURE_MESSAGE : denyMessage;
     }
+    public boolean particleAnimationEnabled() { return particleAnimationEnabled; }
+    public long particleRenderPeriodTicks() { return particleRenderPeriodTicks; }
     public double detectionDistance() { return detectionDistance; }
+    public double arrivalInsetBlocks() { return arrivalInsetBlocks; }
+    public boolean cleanupClientEntitiesOnTransfer() { return cleanupClientEntitiesOnTransfer; }
+    public double cleanupClientEntitiesRadius() { return cleanupClientEntitiesRadius; }
+    public int cleanupClientEntitiesMax() { return cleanupClientEntitiesMax; }
     public double particleSpacing() { return particleSpacing; }
     public double wallHeight() { return wallHeight; }
+    public int maxParticlesPerRender() { return maxParticlesPerRender; }
     public Particle particle() { return particle; }
 
     /** Returns the cell boundary for the given dimension, or null for unsupported dimensions. */

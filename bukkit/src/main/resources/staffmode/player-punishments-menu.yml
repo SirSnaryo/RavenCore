@@ -1,0 +1,101 @@
+Title: "&8PLAYER > PUNISH"
+Size: 54
+
+Actions:
+  ban: "/ban %player% 7d Staff review"
+  mute: "/mute %player% 1h Chat violation"
+  kick: "/kick %player% Staff action"
+  warn: "/warn %player% Staff warning"
+
+Items:
+  profile:
+    action: overview
+    material: PLAYER_HEAD
+    name: "&#FFD447%player%"
+    slot: 4
+    lore:
+      - "&#7A7A7APLAYER"
+      - ""
+      - "&#FFFFFFStatus: &#4CC9F0%status%"
+      - "&#FFFFFFWorld: &#4CC9F0%world%"
+      - "&#FFFFFFPing: &#4CC9F0%ping%"
+
+  ban:
+    action: ban
+    material: REDSTONE_BLOCK
+    name: "&#D90429Ban"
+    slot: 19
+    permission: raven.punishment.ban
+    lore:
+      - "&#7A7A7APUNISH"
+      - ""
+      - "&#FFFFFFOpen confirm menu."
+
+  mute:
+    action: mute
+    material: SCULK_SENSOR
+    name: "&#FF9F1CMute"
+    slot: 21
+    permission: raven.punishment.mute
+    lore:
+      - "&#7A7A7APUNISH"
+      - ""
+      - "&#FFFFFFOpen confirm menu."
+
+  kick:
+    action: kick
+    material: IRON_DOOR
+    name: "&#FFD447Kick"
+    slot: 23
+    permission: raven.punishment.kick
+    lore:
+      - "&#7A7A7APUNISH"
+      - ""
+      - "&#FFFFFFOpen confirm menu."
+
+  warn:
+    action: warn
+    material: PAPER
+    name: "&#FF9F1CWarn"
+    slot: 25
+    permission: raven.punishment.warn
+    lore:
+      - "&#7A7A7APUNISH"
+      - ""
+      - "&#FFFFFFOpen confirm menu."
+
+  history:
+    action: history-menu
+    material: CLOCK
+    name: "&#4CC9F0History"
+    slot: 40
+    permission: raven.punishment.history
+    lore:
+      - "&#7A7A7AHISTORY"
+      - ""
+      - "&#FFFFFFOpen history tools."
+
+  back:
+    action: back
+    material: ARROW
+    name: "&#4CC9F0Back"
+    slot: 45
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFReturn to punishment list."
+
+  close:
+    action: close
+    material: BARRIER
+    name: "&#D90429Close"
+    slot: 49
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFClose this menu."
+
+Navigation:
+  Filler-Item:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "

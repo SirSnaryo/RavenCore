@@ -16,6 +16,7 @@ import java.util.Set;
 public class ScoreboardConfig {
 
     private final boolean enabled;
+    private final int joinDelayTicks;
     private final int updateIntervalTicks;
     private final int conditionCheckTicks;
     private final Set<String> disabledWorlds;
@@ -23,6 +24,7 @@ public class ScoreboardConfig {
 
     public ScoreboardConfig(FileConfiguration config) {
         this.enabled = config.getBoolean("enabled", true);
+        this.joinDelayTicks = Math.max(1, config.getInt("join-delay-ticks", 80));
         this.updateIntervalTicks = Math.max(1, config.getInt("update-interval-ticks", 20));
         this.conditionCheckTicks = Math.max(1, config.getInt("condition-check-ticks", 40));
         this.disabledWorlds = new HashSet<>(config.getStringList("disabled-worlds"));
@@ -80,6 +82,10 @@ public class ScoreboardConfig {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public int getJoinDelayTicks() {
+        return joinDelayTicks;
     }
 
     public int getUpdateIntervalTicks() {

@@ -1,5 +1,16 @@
 # Random-location pool generation settings for this server.
 location-library:
+  # How many prepared locations each server keeps per dimension.
+  pool-target-size: 50
+
+  # Maximum successful locations generated per refill cycle.
+  # Keeps chunk generation smooth instead of filling a drained pool in one burst.
+  max-refill-per-cycle: 10
+
+  # Hard cap for candidate chunk/column checks per dimension per cycle.
+  # This prevents bad bounds or ocean-heavy worlds from growing async work forever.
+  max-attempts-per-cycle: 250
+
   # How often the asynchronous refill controller checks each pool.
   refill-interval-seconds: 45
   nether-pool-enabled: true

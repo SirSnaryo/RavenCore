@@ -54,7 +54,8 @@ public class ScoreboardModule extends KModule<RavenCore> {
         startTasks();
 
         if (getConfig().getBoolean("enabled", true)) {
-            SchedulerUtil.runLater(() -> Bukkit.getOnlinePlayers().forEach(service::showIfAllowed), 10L);
+            ScoreboardConfig config = new ScoreboardConfig(getConfig());
+            SchedulerUtil.runLater(() -> Bukkit.getOnlinePlayers().forEach(service::showIfAllowed), config.getJoinDelayTicks());
         }
 
         getLogger().info("[Scoreboard] Enabled.");
@@ -86,7 +87,8 @@ public class ScoreboardModule extends KModule<RavenCore> {
     private void registerListeners() {
         onEvent(PlayerJoinEvent.class, event -> {
             statsService.load(event.getPlayer());
-            SchedulerUtil.runLater(() -> service.showIfAllowed(event.getPlayer()), 10L);
+            ScoreboardConfig config = new ScoreboardConfig(getConfig());
+            SchedulerUtil.runLater(() -> service.showIfAllowed(event.getPlayer()), config.getJoinDelayTicks());
         });
         onEvent(PlayerQuitEvent.class, event -> {
             service.remove(event.getPlayer());

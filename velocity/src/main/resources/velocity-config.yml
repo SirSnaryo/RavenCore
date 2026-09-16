@@ -8,3 +8,25 @@ redis:
   port: 6379
   password: ''
   database: 0
+
+# Optional Continuum integration.
+# Recommended Continuum/Velocity settings:
+# - remove-reconfig = true
+# - keep-client-world-on-switch = true
+#
+# This requires every backend to expose Paper/Canvas internal entity-id
+# reservation during AsyncPlayerSpawnLocationEvent.
+# When enabled, RavenCore assigns every player a Redis-backed network entity id
+# from a high reserved range and passes it to the destination backend before
+# every backend connection.
+continuum:
+  enabled: false
+  auto-detect: true
+  transfer-metadata-ttl-seconds: 30
+  network-entity-id-pool:
+    enabled: true
+    min-id: 1000000000
+    max-id: 1100000000
+    ttl-seconds: 300
+    disconnect-retain-seconds: 60
+  debug: false

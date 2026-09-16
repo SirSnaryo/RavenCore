@@ -41,11 +41,14 @@ public final class PearlStasisModule extends KModule<RavenCore> {
         registerEvent(new PearlStasisImpactListener(api, pearlStasisConfig, repository, store, api.getNetworkPlayerManager()));
         registerEvent(new PearlStasisJoinListener(api, pearlStasisConfig, repository, store));
 
-        // Periodic async cleanup of expired records (runs every 5 minutes)
-        cleanupTask = SchedulerUtil.runAsyncTimer(this::cleanupExpired, 6000L, 6000L);
+        if (pearlStasisConfig.isExpirePendingRecords()) {
+            cleanupTask = SchedulerUtil.runAsyncTimer(this::cleanupExpired, 6000L, 6000L);
+        }
 
-        getLogger().info("[PearlStasis] Enabled cross-server pearl stasis module (TTL: "
-                + pearlStasisConfig.getTtlSeconds() + "s).");
+        getLogger().info("[PearlStasis] Enabled cross-server pearl stasis module (enabled="
+                + pearlStasisConfig.isEnabled() + ", TTL=" + pearlStasisConfig.getTtlSeconds()
+                + "s, expire=" + pearlStasisConfig.isExpirePendingRecords()
+                + ", debug=" + pearlStasisConfig.isDebug() + ").");
     }
 
     @Override
@@ -68,7 +71,7 @@ public final class PearlStasisModule extends KModule<RavenCore> {
         }
         if (repository != null) {
             try {
-                return repository.hasPending(playerUuid, pearlStasisConfig != null ? pearlStasisConfig.getTtlMillis() : 300_000L);
+                return repository.hasPending(playerUuid, pearlStasisConfig != null ? pearlStasisConfig.getTtlMillis() : -1L);
             } catch (SQLException e) {
                 getLogger().warning("[PearlStasis] Failed to check pending stasis: " + e.getMessage());
             }

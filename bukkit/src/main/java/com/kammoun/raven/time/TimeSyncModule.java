@@ -12,10 +12,15 @@ import org.bukkit.World;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.server.ServerCommandEvent;
+import org.bukkit.event.weather.ThunderChangeEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,6 +35,7 @@ public class TimeSyncModule extends KModule<RavenCore> {
     private final AtomicLong spawnFrozenTime = new AtomicLong(1000L);
     private SchedulerUtil.Task heartbeatTask;
     private SchedulerUtil.Task driverTask;
+    private final AtomicBoolean applyingClock = new AtomicBoolean(false);
 
     public TimeSyncModule() {
         super("time");
@@ -58,6 +64,10 @@ public class TimeSyncModule extends KModule<RavenCore> {
             }
         });
         onEvent(PlayerCommandPreprocessEvent.class, EventPriority.MONITOR, this::onCommand);
+        onEvent(ServerCommandEvent.class, EventPriority.MONITOR, this::onServerCommand);
+        onEvent(TimeSkipEvent.class, EventPriority.MONITOR, this::onTimeSkip);
+        onEvent(WeatherChangeEvent.class, EventPriority.MONITOR, this::onWeatherChange);
+        onEvent(ThunderChangeEvent.class, EventPriority.MONITOR, this::onThunderChange);
 
         api.getNetworkEventBus().subscribe(TimeWeatherSyncEvent.class, event -> {
             if (api.getServerId().equals(event.getSourceServer())) return;
@@ -109,43 +119,81 @@ public class TimeSyncModule extends KModule<RavenCore> {
     }
 
     private void applyClock(WorldClockState state) {
-        if (authority.isAuthority()) return;
         World world = overworld.get();
         if (world == null) return;
 
-        if (api.getServerRole() == ServerRole.SPAWN) {
-            spawnFrozenTime.set(Math.floorMod(state.fullTime, 24000L));
-            applySpawnFreeze(world);
-        } else {
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setFullTime(state.fullTime);
-        }
+        applyingClock.set(true);
+        try {
+            if (api.getServerRole() == ServerRole.SPAWN) {
+                spawnFrozenTime.set(Math.floorMod(state.fullTime, 24000L));
+                applySpawnFreeze(world);
+            } else {
+                world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+                world.setFullTime(state.fullTime);
+            }
 
-        if (state.syncWeather || config.syncWeather()) {
-            applyWeather(world, state);
+            if (state.syncWeather || config.syncWeather()) {
+                applyWeather(state);
+            }
+        } finally {
+            applyingClock.set(false);
         }
     }
 
     private void onCommand(PlayerCommandPreprocessEvent event) {
         if (event.isCancelled()) return;
-        String base = baseCommand(event.getMessage());
-        if (!base.equals("time") && !base.equals("weather")) return;
+        handleCommand(event.getMessage());
+    }
+
+    private void onServerCommand(ServerCommandEvent event) {
+        if (event.isCancelled()) return;
+        handleCommand(event.getCommand());
+    }
+
+    private void handleCommand(String command) {
+        String base = baseCommand(command);
+        if (!base.equals("weather")) return;
 
         SchedulerUtil.runLater(() -> {
             World world = overworld.get();
             if (world == null) return;
 
-            if (base.equals("time") && api.getServerRole() == ServerRole.SPAWN) {
-                spawnFrozenTime.set(world.getTime());
-                applySpawnFreeze(world);
-                publish(snapshot(world, false));
-                return;
-            }
-
-            if (base.equals("weather") && config.syncManualWeatherCommands()) {
+            if (config.syncManualWeatherCommands()) {
                 publish(snapshot(world, true));
             }
         }, 1L);
+    }
+
+    private void onTimeSkip(TimeSkipEvent event) {
+        if (event.isCancelled() || applyingClock.get()) return;
+        if (event.getSkipReason() != TimeSkipEvent.SkipReason.COMMAND) return;
+
+        SchedulerUtil.runLater(() -> {
+            World world = event.getWorld();
+            if (api.getServerRole() == ServerRole.SPAWN) {
+                spawnFrozenTime.set(world.getTime());
+                applySpawnFreeze(world);
+            }
+            publish(snapshot(world, false));
+        }, 1L);
+    }
+
+    private void onWeatherChange(WeatherChangeEvent event) {
+        if (event.isCancelled() || applyingClock.get()) return;
+        if (!config.syncWeather() && (!config.syncManualWeatherCommands()
+                || event.getCause() != WeatherChangeEvent.Cause.COMMAND)) return;
+        publishWeatherSoon(event.getWorld());
+    }
+
+    private void onThunderChange(ThunderChangeEvent event) {
+        if (event.isCancelled() || applyingClock.get()) return;
+        if (!config.syncWeather() && (!config.syncManualWeatherCommands()
+                || event.getCause() != ThunderChangeEvent.Cause.COMMAND)) return;
+        publishWeatherSoon(event.getWorld());
+    }
+
+    private void publishWeatherSoon(World world) {
+        SchedulerUtil.runLater(() -> publish(snapshot(world, true)), 1L);
     }
 
     private void publish(WorldClockState state) {
@@ -179,11 +227,13 @@ public class TimeSyncModule extends KModule<RavenCore> {
         world.setTime(spawnFrozenTime.get());
     }
 
-    private void applyWeather(World world, WorldClockState state) {
-        world.setStorm(state.storm);
-        world.setThundering(state.thunder);
-        world.setWeatherDuration(state.weatherDuration);
-        world.setThunderDuration(state.thunderDuration);
+    private void applyWeather(WorldClockState state) {
+        for (World world : Bukkit.getWorlds()) {
+            world.setStorm(state.storm);
+            world.setThundering(state.thunder);
+            world.setWeatherDuration(state.weatherDuration);
+            world.setThunderDuration(state.thunderDuration);
+        }
     }
 
     private WorldClockState snapshot(World world, boolean syncWeather) {

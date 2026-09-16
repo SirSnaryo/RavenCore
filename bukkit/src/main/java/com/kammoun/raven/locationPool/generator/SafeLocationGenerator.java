@@ -9,6 +9,7 @@ import com.kammoun.raven.locationPool.config.LocationPoolConfig;
 import com.kammoun.raven.locationPool.protection.LocationProtection;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.HeightMap;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
 
@@ -80,6 +81,10 @@ public final class SafeLocationGenerator {
 
     private Optional<RtpLocation> inspectColumn(World world, LocationDimension dimension,
                                                 LocationSearchBounds bounds, int x, int z) {
+        if (dimension == LocationDimension.OVERWORLD) {
+            return inspectSurfaceColumn(world, dimension, bounds, x, z);
+        }
+
         int highestGroundY = Math.min(bounds.maxY() - 3, world.getMaxHeight() - 3);
         int lowestGroundY = Math.max(bounds.minY(), world.getMinHeight());
 
@@ -117,6 +122,40 @@ public final class SafeLocationGenerator {
                     landing.getX(), landing.getY(), landing.getZ(), landing.getYaw(), landing.getPitch()));
         }
         return Optional.empty();
+    }
+
+    private Optional<RtpLocation> inspectSurfaceColumn(World world, LocationDimension dimension,
+                                                       LocationSearchBounds bounds, int x, int z) {
+        Block ground = world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+        int landingY = ground.getY() + 1;
+        if (!bounds.contains(x, landingY, z)) {
+            return Optional.empty();
+        }
+        Block feet = world.getBlockAt(x, landingY, z);
+        Block head = world.getBlockAt(x, landingY + 1, z);
+
+        if (!ground.getType().isSolid() || isUnsafeBlock(ground)) {
+            return Optional.empty();
+        }
+        if (!feet.isPassable() || isUnsafeBlock(feet)) {
+            return Optional.empty();
+        }
+        if (!head.isPassable() || isUnsafeBlock(head)) {
+            return Optional.empty();
+        }
+        if (config.blacklistedBiomes().contains(feet.getBiome())
+                || config.blacklistedBiomes().contains(ground.getBiome())) {
+            return Optional.empty();
+        }
+
+        Location landing = new Location(world, x + 0.5, landingY, z + 0.5,
+                ThreadLocalRandom.current().nextFloat() * 360.0f, 0.0f);
+        if (protection.isProtected(landing)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new RtpLocation(serverId, dimension, world.getName(),
+                landing.getX(), landing.getY(), landing.getZ(), landing.getYaw(), landing.getPitch()));
     }
 
     private boolean isUnsafeBlock(Block block) {

@@ -19,6 +19,14 @@ public class CrossServerTeleportEvent extends CrossServerEvent {
     private Double z;
     private Float yaw;
     private Float pitch;
+    /**
+     * Optional Continuum seamless-switch metadata. Zero means unavailable or disabled.
+     */
+    private int continuumClientEntityId;
+    /**
+     * Optional target dimension hint; Continuum still validates the real client dimension itself.
+     */
+    private String continuumDimensionKey;
 
     public boolean hasCoordinates() {
         return x != null && y != null && z != null;

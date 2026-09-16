@@ -1,0 +1,28 @@
+Title: "&8STAFF > PUNISH"
+Size: 54
+Offline-Limit: 180
+
+# Open with /staff punishments <name> to search online or saved player data.
+
+Navigation:
+  Go-Back:
+    material: ARROW
+    name: "&#4CC9F0Back"
+    slot: 45
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFReturn to staff menu."
+    commands:
+      - "/staff"
+  Close-Page:
+    material: BARRIER
+    name: "&#D90429Close"
+    slot: 49
+    lore:
+      - "&#7A7A7AMODERATION"
+      - ""
+      - "&#FFFFFFClose this menu."
+  Filler-Item:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "

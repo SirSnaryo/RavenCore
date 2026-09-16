@@ -7,6 +7,8 @@ import com.kammoun.raven.library.tasks.SchedulerUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +33,15 @@ public class RavenCoreCommand extends KCommand {
 
         if (isModules(args[0])) {
             send(sender, "&#FFD447Modules: &#FFFFFF" + String.join("&#7A7A7A, &#FFFFFF", plugin.reloadableModuleNames()));
+            return;
+        }
+
+        if (isMemory(args[0])) {
+            if (!sender.hasPermission("raven.core.admin")) {
+                send(sender, "&#D90429You don't have permission to inspect RavenCore memory.");
+                return;
+            }
+            sendMemory(sender);
             return;
         }
 
@@ -62,13 +73,14 @@ public class RavenCoreCommand extends KCommand {
 
         send(sender, "&#FFD447/ravencore version &#7A7A7A- Show plugin version");
         send(sender, "&#FFD447/ravencore modules &#7A7A7A- List reloadable modules");
+        send(sender, "&#FFD447/ravencore memory &#7A7A7A- Show heap and thread usage");
         send(sender, "&#FFD447/ravencore reload <module|all> &#7A7A7A- Safe reload");
     }
 
     @Override
     public List<String> onTab(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return List.of("version", "modules", "module", "mods", "reload").stream()
+            return List.of("version", "modules", "module", "mods", "memory", "mem", "ram", "reload").stream()
                     .filter(value -> value.startsWith(args[0].toLowerCase(Locale.ROOT)))
                     .toList();
         }
@@ -88,6 +100,39 @@ public class RavenCoreCommand extends KCommand {
                 || input.equalsIgnoreCase("module")
                 || input.equalsIgnoreCase("modles")
                 || input.equalsIgnoreCase("mods");
+    }
+
+    private boolean isMemory(String input) {
+        return input.equalsIgnoreCase("memory")
+                || input.equalsIgnoreCase("mem")
+                || input.equalsIgnoreCase("ram");
+    }
+
+    private void sendMemory(CommandSender sender) {
+        Runtime runtime = Runtime.getRuntime();
+        MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+        MemoryUsage nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+        int liveThreads = ManagementFactory.getThreadMXBean().getThreadCount();
+        int peakThreads = ManagementFactory.getThreadMXBean().getPeakThreadCount();
+
+        send(sender, "&#FF2B2BRavenCore Memory");
+        send(sender, "&#7A7A7AHeap: &#FFFFFF" + mb(heap.getUsed()) + "MB&#7A7A7A / &#FFFFFF"
+                + mb(heap.getMax()) + "MB &#7A7A7A(committed &#FFFFFF" + mb(heap.getCommitted()) + "MB&#7A7A7A)");
+        send(sender, "&#7A7A7ANon-heap: &#FFFFFF" + mb(nonHeap.getUsed()) + "MB"
+                + " &#7A7A7A(committed &#FFFFFF" + mb(nonHeap.getCommitted()) + "MB&#7A7A7A)");
+        send(sender, "&#7A7A7ARuntime: free &#FFFFFF" + mb(runtime.freeMemory()) + "MB"
+                + " &#7A7A7A| total &#FFFFFF" + mb(runtime.totalMemory()) + "MB"
+                + " &#7A7A7A| max &#FFFFFF" + mb(runtime.maxMemory()) + "MB");
+        send(sender, "&#7A7A7AThreads: live &#FFFFFF" + liveThreads
+                + " &#7A7A7A| peak &#FFFFFF" + peakThreads
+                + " &#7A7A7A| CPUs &#FFFFFF" + runtime.availableProcessors());
+    }
+
+    private long mb(long bytes) {
+        if (bytes < 0L) {
+            return -1L;
+        }
+        return bytes / (1024L * 1024L);
     }
 
     private void send(CommandSender sender, String message) {

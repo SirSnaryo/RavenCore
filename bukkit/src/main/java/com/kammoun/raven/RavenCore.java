@@ -6,9 +6,11 @@ import com.kammoun.raven.endportal.EndPortalModule;
 import com.kammoun.raven.chat.ChatModule;
 import com.kammoun.raven.combat.CombatModule;
 import com.kammoun.raven.clearinventory.ClearInventoryModule;
+import com.kammoun.raven.continuum.ContinuumModule;
 import com.kammoun.raven.nightvision.NightVisionModule;
 import com.kammoun.raven.command.RavenCoreCommand;
 import com.kammoun.raven.crates.CratesModule;
+import com.kammoun.raven.devmode.DevModeModule;
 import com.kammoun.raven.docs.DocsGenerator;
 import com.kammoun.raven.economy.EconomyModule;
 import com.kammoun.raven.globalcontrol.GlobalModule;
@@ -24,11 +26,13 @@ import com.kammoun.raven.library.gui.KMenu;
 import com.kammoun.raven.rtpzone.RtpZoneModule;
 import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.pearlstasis.PearlStasisModule;
+import com.kammoun.raven.punishment.PunishmentModule;
 import com.kammoun.raven.respawn.RespawnModule;
 import com.kammoun.raven.scoreboard.ScoreboardModule;
 import com.kammoun.raven.serverinfo.ServerInfoModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.settings.SettingsModule;
+import com.kammoun.raven.staffmode.StaffModeModule;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
@@ -55,9 +59,17 @@ import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 @Getter
@@ -105,12 +117,17 @@ public final class RavenCore extends JavaPlugin {
     private EndPortalModule endPortalModule;
     private CratesModule cratesModule;
     private JoinFixModule joinFixModule;
+    private StaffModeModule staffModeModule;
+    private DevModeModule devModeModule;
+    private PunishmentModule punishmentModule;
+    private ContinuumModule continuumModule;
 
     @Override
     public void onEnable() {
         long startedAt = System.currentTimeMillis();
         instance = this;
         saveDefaultConfig();
+        ensureRootConfigSections();
         reloadConfig();
         SchedulerUtil.init(this);
         PluginClassPreloader.preload(this);
@@ -155,6 +172,10 @@ public final class RavenCore extends JavaPlugin {
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, SchedulerUtil::run);
         networkPlayerManager = new NetworkPlayerManager(this, redisMessenger.getConnection().getPool(),
                 serverId, serverDisplayName, networkEventBus);
+
+        continuumModule = new ContinuumModule();
+        continuumModule.onEnable(this);
+        enabledModules.add("Continuum");
 
         serverInfoModule = new ServerInfoModule();
         serverInfoModule.onEnable(this);
@@ -253,6 +274,10 @@ public final class RavenCore extends JavaPlugin {
         chatModule.onEnable(this);
         enabledModules.add("Chat");
 
+        punishmentModule = new PunishmentModule();
+        punishmentModule.onEnable(this);
+        enabledModules.add("Punishment");
+
         teleportModule = new TeleportModule();
         teleportModule.onEnable(this);
         enabledModules.add("Teleport");
@@ -264,6 +289,14 @@ public final class RavenCore extends JavaPlugin {
         settingsModule = new SettingsModule();
         settingsModule.onEnable(this);
         enabledModules.add("Settings");
+
+        staffModeModule = new StaffModeModule();
+        staffModeModule.onEnable(this);
+        enabledModules.add("StaffMode");
+
+        devModeModule = new DevModeModule();
+        devModeModule.onEnable(this);
+        enabledModules.add("DevMode");
 
         spawnModule = new SpawnModule();
         spawnModule.onEnable(this);
@@ -364,6 +397,9 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "scoreboard", scoreboardModule);
         putModule(modules, "serverinfo", serverInfoModule);
         putModule(modules, "settings", settingsModule);
+        putModule(modules, "staffmode", staffModeModule);
+        putModule(modules, "devmode", devModeModule);
+        putModule(modules, "punishment", punishmentModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
         putModule(modules, "rtpzone", rtpZoneModule);
@@ -375,6 +411,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "home", homeModule);
         putModule(modules, "team", teamModule);
         putModule(modules, "combat", combatModule);
+        putModule(modules, "continuum", continuumModule);
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
         putModule(modules, "pearlstasis", pearlStasisModule);
@@ -405,8 +442,91 @@ public final class RavenCore extends JavaPlugin {
 
         @Override
         public void reload() {
+            RavenCore.this.ensureRootConfigSections();
             RavenCore.this.reloadConfig();
         }
+    }
+
+    private void ensureRootConfigSections() {
+        File configFile = new File(getDataFolder(), "config.yml");
+        if (!configFile.exists()) return;
+
+        try (InputStream input = getResource("config.yml")) {
+            if (input == null) return;
+
+            String defaultText = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            Set<String> defaultSections = rootKeys(defaultText);
+            Set<String> existingSections = rootKeys(Files.readString(configFile.toPath(), StandardCharsets.UTF_8));
+            defaultSections.removeAll(existingSections);
+            if (defaultSections.isEmpty()) return;
+
+            String append = extractRootBlocks(defaultText, defaultSections);
+            if (append.isBlank()) return;
+
+            String separator = Files.size(configFile.toPath()) == 0 ? "" : System.lineSeparator() + System.lineSeparator();
+            Files.writeString(configFile.toPath(), separator + append.stripTrailing() + System.lineSeparator(),
+                    StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+            getLogger().info("[Config] Added missing root config section(s): " + String.join(", ", defaultSections));
+        } catch (IOException e) {
+            getLogger().warning("[Config] Failed to append missing root config sections: " + e.getMessage());
+        }
+    }
+
+    private Set<String> rootKeys(String yaml) {
+        Set<String> keys = new LinkedHashSet<>();
+        for (String line : yaml.split("\\R")) {
+            if (line.isBlank() || line.charAt(0) == ' ' || line.charAt(0) == '#' || line.charAt(0) == '-') continue;
+            int colon = line.indexOf(':');
+            if (colon <= 0) continue;
+            keys.add(line.substring(0, colon).trim());
+        }
+        return keys;
+    }
+
+    private String extractRootBlocks(String yaml, Set<String> keys) {
+        String[] lines = yaml.split("\\R", -1);
+        List<Integer> rootLines = new ArrayList<>();
+        List<String> rootKeys = new ArrayList<>();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.isBlank() || line.charAt(0) == ' ' || line.charAt(0) == '#' || line.charAt(0) == '-') continue;
+            int colon = line.indexOf(':');
+            if (colon <= 0) continue;
+            rootLines.add(i);
+            rootKeys.add(line.substring(0, colon).trim());
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < rootLines.size(); i++) {
+            String key = rootKeys.get(i);
+            if (!keys.contains(key)) continue;
+            int start = includeLeadingComments(lines, rootLines.get(i));
+            int end = i + 1 < rootLines.size() ? rootLines.get(i + 1) : lines.length;
+            while (end > start && lines[end - 1].isBlank()) {
+                end--;
+            }
+            if (!builder.isEmpty()) builder.append(System.lineSeparator()).append(System.lineSeparator());
+            for (int line = start; line < end; line++) {
+                builder.append(lines[line]).append(System.lineSeparator());
+            }
+        }
+        return builder.toString();
+    }
+
+    private int includeLeadingComments(String[] lines, int rootLine) {
+        int start = rootLine;
+        for (int i = rootLine - 1; i >= 0; i--) {
+            String line = lines[i];
+            if (line.isBlank() || line.startsWith("#")) {
+                start = i;
+                continue;
+            }
+            break;
+        }
+        while (start < rootLine && lines[start].isBlank()) {
+            start++;
+        }
+        return start;
     }
     /** Console banner shown at the very start of enable, before modules load. */
     private void printBanner() {
@@ -606,6 +726,7 @@ public final class RavenCore extends JavaPlugin {
     @Override
     public void onDisable() {
         if (scoreboardModule != null) scoreboardModule.onDisable(this);
+        if (continuumModule != null) continuumModule.onDisable(this);
         if (serverInfoModule != null) serverInfoModule.onDisable(this);
         if (combatModule != null) combatModule.onDisable(this);
         if (teamModule != null) teamModule.onDisable(this);

@@ -5,10 +5,11 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +29,7 @@ public class RedisConnection {
     }
 
     public void connect(RedisCredentials credentials) {
+        disconnect();
         this.credentials = credentials;
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -35,6 +37,8 @@ public class RedisConnection {
         poolConfig.setMaxIdle(5);
         poolConfig.setMinIdle(1);
         poolConfig.setTestOnBorrow(true);
+        poolConfig.setBlockWhenExhausted(true);
+        poolConfig.setMaxWait(Duration.ofSeconds(2));
 
         if (credentials.hasPassword()) {
             pool = new JedisPool(poolConfig, credentials.getHost(), credentials.getPort(),
@@ -60,6 +64,8 @@ public class RedisConnection {
         if (pool != null && !pool.isClosed()) {
             pool.close();
         }
+        pubSub = null;
+        subscriberThread = null;
         logger.info("[Redis] Disconnected.");
     }
 
@@ -73,7 +79,7 @@ public class RedisConnection {
     }
 
     public void addHandler(String channel, Consumer<String> handler) {
-        handlers.computeIfAbsent(channel, k -> new ArrayList<>()).add(handler);
+        handlers.computeIfAbsent(channel, k -> new CopyOnWriteArrayList<>()).add(handler);
         // If pubSub is already running, subscribe to this new channel
         if (pubSub != null && pubSub.isSubscribed()) {
             pubSub.subscribe(channel);

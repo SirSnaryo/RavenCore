@@ -23,8 +23,11 @@ import com.kammoun.raven.respawn.transfer.RespawnTransferStore.ConsumeResult;
 import com.kammoun.raven.respawn.transfer.RespawnTransferStore.ConsumeStatus;
 import com.kammoun.raven.spawn.db.LocationRepository;
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -492,8 +495,22 @@ public final class RespawnManager implements Listener {
                 fallbackToDefault(player, attemptId);
                 return;
             }
-            teleportAndFinish(player, attemptId, new Location(world, target.x(), target.y(), target.z(),
-                    target.yaw(), target.pitch()));
+            Location location = new Location(world, target.x(), target.y(), target.z(),
+                    target.yaw(), target.pitch());
+            world.getChunkAtAsync(location.getBlockX() >> 4, location.getBlockZ() >> 4, true)
+                    .whenComplete((chunk, error) -> {
+                        if (error != null || chunk == null) {
+                            scheduleForPlayer(player, attemptId, () -> fallbackToDefault(player, attemptId));
+                            return;
+                        }
+                        SchedulerUtil.execute(location, () -> {
+                            if (!isSafeLocalRtpLanding(location)) {
+                                scheduleForPlayer(player, attemptId, () -> resolveRandom(player, attemptId));
+                                return;
+                            }
+                            scheduleForPlayer(player, attemptId, () -> teleportAndFinish(player, attemptId, location));
+                        });
+                    });
             return;
         }
         if (!transfers.storeCoordinate(player.getUniqueId(), target.serverId(), target.world(),
@@ -603,15 +620,24 @@ public final class RespawnManager implements Listener {
 
     private void teleportAndFinish(Player player, long attemptId, Location location, Runnable afterSuccess) {
         if (!claim(player, attemptId)) return;
-        player.teleportAsync(location).whenComplete((success, error) -> {
-            if (error == null && Boolean.TRUE.equals(success)) {
-                if (afterSuccess != null) afterSuccess.run();
-                unfreezePlayer(player);
-                releaseBorders(player);
-                return;
-            }
-            SchedulerUtil.execute(player, () -> teleportToDefaultAndRelease(player));
-        });
+        World world = location.getWorld();
+        if (world == null) {
+            teleportToDefaultAndRelease(player);
+            return;
+        }
+        world.getChunkAtAsync(location.getBlockX() >> 4, location.getBlockZ() >> 4, true)
+                .thenCompose(chunk -> player.teleportAsync(location))
+                .whenComplete((success, error) -> {
+                    if (error == null && Boolean.TRUE.equals(success)) {
+                        SchedulerUtil.execute(player, () -> {
+                            if (afterSuccess != null) afterSuccess.run();
+                            unfreezePlayer(player);
+                            releaseBorders(player);
+                        });
+                        return;
+                    }
+                    SchedulerUtil.execute(player, () -> teleportToDefaultAndRelease(player));
+                });
     }
 
     private void fallbackToDefault(Player player, long attemptId) {
@@ -620,10 +646,49 @@ public final class RespawnManager implements Listener {
     }
 
     private void teleportToDefaultAndRelease(Player player) {
-        player.teleportAsync(holdingSpawn(player)).whenComplete((success, error) -> {
+        Location location = holdingSpawn(player);
+        World world = location.getWorld();
+        if (world == null) {
             unfreezePlayer(player);
             releaseBorders(player);
-        });
+            return;
+        }
+        world.getChunkAtAsync(location.getBlockX() >> 4, location.getBlockZ() >> 4, true)
+                .thenCompose(chunk -> player.teleportAsync(location))
+                .whenComplete((success, error) -> {
+                    SchedulerUtil.execute(player, () -> {
+                        unfreezePlayer(player);
+                        releaseBorders(player);
+                    });
+                });
+    }
+
+    private boolean isSafeLocalRtpLanding(Location location) {
+        World world = location.getWorld();
+        if (world == null) return false;
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
+        Block ground = world.getBlockAt(x, y - 1, z);
+        if (!ground.getType().isSolid() || unsafeLiquid(ground)) return false;
+        if (world.getEnvironment() == World.Environment.NORMAL
+                && world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES).getY() != y - 1) {
+            return false;
+        }
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (unsafeLiquid(world.getBlockAt(x + dx, y, z + dz))
+                        || unsafeLiquid(world.getBlockAt(x + dx, y + 1, z + dz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean unsafeLiquid(Block block) {
+        return block.isLiquid()
+                || (block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged());
     }
 
     private void applyVisualMask(Player player) {

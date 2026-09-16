@@ -1,0 +1,69 @@
+enabled: true
+
+messages:
+  enabled: "&#33FF66Staff Mode enabled."
+  disabled: "&#D90429Staff Mode disabled."
+  enable-first: "&#D90429Enable Staff Mode first."
+  no-view-permission: "&#D90429You cannot inspect inventories."
+  no-edit-permission: "&#D90429You can view this inventory, but cannot edit it."
+  no-offline-permission: "&#D90429You cannot inspect offline inventories."
+  no-restore-permission: "&#D90429You cannot restore inventory snapshots."
+  external-missing: "&#D90429Saved player data is not available."
+  external-command-failed: "&#D90429Saved data command failed. Check staffmode/config.yml."
+  edit-opened: "&#33FF66Editing &#FFD447%player%&#33FF66's inventory."
+
+external:
+  # Used by /invsee <offline-or-cross-server-player>. %mode% becomes "edit" only
+  # when the staff member has the edit permission; otherwise it becomes empty.
+  inventory-commands:
+    - "inventory %player% %mode%"
+    - "husksync:inventory %player% %mode%"
+    - "userdata view %player%"
+  enderchest-commands:
+    - "enderchest %player% %mode%"
+    - "husksync:enderchest %player% %mode%"
+    - "userdata view %player%"
+  snapshots-commands:
+    - "userdata list %player%"
+    - "husksync:userdata list %player%"
+
+command-gate:
+  enabled: true
+  bypass-permission: raven.staffmode.bypass-gate
+  commands:
+    - staff
+    - invsee
+    - ban
+    - tempban
+    - unban
+    - mute
+    - tempmute
+    - unmute
+    - kick
+    - punish
+    - warn
+    - history
+    - freeze
+    - vanish
+    - socialspy
+    - spectate
+    - ravencore
+    - rcore
+    - ravenauction
+    - auction
+    - ah
+    - gamemode
+    - gmc
+    - gms
+    - gmsp
+    - tool
+
+sounds:
+  toggle:
+    sound: ENTITY_EXPERIENCE_ORB_PICKUP
+    pitch: 1.35
+    volume: 1.0
+  deny:
+    sound: ENTITY_VILLAGER_NO
+    pitch: 0.9
+    volume: 1.0

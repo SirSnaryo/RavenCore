@@ -20,7 +20,11 @@ public final class PearlStasisStore {
     public void setMarker(UUID playerUuid, int ttlSeconds) {
         if (pool == null) return;
         try (Jedis jedis = pool.getResource()) {
-            jedis.setex(PearlStasisKeys.markerKey(playerUuid), ttlSeconds, "1");
+            if (ttlSeconds > 0) {
+                jedis.setex(PearlStasisKeys.markerKey(playerUuid), ttlSeconds, "1");
+            } else {
+                jedis.set(PearlStasisKeys.markerKey(playerUuid), "1");
+            }
         } catch (Exception e) {
             logger.warning("[PearlStasis] Failed to set Redis marker for " + playerUuid + ": " + e.getMessage());
         }

@@ -4,17 +4,8 @@ import com.kammoun.raven.scoreboard.model.LineUpdateMode;
 import com.kammoun.raven.scoreboard.model.ScoreboardDefinition;
 import com.kammoun.raven.scoreboard.model.ScoreboardLine;
 import com.kammoun.raven.scoreboard.placeholder.ScoreboardPlaceholders;
-import com.kammoun.raven.library.tasks.SchedulerUtil;
-import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Criteria;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.RenderType;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,29 +14,30 @@ import java.util.Objects;
 
 public class RavenBoard {
 
-    private static final String OBJECTIVE_NAME = "raven_sb";
     private static final int MAX_LINES = 15;
+    private static final String[] LINE_HOLDERS = {
+            "\u00A70", "\u00A71", "\u00A72", "\u00A73", "\u00A74",
+            "\u00A75", "\u00A76", "\u00A77", "\u00A78", "\u00A79",
+            "\u00A7a", "\u00A7b", "\u00A7c", "\u00A7d", "\u00A7e"
+    };
 
     private final Player player;
     private final ScoreboardDefinition definition;
     private final ScoreboardPlaceholders placeholders;
-    private final Scoreboard scoreboard;
+    private final RavenPacketSidebar sidebar;
     private final RavenComponentCache componentCache = new RavenComponentCache();
-    private final RavenSidebarLine[] sidebarLines = new RavenSidebarLine[MAX_LINES];
+    private final RavenLineRender[] sidebarLines = new RavenLineRender[MAX_LINES];
     private final List<RavenLineRender> renderedLines = new ArrayList<>();
     private final List<Integer> lineIndexes = new ArrayList<>();
-    private Objective objective;
     private String renderedTitle = "";
     private long tickAge;
+    private boolean created;
 
     public RavenBoard(Player player, ScoreboardDefinition definition, ScoreboardPlaceholders placeholders) {
         this.player = player;
         this.definition = definition;
         this.placeholders = placeholders;
-        this.scoreboard = createScoreboard();
-        for (int i = 0; i < sidebarLines.length; i++) {
-            sidebarLines[i] = new RavenSidebarLine(i);
-        }
+        this.sidebar = new RavenPacketSidebar(player);
     }
 
     public ScoreboardDefinition getDefinition() {
@@ -56,13 +48,8 @@ public class RavenBoard {
         renderedTitle = "";
         renderedLines.clear();
         lineIndexes.clear();
-        registerObjective();
+        updateTitle();
         updateAll();
-        SchedulerUtil.execute(player, () -> {
-            if (player.isOnline()) {
-                player.setScoreboard(scoreboard);
-            }
-        });
     }
 
     public void tick(int elapsedTicks) {
@@ -95,18 +82,21 @@ public class RavenBoard {
     }
 
     public void delete() {
-        Arrays.stream(sidebarLines).forEach(RavenSidebarLine::delete);
-        if (registeredObjective()) {
-            objective.unregister();
-        }
+        Arrays.fill(sidebarLines, null);
+        sidebar.delete();
+        created = false;
     }
 
     private void updateTitle() {
         String title = render(definition.title());
-        if (!Objects.equals(title, renderedTitle)) {
+        if (!created || !Objects.equals(title, renderedTitle)) {
             renderedTitle = title;
-            if (registeredObjective()) {
-                objective.displayName(componentCache.component(title));
+            Component component = componentCache.component(title);
+            if (created) {
+                sidebar.updateTitle(component);
+            } else {
+                sidebar.create(component);
+                created = true;
             }
         }
     }
@@ -163,39 +153,16 @@ public class RavenBoard {
         }
 
         renderedLines.set(renderedIndex, value);
-        sidebarLines[renderedIndex].show(scoreboard, objective, componentCache, value, MAX_LINES - renderedIndex);
-    }
-
-    private Scoreboard createScoreboard() {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) {
-            throw new IllegalStateException("Scoreboard manager is not available");
-        }
-        return manager.getNewScoreboard();
-    }
-
-    private void registerObjective() {
-        Objective existing = scoreboard.getObjective(OBJECTIVE_NAME);
-        if (existing != null) {
-            existing.unregister();
-        }
-        objective = scoreboard.registerNewObjective(
-                OBJECTIVE_NAME,
-                Criteria.DUMMY,
-                Component.empty(),
-                RenderType.INTEGER
-        );
-        objective.numberFormat(NumberFormat.blank());
-        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        show(renderedIndex, value, MAX_LINES - renderedIndex);
     }
 
     private void applyRenderedLines() {
         int visible = Math.min(renderedLines.size(), MAX_LINES);
         for (int index = 0; index < visible; index++) {
-            sidebarLines[index].show(scoreboard, objective, componentCache, renderedLines.get(index), MAX_LINES - index);
+            show(index, renderedLines.get(index), MAX_LINES - index);
         }
         for (int index = visible; index < MAX_LINES; index++) {
-            sidebarLines[index].hide(scoreboard);
+            hide(index);
         }
     }
 
@@ -203,7 +170,41 @@ public class RavenBoard {
         return rawText != null && !rawText.isBlank() && rendered.isBlank();
     }
 
-    private boolean registeredObjective() {
-        return objective != null && scoreboard.getObjective(OBJECTIVE_NAME) != null;
+    private void show(int index, RavenLineRender render, int fallbackScore) {
+        RavenLineRender previous = sidebarLines[index];
+        if (Objects.equals(previous, render)) {
+            return;
+        }
+
+        int scoreValue = render.score() == null ? fallbackScore : render.score();
+        sidebar.setLine(
+                LINE_HOLDERS[index],
+                scoreValue,
+                componentCache.component(render.text()),
+                numberFormat(render.numberFormat())
+        );
+        sidebarLines[index] = render;
+    }
+
+    private void hide(int index) {
+        if (sidebarLines[index] == null) {
+            return;
+        }
+        sidebar.removeLine(LINE_HOLDERS[index]);
+        sidebarLines[index] = null;
+    }
+
+    private Component numberFormat(String value) {
+        if (value == null || value.isBlank()) {
+            return Component.empty();
+        }
+        String lower = value.trim().toLowerCase(java.util.Locale.ROOT);
+        if (lower.equals("blank") || lower.equals("hide")) {
+            return Component.empty();
+        }
+        if (lower.equals("default") || lower.equals("vanilla")) {
+            return null;
+        }
+        return componentCache.component(value);
     }
 }

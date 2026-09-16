@@ -1,0 +1,77 @@
+Title: "&8PLAYER > HISTORY"
+Size: 54
+
+Actions:
+  history: "/history %player%"
+  homes: "/homes %player%"
+
+Items:
+  profile:
+    action: overview
+    material: PLAYER_HEAD
+    name: "&#FFD447%player%"
+    slot: 4
+    lore:
+      - "&#7A7A7APLAYER"
+      - ""
+      - "&#FFFFFFStatus: &#4CC9F0%status%"
+      - "&#FFFFFFWorld: &#4CC9F0%world%"
+      - "&#FFFFFFPing: &#4CC9F0%ping%"
+
+  history:
+    action: history
+    material: CLOCK
+    name: "&#4CC9F0Punishment History"
+    slot: 20
+    permission: raven.punishment.history
+    lore:
+      - "&#7A7A7AHISTORY"
+      - ""
+      - "&#FFFFFFOpen punishment history."
+
+  snapshots:
+    action: snapshots
+    material: WRITABLE_BOOK
+    name: "&#FFD447Saved Snapshots"
+    slot: 22
+    permission: raven.staffmode.invsee.restore
+    lore:
+      - "&#7A7A7ASAVED DATA"
+      - ""
+      - "&#FFFFFFOpen saved snapshots."
+
+  homes:
+    action: homes
+    material: RED_BED
+    name: "&#FF5555Homes"
+    slot: 24
+    permission: raven.staffmode.homes
+    lore:
+      - "&#7A7A7AHOMES"
+      - ""
+      - "&#FFFFFFOpen configured homes command."
+
+  back:
+    action: back
+    material: ARROW
+    name: "&#4CC9F0Back"
+    slot: 45
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFReturn to history list."
+
+  close:
+    action: close
+    material: BARRIER
+    name: "&#D90429Close"
+    slot: 49
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFClose this menu."
+
+Navigation:
+  Filler-Item:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "

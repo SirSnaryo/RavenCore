@@ -54,7 +54,13 @@ public abstract class AbstractNetworkPlayerManager {
         eventBus.subscribe(NetworkPlayerQuitEvent.class, event -> {
             if (event == null || event.getUuid() == null) return;
             if (!serverId.equals(event.getSourceServer())) {
-                nameCache.remove(UUID.fromString(event.getUuid()));
+                UUID uuid = UUID.fromString(event.getUuid());
+                Optional<NetworkPlayerInfo> current = findPlayer(uuid);
+                if (current.isPresent()) {
+                    nameCache.put(uuid, current.get().getPlayerName());
+                } else {
+                    nameCache.remove(uuid);
+                }
             }
         });
     }
@@ -94,15 +100,36 @@ public abstract class AbstractNetworkPlayerManager {
     }
 
     protected void unregisterPlayer(UUID uuid) {
-        nameCache.remove(uuid);
+        unregisterPlayer(uuid, false);
+    }
+
+    protected void unregisterPlayer(UUID uuid, boolean force) {
+        boolean removed = false;
+        NetworkPlayerInfo current = null;
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.hdel(HASH_KEY, uuid.toString());
+            String json = jedis.hget(HASH_KEY, uuid.toString());
+            if (json != null) {
+                current = gson.fromJson(json, NetworkPlayerInfo.class);
+            }
+
+            if (force || current == null || serverId.equalsIgnoreCase(current.getServerId())) {
+                jedis.hdel(HASH_KEY, uuid.toString());
+                removed = true;
+            }
         }
 
-        NetworkPlayerQuitEvent event = new NetworkPlayerQuitEvent();
-        event.setUuid(uuid.toString());
-        eventBus.publish(event);
+        if (removed) {
+            nameCache.remove(uuid);
+        } else if (current != null) {
+            nameCache.put(uuid, current.getPlayerName());
+        }
+
+        if (removed) {
+            NetworkPlayerQuitEvent event = new NetworkPlayerQuitEvent();
+            event.setUuid(uuid.toString());
+            eventBus.publish(event);
+        }
     }
 
     public Optional<NetworkPlayerInfo> findPlayer(UUID uuid) {

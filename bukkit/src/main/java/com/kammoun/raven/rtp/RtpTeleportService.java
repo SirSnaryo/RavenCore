@@ -12,6 +12,7 @@ import com.kammoun.raven.rtp.config.RtpMessage;
 import com.kammoun.raven.rtp.config.RtpMessages;
 import com.kammoun.raven.tpa.transfer.TeleportTransferStore;
 import org.bukkit.Bukkit;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -208,19 +209,35 @@ public final class RtpTeleportService {
             return;
         }
         Location location = new Location(world, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
-        if (!isSafeLocalLanding(location)) {
-            messages.send(player, RtpMessage.NO_LOCATIONS);
-            sounds.play(player, "warmup-cancelled");
-            return;
-        }
-        player.teleportAsync(location).thenAccept(success -> SchedulerUtil.execute(player, () -> {
-            if (!success || !player.isOnline()) {
-                messages.send(player, RtpMessage.TRANSFER_FAILED);
-                sounds.play(player, "warmup-cancelled");
-                return;
-            }
-            complete(player);
-        }));
+        world.getChunkAtAsync(location.getBlockX() >> 4, location.getBlockZ() >> 4, true)
+                .whenComplete((chunk, error) -> {
+                    if (error != null || chunk == null) {
+                        SchedulerUtil.execute(player, () -> {
+                            messages.send(player, RtpMessage.TRANSFER_FAILED);
+                            sounds.play(player, "warmup-cancelled");
+                        });
+                        return;
+                    }
+                    SchedulerUtil.execute(location, () -> {
+                        if (!isSafeLocalLanding(location)) {
+                            SchedulerUtil.execute(player, () -> {
+                                messages.send(player, RtpMessage.NO_LOCATIONS);
+                                sounds.play(player, "warmup-cancelled");
+                            });
+                            return;
+                        }
+                        player.teleportAsync(location).whenComplete((success, teleportError) ->
+                                SchedulerUtil.execute(player, () -> {
+                                    if (teleportError != null || !Boolean.TRUE.equals(success)
+                                            || !player.isOnline()) {
+                                        messages.send(player, RtpMessage.TRANSFER_FAILED);
+                                        sounds.play(player, "warmup-cancelled");
+                                        return;
+                                    }
+                                    complete(player);
+                                }));
+                    });
+                });
     }
 
     private boolean isSafeLocalLanding(Location location) {
@@ -231,6 +248,10 @@ public final class RtpTeleportService {
         int z = location.getBlockZ();
         Block ground = world.getBlockAt(x, y - 1, z);
         if (ground.getType().isAir() || unsafeLiquid(ground)) return false;
+        if (world.getEnvironment() == World.Environment.NORMAL
+                && world.getHighestBlockAt(x, z, HeightMap.MOTION_BLOCKING_NO_LEAVES).getY() != y - 1) {
+            return false;
+        }
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 if (unsafeLiquid(world.getBlockAt(x + dx, y, z + dz))

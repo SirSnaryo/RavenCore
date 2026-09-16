@@ -4,41 +4,60 @@ import com.kammoun.raven.library.skin.model.SkinData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class ConcurrentSkinCache implements SkinCache {
 
-    private final Map<UUID, SkinData> cache = new ConcurrentHashMap<>();
+    private static final int MAX_SIZE = 2_048;
+
+    private final Map<UUID, SkinData> cache = new LinkedHashMap<>(128, 0.75F, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<UUID, SkinData> eldest) {
+            return size() > MAX_SIZE;
+        }
+    };
 
     @Override
     public @Nullable SkinData get(@NotNull UUID uuid) {
-        return cache.get(uuid);
+        synchronized (cache) {
+            return cache.get(uuid);
+        }
     }
 
     @Override
     public void put(@NotNull SkinData skinData) {
-        cache.put(skinData.uuid(), skinData);
+        synchronized (cache) {
+            cache.put(skinData.uuid(), skinData);
+        }
     }
 
     @Override
     public boolean contains(@NotNull UUID uuid) {
-        return cache.containsKey(uuid);
+        synchronized (cache) {
+            return cache.containsKey(uuid);
+        }
     }
 
     @Override
     public void invalidate(@NotNull UUID uuid) {
-        cache.remove(uuid);
+        synchronized (cache) {
+            cache.remove(uuid);
+        }
     }
 
     @Override
     public void clear() {
-        cache.clear();
+        synchronized (cache) {
+            cache.clear();
+        }
     }
 
     @Override
     public int size() {
-        return cache.size();
+        synchronized (cache) {
+            return cache.size();
+        }
     }
 }

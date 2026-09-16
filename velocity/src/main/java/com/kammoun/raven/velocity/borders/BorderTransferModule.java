@@ -44,6 +44,9 @@ public class BorderTransferModule extends VModule {
                         ravenVelocity.getServer().getPlayer(uuid).ifPresent(player ->
                                 ravenVelocity.getServer().getServer(event.getTargetServer()).ifPresentOrElse(
                                         target -> {
+                                            if (ravenVelocity.getContinuumVelocityBridge() != null) {
+                                                ravenVelocity.getContinuumVelocityBridge().attach(uuid, event);
+                                            }
                                             ravenVelocity.markInternalTransfer(uuid, 15_000L);
                                             player.createConnectionRequest(target).connect()
                                                 .thenAccept(result -> {

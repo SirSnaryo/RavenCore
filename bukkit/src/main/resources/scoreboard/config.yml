@@ -7,6 +7,11 @@
 # Master switch. Set false to fully disable this module without removing files.
 enabled: true
 
+# Delay before creating a player's sidebar after join/switch.
+# Keep this above 60 ticks when using proxy forks that handle scoreboard packets
+# during server transitions.
+join-delay-ticks: 80
+
 # Main refresh loop, in ticks. 20 ticks = 1 second.
 # Lines with numeric update values are refreshed on this loop only when due.
 update-interval-ticks: 20

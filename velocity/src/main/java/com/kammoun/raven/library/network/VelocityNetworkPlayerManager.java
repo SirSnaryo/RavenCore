@@ -30,6 +30,6 @@ public class VelocityNetworkPlayerManager extends AbstractNetworkPlayerManager {
     /** Fires when a player fully disconnects from the proxy. */
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
-        unregisterPlayer(event.getPlayer().getUniqueId());
+        unregisterPlayer(event.getPlayer().getUniqueId(), true);
     }
 }

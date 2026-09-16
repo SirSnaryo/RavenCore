@@ -72,12 +72,35 @@ grid:
 
 # Virtual border settings (applies to all derived region borders).
 border:
+  # Visual particle wall. Disable this if network/profiler packet counters climb
+  # too high near borders; border protection and transfer still work.
+  particles:
+    enabled: true
+    render-period-ticks: 40
   # How close (in blocks) a player must be to see the particle wall.
-  detection-distance: 30
-  # Vertical spacing between particle rows in the wall.
-  particle-spacing: 1.5
+  detection-distance: 10
+  # Tiny safety epsilon used only when the exact crossing coordinate lands on
+  # the destination cell edge. Keep this small so border transfers preserve the
+  # player's real crossing position instead of feeling like a jump.
+  arrival-inset-blocks: 0.01
+  # When Continuum keeps the client world during a server switch, entities from
+  # the previous server can remain as frozen client-side ghosts. RavenCore hides
+  # nearby old entities right before the transfer; the destination server then
+  # sends the real entities again.
+  cleanup-client-entities-on-transfer: true
+  # Radius around the crossing player to clear from the old client view.
+  # Increase only if players use a very high server/client view distance.
+  cleanup-client-entities-radius: 48.0
+  # Maximum entities hidden before one transfer. Higher values can cause client
+  # FPS drops on mob-heavy borders.
+  cleanup-client-entities-max: 64
+  # Hard cap per player render tick. Keeps the visual wall visible without
+  # tanking client FPS when a player stands exactly on the edge.
+  max-particles-per-render: 18
+  # Vertical/horizontal spacing between particle rows in the wall.
+  particle-spacing: 6.0
   # How many blocks tall the particle wall is.
-  wall-height: 50
+  wall-height: 8
   # Any Bukkit Particle enum value.
   particle: DUST_PLUME
   # Sent when a player tries to break or place a block past the border.
@@ -87,8 +110,16 @@ border:
 pearl-stasis:
   # Whether cross-server stasis handling is enabled.
   enabled: true
-  # How long (seconds) a pending pearl landing record stays valid in MySQL/Redis before expiring.
-  pending-record-ttl-seconds: 300
+  # Prints branch-level diagnostics when a pearl is ignored or waits for a pending record.
+  # Keep false in production unless you are debugging a pearl that does not transfer.
+  debug: false
+  # Logs successful recorded/applied cross-server stasis landings.
+  log-transfers: true
+  # False means MySQL stasis records stay saved until the player consumes them.
+  # Keep this false for real pearl stasis chambers.
+  expire-pending-records: false
+  # Used only when expire-pending-records is true. 0 means never expire.
+  pending-record-ttl-seconds: 0
   sound:
     name: ENTITY_ENDERMAN_TELEPORT
     pitch: 1.75

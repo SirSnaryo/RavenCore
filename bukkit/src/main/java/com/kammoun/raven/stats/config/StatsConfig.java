@@ -11,6 +11,7 @@ public final class StatsConfig {
     private final long refreshIntervalTicks;
     private final int databaseWorkers;
     private final int databaseQueueCapacity;
+    private final int detachedWriteCapacity;
     private final int batchSize;
     private final Set<StatsType> tracked = EnumSet.noneOf(StatsType.class);
 
@@ -19,6 +20,7 @@ public final class StatsConfig {
         refreshIntervalTicks = Math.max(200L, config.getLong("refresh-interval-seconds", 60L) * 20L);
         databaseWorkers = Math.max(1, Math.min(4, config.getInt("database-workers", 2)));
         databaseQueueCapacity = Math.max(1000, config.getInt("database-queue-capacity", 4096));
+        detachedWriteCapacity = Math.max(1000, config.getInt("detached-write-capacity", databaseQueueCapacity));
         batchSize = Math.max(50, Math.min(500, config.getInt("database-batch-size", 250)));
         for (StatsType type : StatsType.values()) {
             if (type == StatsType.MONEY_MADE || type == StatsType.MONEY_SPENT) continue;
@@ -35,5 +37,6 @@ public final class StatsConfig {
     public long refreshIntervalTicks() { return refreshIntervalTicks; }
     public int databaseWorkers() { return databaseWorkers; }
     public int databaseQueueCapacity() { return databaseQueueCapacity; }
+    public int detachedWriteCapacity() { return detachedWriteCapacity; }
     public int batchSize() { return batchSize; }
 }

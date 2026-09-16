@@ -119,7 +119,7 @@ subprojects {
     apply plugin: 'java'
 
     group = 'com.kammoun'
-    version = '2.6'
+    version = '2.11'
 
     repositories {
         // Must come first: our SignGUI fork (github.com/MrKammounYT/SignGUI) is installed here with

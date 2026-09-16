@@ -9,6 +9,9 @@ import org.bukkit.entity.Player;
 public final class PearlStasisConfig {
 
     private final boolean enabled;
+    private final boolean debug;
+    private final boolean logTransfers;
+    private final boolean expirePendingRecords;
     private final int ttlSeconds;
     private final Sound arrivalSound;
     private final float soundPitch;
@@ -16,7 +19,10 @@ public final class PearlStasisConfig {
 
     public PearlStasisConfig(FileConfiguration config) {
         this.enabled = config.getBoolean("pearl-stasis.enabled", true);
-        this.ttlSeconds = Math.max(30, config.getInt("pearl-stasis.pending-record-ttl-seconds", 300));
+        this.debug = config.getBoolean("pearl-stasis.debug", false);
+        this.logTransfers = config.getBoolean("pearl-stasis.log-transfers", true);
+        this.expirePendingRecords = config.getBoolean("pearl-stasis.expire-pending-records", false);
+        this.ttlSeconds = Math.max(0, config.getInt("pearl-stasis.pending-record-ttl-seconds", 300));
 
         String soundName = config.getString("pearl-stasis.sound.name", "ENTITY_ENDERMAN_TELEPORT");
         Sound sound;
@@ -31,6 +37,9 @@ public final class PearlStasisConfig {
     }
 
     public long getTtlMillis() {
+        if (!expirePendingRecords || ttlSeconds <= 0) {
+            return -1L;
+        }
         return (long) ttlSeconds * 1000L;
     }
 

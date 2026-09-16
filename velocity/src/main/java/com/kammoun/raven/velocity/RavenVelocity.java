@@ -9,12 +9,14 @@ import com.kammoun.raven.library.redis.event.CombatUntagEvent;
 import com.kammoun.raven.library.redis.event.NetworkEventBus;
 import com.kammoun.raven.library.network.VelocityNetworkPlayerManager;
 import com.kammoun.raven.velocity.command.RavenCoreVelocityCommand;
+import com.kammoun.raven.velocity.continuum.ContinuumVelocityBridge;
 import com.kammoun.raven.velocity.info.InfoModule;
 import com.kammoun.raven.velocity.borders.BorderTransferModule;
 import com.kammoun.raven.velocity.lobby.LobbyModule;
 import com.kammoun.raven.velocity.privatemessage.PrivateMessageModule;
 import com.kammoun.raven.velocity.proxycommandfilter.ProxyCommandFilterModule;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.event.player.ServerPreConnectEvent;
@@ -42,7 +44,7 @@ import java.util.logging.Logger;
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "2.6",
+        version = "2.11",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )
@@ -66,6 +68,7 @@ public class RavenVelocity {
     private PrivateMessageModule privateMessageModule;
     private LobbyModule lobbyModule;
     private BorderTransferModule borderTransferModule;
+    private ContinuumVelocityBridge continuumVelocityBridge;
     private final Map<UUID, Long> combatTags = new ConcurrentHashMap<>();
     private final Map<UUID, Long> internalTransfers = new ConcurrentHashMap<>();
 
@@ -96,6 +99,7 @@ public class RavenVelocity {
 
         // Velocity has no single main thread — dispatch events on the calling thread
         networkEventBus = new NetworkEventBus(redisMessenger, serverId, Runnable::run);
+        continuumVelocityBridge = new ContinuumVelocityBridge(this);
 
         networkPlayerManager = new VelocityNetworkPlayerManager(
                 this, server, redisMessenger.getConnection().getPool(), serverId, networkEventBus
@@ -140,6 +144,7 @@ public class RavenVelocity {
         if (borderTransferModule != null) {
             borderTransferModule.onDisable();
         }
+        continuumVelocityBridge = null;
         if (networkEventBus != null) {
             networkEventBus.unsubscribe(CrossServerTeleportEvent.class);
             networkEventBus.unsubscribe(CombatTagEvent.class);
@@ -165,6 +170,9 @@ public class RavenVelocity {
         server.getScheduler().buildTask(this, () ->
                 server.getPlayer(playerUuid).ifPresent(player -> server.getServer(event.getTargetServer()).ifPresentOrElse(
                         target -> {
+                            if (continuumVelocityBridge != null) {
+                                continuumVelocityBridge.attach(playerUuid, event);
+                            }
                             markInternalTransfer(playerUuid, 15_000L);
                             player.createConnectionRequest(target).connect()
                                 .thenAccept(result -> {
@@ -181,13 +189,31 @@ public class RavenVelocity {
 
     @Subscribe
     public void onServerPreConnect(ServerPreConnectEvent event) {
-        if (event.getPlayer().getCurrentServer().isEmpty() || !isInCombat(event.getPlayer().getUniqueId())) return;
-        if (isInternalTransfer(event.getPlayer().getUniqueId())) return;
-        String current = event.getPlayer().getCurrentServer().get().getServerInfo().getName();
-        if (current.equalsIgnoreCase(event.getOriginalServer().getServerInfo().getName())) return;
-        event.setResult(ServerPreConnectEvent.ServerResult.denied());
-        event.getPlayer().sendMessage(Component.text(
-                "You cannot change servers while in combat!", NamedTextColor.RED));
+        if (event.getPlayer().getCurrentServer().isPresent() && isInCombat(event.getPlayer().getUniqueId())
+                && !isInternalTransfer(event.getPlayer().getUniqueId())) {
+            String current = event.getPlayer().getCurrentServer().get().getServerInfo().getName();
+            if (!current.equalsIgnoreCase(event.getOriginalServer().getServerInfo().getName())) {
+                event.setResult(ServerPreConnectEvent.ServerResult.denied());
+                event.getPlayer().sendMessage(Component.text(
+                        "You cannot change servers while in combat!", NamedTextColor.RED));
+                return;
+            }
+        }
+
+        if (continuumVelocityBridge != null) {
+            continuumVelocityBridge.prepare(
+                    event.getPlayer().getUniqueId(),
+                    event.getOriginalServer().getServerInfo().getName(),
+                    null
+            );
+        }
+    }
+
+    @Subscribe
+    public void onDisconnect(DisconnectEvent event) {
+        if (continuumVelocityBridge != null) {
+            continuumVelocityBridge.retain(event.getPlayer().getUniqueId());
+        }
     }
 
     private void onCombatTag(CombatTagEvent event) {
@@ -265,6 +291,7 @@ public class RavenVelocity {
         if (privateMessageModule != null) modules.put("privatemessage", privateMessageModule::reload);
         if (lobbyModule != null) modules.put("lobby", lobbyModule::reload);
         if (borderTransferModule != null) modules.put("borders", borderTransferModule::reload);
+        if (continuumVelocityBridge != null) modules.put("continuum", continuumVelocityBridge::reload);
         return modules;
     }
 
@@ -324,6 +351,13 @@ public class RavenVelocity {
     public int getInt(String path, int def) {
         Object val = getNestedValue(path);
         if (val instanceof Number n) return n.intValue();
+        return def;
+    }
+
+    public boolean getBoolean(String path, boolean def) {
+        Object val = getNestedValue(path);
+        if (val instanceof Boolean b) return b;
+        if (val instanceof String s) return Boolean.parseBoolean(s);
         return def;
     }
 

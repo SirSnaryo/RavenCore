@@ -71,7 +71,7 @@ public class ScoreboardService {
         if (!plugin.isEnabled()) {
             return;
         }
-        SchedulerUtil.run(() -> showIfAllowedGlobal(player));
+        SchedulerUtil.execute(player, () -> showIfAllowedGlobal(player));
     }
 
     private void showIfAllowedGlobal(Player player) {
@@ -105,7 +105,7 @@ public class ScoreboardService {
             boards.remove(player.getUniqueId());
             return;
         }
-        SchedulerUtil.run(() -> removeGlobal(player));
+        SchedulerUtil.execute(player, () -> removeGlobal(player));
     }
 
     private void removeGlobal(Player player) {
@@ -191,14 +191,18 @@ public class ScoreboardService {
         for (Player player : Bukkit.getOnlinePlayers()) {
             RavenBoard board = boards.get(player.getUniqueId());
             if (board != null && player.isOnline()) {
-                board.tick(elapsedTicks);
+                SchedulerUtil.execute(player, () -> {
+                    if (player.isOnline() && boards.get(player.getUniqueId()) == board) {
+                        board.tick(elapsedTicks);
+                    }
+                });
             }
         }
     }
 
     public void refreshSelections() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            showIfAllowedGlobal(player);
+            SchedulerUtil.execute(player, () -> showIfAllowedGlobal(player));
         }
     }
 
@@ -206,7 +210,7 @@ public class ScoreboardService {
         if (!plugin.isEnabled()) {
             return;
         }
-        SchedulerUtil.run(() -> {
+        SchedulerUtil.execute(player, () -> {
             RavenBoard board = boards.get(player.getUniqueId());
             if (board != null && player.isOnline()) {
                 board.updateEvent(eventName);
@@ -262,7 +266,7 @@ public class ScoreboardService {
         for (int i = start; i < end; i++) {
             Player player = Bukkit.getPlayer(players.get(i));
             if (player != null) {
-                showIfAllowedGlobal(player);
+                showIfAllowed(player);
             }
         }
 
@@ -276,7 +280,7 @@ public class ScoreboardService {
         // already on the region thread — delete every remaining board synchronously.
         if (!plugin.isEnabled()) {
             for (Map.Entry<UUID, RavenBoard> entry : entries.subList(start, entries.size())) {
-                entry.getValue().delete();
+                safeDelete(entry.getKey(), entry.getValue());
             }
             return;
         }
@@ -284,11 +288,25 @@ public class ScoreboardService {
         int end = Math.min(entries.size(), start + RELOAD_BATCH_SIZE);
         for (int i = start; i < end; i++) {
             Map.Entry<UUID, RavenBoard> entry = entries.get(i);
-            entry.getValue().delete();
+            safeDelete(entry.getKey(), entry.getValue());
         }
 
         if (end < entries.size()) {
             SchedulerUtil.runLater(() -> deleteBatched(entries, end), 1L);
+        }
+    }
+
+    private void safeDelete(UUID uuid, RavenBoard board) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null && player.isOnline() && plugin.isEnabled()) {
+            SchedulerUtil.execute(player, board::delete);
+            return;
+        }
+
+        try {
+            board.delete();
+        } catch (UnsupportedOperationException ignored) {
+            // Canvas/Folia can reject scoreboard API off the owning player thread.
         }
     }
 }

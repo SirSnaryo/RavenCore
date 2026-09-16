@@ -1,0 +1,19 @@
+enabled: true
+
+messages:
+  requires-op: "&#D90429DevMode requires operator access."
+  enabled: "&#33FF66DevMode enabled."
+  disabled: "&#D90429DevMode disabled."
+
+maps:
+  # Minecraft maps are real renderers and can show in Spark when held.
+  # Keep disabled by default; enable only while actively profiling charts.
+  enabled: false
+  update-ms: 10000
+
+hud:
+  update-ticks: 20
+  actionbar: "&#FF2B2BRaven Dev &#7A7A7A| &#FFFFFFTPS &#33FF66%tps% &#7A7A7A| &#FFFFFFMSPT &#FF9F1C%mspt% &#7A7A7A| &#FFFFFFHeap &#A855F7%heap%"
+  bossbar:
+    enabled: true
+    text: "&#FF2B2BDevMode &#7A7A7A| &#FFFFFFCPU &#A855F7%cpu% &#7A7A7A| &#FFFFFFOnline &#4CC9F0%online%"

@@ -102,12 +102,19 @@ $RECYCLE.BIN/
 *.lnk
 
 .gradle
+.gradle-home/
+.gradle-local/
 .gradle-codex/
 .gradle-codex-build/
+.verify-build/
 build/
 .claude
 codex-output/
 graphify-out/
+spark/
+tab-source/
+continuum-source/
+husksync-source/
 
 # Ignore Gradle GUI config
 gradle-app.setting

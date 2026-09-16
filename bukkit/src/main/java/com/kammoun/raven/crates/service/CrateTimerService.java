@@ -78,6 +78,7 @@ public final class CrateTimerService {
     }
 
     private void grantCycle(long cycle) {
+        localGrantedCycles.keySet().removeIf(uuid -> Bukkit.getPlayer(uuid) == null);
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
             Long previous = localGrantedCycles.put(uuid, cycle);

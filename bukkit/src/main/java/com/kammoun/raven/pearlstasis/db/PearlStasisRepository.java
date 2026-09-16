@@ -45,17 +45,19 @@ public final class PearlStasisRepository {
     }
 
     public Optional<PearlStasisRecord> consumeOldestPending(UUID playerUuid, String targetServer, long maxAgeMillis) throws SQLException {
-        Timestamp cutoff = new Timestamp(System.currentTimeMillis() - maxAgeMillis);
         String selectSql = "SELECT id, player_uuid, target_server, world, x, y, z, yaw, pitch, created_at "
                 + "FROM ravencore_pearl_stasis_pending "
-                + "WHERE player_uuid = ? AND target_server = ? AND created_at >= ? "
+                + "WHERE player_uuid = ? AND target_server = ? "
+                + (maxAgeMillis > 0 ? "AND created_at >= ? " : "")
                 + "ORDER BY id ASC LIMIT 1";
 
         try (Connection connection = database.getConnection();
              PreparedStatement selectStatement = connection.prepareStatement(selectSql)) {
             selectStatement.setString(1, playerUuid.toString());
             selectStatement.setString(2, targetServer);
-            selectStatement.setTimestamp(3, cutoff);
+            if (maxAgeMillis > 0) {
+                selectStatement.setTimestamp(3, new Timestamp(System.currentTimeMillis() - maxAgeMillis));
+            }
 
             long recordId = -1L;
             PearlStasisRecord record = null;
@@ -90,12 +92,15 @@ public final class PearlStasisRepository {
     }
 
     public boolean hasPending(UUID playerUuid, long maxAgeMillis) throws SQLException {
-        Timestamp cutoff = new Timestamp(System.currentTimeMillis() - maxAgeMillis);
-        String sql = "SELECT 1 FROM ravencore_pearl_stasis_pending WHERE player_uuid = ? AND created_at >= ? LIMIT 1";
+        String sql = "SELECT 1 FROM ravencore_pearl_stasis_pending WHERE player_uuid = ? "
+                + (maxAgeMillis > 0 ? "AND created_at >= ? " : "")
+                + "LIMIT 1";
         try (Connection connection = database.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, playerUuid.toString());
-            statement.setTimestamp(2, cutoff);
+            if (maxAgeMillis > 0) {
+                statement.setTimestamp(2, new Timestamp(System.currentTimeMillis() - maxAgeMillis));
+            }
             try (ResultSet result = statement.executeQuery()) {
                 return result.next();
             }
@@ -103,13 +108,15 @@ public final class PearlStasisRepository {
     }
 
     public int countPending(UUID playerUuid, String targetServer, long maxAgeMillis) throws SQLException {
-        Timestamp cutoff = new Timestamp(System.currentTimeMillis() - maxAgeMillis);
-        String sql = "SELECT COUNT(*) FROM ravencore_pearl_stasis_pending WHERE player_uuid = ? AND target_server = ? AND created_at >= ?";
+        String sql = "SELECT COUNT(*) FROM ravencore_pearl_stasis_pending WHERE player_uuid = ? AND target_server = ? "
+                + (maxAgeMillis > 0 ? "AND created_at >= ?" : "");
         try (Connection connection = database.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, playerUuid.toString());
             statement.setString(2, targetServer);
-            statement.setTimestamp(3, cutoff);
+            if (maxAgeMillis > 0) {
+                statement.setTimestamp(3, new Timestamp(System.currentTimeMillis() - maxAgeMillis));
+            }
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
                     return result.getInt(1);
@@ -120,6 +127,9 @@ public final class PearlStasisRepository {
     }
 
     public int deleteExpired(long maxAgeMillis) throws SQLException {
+        if (maxAgeMillis <= 0) {
+            return 0;
+        }
         Timestamp cutoff = new Timestamp(System.currentTimeMillis() - maxAgeMillis);
         String sql = "DELETE FROM ravencore_pearl_stasis_pending WHERE created_at < ?";
         try (Connection connection = database.getConnection();

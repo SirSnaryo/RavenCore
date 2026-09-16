@@ -98,6 +98,9 @@ public class ProxyCommandFilterModule extends VModule {
         if (!enabled() || visibility.canBypass(event.getPlayer())) {
             return;
         }
+        if (!isRootCommandCompletion(event.getPartialMessage())) {
+            return;
+        }
 
         Set<String> visible = visibleCommands(event.getPlayer());
         event.getSuggestions().removeIf(raw -> shouldHide(event.getPlayer(), extractCommandName(raw), visible));
@@ -154,6 +157,17 @@ public class ProxyCommandFilterModule extends VModule {
             return true;
         }
         return !visible.contains(command);
+    }
+
+    private boolean isRootCommandCompletion(String partialMessage) {
+        if (partialMessage == null) {
+            return false;
+        }
+        String trimmed = partialMessage.stripLeading();
+        if (!trimmed.startsWith("/")) {
+            return false;
+        }
+        return !trimmed.substring(1).contains(" ");
     }
 
     private void discover(Collection<String> commands) {

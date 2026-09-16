@@ -19,8 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BorderParticleRenderer implements Listener {
 
-    private static final long RENDER_PERIOD_TICKS = 10L;
-
     private final BorderModule module;
     private final Map<UUID, ScheduledTask> tasks = new ConcurrentHashMap<>();
 
@@ -49,9 +47,13 @@ public class BorderParticleRenderer implements Listener {
 
     private void startRendering(Player player) {
         stopRendering(player.getUniqueId());
+        if (!module.getBorderConfig().particleAnimationEnabled()) {
+            return;
+        }
         ScheduledTask task = player.getScheduler().runAtFixedRate(
                 module.getApi(), ignored -> render(player),
-                () -> tasks.remove(player.getUniqueId()), 1L, RENDER_PERIOD_TICKS);
+                () -> tasks.remove(player.getUniqueId()),
+                20L, module.getBorderConfig().particleRenderPeriodTicks());
         tasks.put(player.getUniqueId(), task);
     }
 
@@ -63,6 +65,10 @@ public class BorderParticleRenderer implements Listener {
     }
 
     private void render(Player player) {
+        if (!module.getBorderConfig().particleAnimationEnabled()) {
+            stopRendering(player.getUniqueId());
+            return;
+        }
         Location location = player.getLocation();
         BorderConfig config = module.getBorderConfig();
         GridCell cell = config.cellFor(location.getWorld().getEnvironment());
@@ -76,21 +82,30 @@ public class BorderParticleRenderer implements Listener {
                 config.detectionDistance(), config.wallHeight(),
                 location.getWorld().getMinHeight(), location.getWorld().getMaxHeight());
 
+        int remaining = config.maxParticlesPerRender();
         for (BorderWallGeometry.WallSegment segment : segments) {
-            renderSegment(player, config.particle(), config.particleSpacing(), segment);
+            if (remaining <= 0) {
+                break;
+            }
+            remaining = renderSegment(player, config.particle(), config.particleSpacing(), segment, remaining);
         }
     }
 
-    private void renderSegment(Player player, Particle particle, double spacing,
-                               BorderWallGeometry.WallSegment segment) {
+    private int renderSegment(Player player, Particle particle, double spacing,
+                              BorderWallGeometry.WallSegment segment, int remaining) {
         for (double horizontal = segment.horizontalMin(); horizontal <= segment.horizontalMax(); horizontal += spacing) {
             for (double y = segment.minY(); y <= segment.maxY(); y += spacing) {
+                if (remaining <= 0) {
+                    return 0;
+                }
                 double x = segment.axis() == BorderWallGeometry.Axis.X
                         ? segment.fixedCoordinate() : horizontal;
                 double z = segment.axis() == BorderWallGeometry.Axis.Z
                         ? segment.fixedCoordinate() : horizontal;
                 player.spawnParticle(particle, x, y, z, 1, 0, 0, 0, 0);
+                remaining--;
             }
         }
+        return remaining;
     }
 }

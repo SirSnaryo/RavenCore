@@ -1,0 +1,75 @@
+Title: "&8PLAYER > INVENTORY"
+Size: 54
+
+Items:
+  profile:
+    action: overview
+    material: PLAYER_HEAD
+    name: "&#FFD447%player%"
+    slot: 4
+    lore:
+      - "&#7A7A7APLAYER"
+      - ""
+      - "&#FFFFFFStatus: &#4CC9F0%status%"
+      - "&#FFFFFFWorld: &#4CC9F0%world%"
+      - "&#FFFFFFPing: &#4CC9F0%ping%"
+
+  invsee:
+    action: invsee
+    material: CHEST
+    name: "&#33FF66Inventory"
+    slot: 20
+    permission: raven.staffmode.invsee.view
+    lore:
+      - "&#7A7A7AINVENTORY"
+      - ""
+      - "&#FFFFFFOpen inventory."
+      - "&#7A7A7AEdit is blocked without edit permission."
+
+  enderchest:
+    action: enderchest
+    material: ENDER_CHEST
+    name: "&#4CC9F0Ender Chest"
+    slot: 22
+    permission: raven.staffmode.enderchest.view
+    lore:
+      - "&#7A7A7AENDER CHEST"
+      - ""
+      - "&#FFFFFFOpen ender chest."
+      - "&#7A7A7AEdit is blocked without edit permission."
+
+  snapshots:
+    action: snapshots
+    material: WRITABLE_BOOK
+    name: "&#FFD447Snapshots"
+    slot: 24
+    permission: raven.staffmode.invsee.offline
+    lore:
+      - "&#7A7A7ASAVED DATA"
+      - ""
+      - "&#FFFFFFOpen saved data snapshots."
+
+  back:
+    action: back
+    material: ARROW
+    name: "&#4CC9F0Back"
+    slot: 45
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFReturn to inventory list."
+
+  close:
+    action: close
+    material: BARRIER
+    name: "&#D90429Close"
+    slot: 49
+    lore:
+      - "&#7A7A7ASTAFF"
+      - ""
+      - "&#FFFFFFClose this menu."
+
+Navigation:
+  Filler-Item:
+    material: BLACK_STAINED_GLASS_PANE
+    name: " "

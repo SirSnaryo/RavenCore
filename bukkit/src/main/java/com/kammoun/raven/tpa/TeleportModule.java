@@ -139,7 +139,7 @@ public class TeleportModule extends KModule<RavenCore> {
             return;
         }
 
-        if (!transferStore.store(new TeleportTransferStore.PlayerTarget(traveller.getUuid(), destination.getUuid()))) {
+        if (!transferStore.store(new TeleportTransferStore.PlayerTarget(traveller.getUuid(), destination.getServerId(), destination.getUuid()))) {
             send(sender, "&#D90429Failed to prepare cross-server teleport. Try again.");
             return;
         }
@@ -166,7 +166,7 @@ public class TeleportModule extends KModule<RavenCore> {
         }
 
         if (!transferStore.store(new TeleportTransferStore.CoordinateTarget(
-                traveller.getUuid(), target.world(), target.x(), target.y(), target.z(), target.yaw(), target.pitch()
+                traveller.getUuid(), target.server(), target.world(), target.x(), target.y(), target.z(), target.yaw(), target.pitch()
         ))) {
             send(sender, "&#D90429Failed to prepare cross-server teleport. Try again.");
             return;
@@ -319,6 +319,30 @@ public class TeleportModule extends KModule<RavenCore> {
 
     public boolean teleportLocal(Player player, String world, double x, double y, double z, float yaw, float pitch) {
         return teleportLocal(Bukkit.getConsoleSender(), player, new CoordinateTarget(currentServer(), world, x, y, z, yaw, pitch));
+    }
+
+    public boolean queueOfflineCoordinateTeleport(CommandSender sender, UUID playerUuid, String playerName, CoordinateTarget target) {
+        if (!transferStore.storeOffline(new TeleportTransferStore.CoordinateTarget(
+                playerUuid, target.server(), target.world(), target.x(), target.y(), target.z(), target.yaw(), target.pitch()
+        ))) {
+            send(sender, "&#D90429Failed to prepare offline teleport. Try again.");
+            return false;
+        }
+        send(sender, "&#33FF66Queued teleport for &#FFD447" + playerName
+                + " &#33FF66to &#FFFFFF" + target.shortLabel() + "&#33FF66.");
+        return true;
+    }
+
+    public boolean queueOfflinePlayerTeleport(CommandSender sender, UUID playerUuid, String playerName, NetworkPlayerInfo destination) {
+        if (!transferStore.storeOffline(new TeleportTransferStore.PlayerTarget(
+                playerUuid, destination.getServerId(), destination.getUuid()
+        ))) {
+            send(sender, "&#D90429Failed to prepare offline teleport. Try again.");
+            return false;
+        }
+        send(sender, "&#33FF66Queued teleport for &#FFD447" + playerName
+                + " &#33FF66to &#FFD447" + destination.getPlayerName() + "&#33FF66.");
+        return true;
     }
 
     public void openAcceptMenu(Player player, TpaRequest request) {

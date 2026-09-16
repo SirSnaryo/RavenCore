@@ -20,7 +20,7 @@ heartbeat-seconds: 5
 lock-ttl-seconds: 12
 
 weather:
-  sync-automatically: false
+  sync-automatically: true
   sync-manual-commands: true
 
 spawn:

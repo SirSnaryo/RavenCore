@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class TeleportCommand extends KCommand {
 
@@ -87,13 +88,18 @@ public class TeleportCommand extends KCommand {
     }
 
     private void teleportPlayerToPlayer(CommandSender sender, String travellerName, String destinationName) {
-        NetworkPlayerInfo traveller = resolveNetwork(sender, travellerName);
-        if (traveller == null) return;
+        Optional<NetworkPlayerInfo> traveller = npm.findPlayer(travellerName);
 
         NetworkPlayerInfo destination = resolveNetwork(sender, destinationName);
         if (destination == null) return;
 
-        module.teleportToPlayer(sender, traveller, destination);
+        if (traveller.isPresent()) {
+            module.teleportToPlayer(sender, traveller.get(), destination);
+            return;
+        }
+
+        UUID offlineUuid = org.bukkit.Bukkit.getOfflinePlayer(travellerName).getUniqueId();
+        module.queueOfflinePlayerTeleport(sender, offlineUuid, travellerName, destination);
     }
 
     private void teleportSelfToCoordinates(CommandSender sender, String[] args, int offset, String server) {
@@ -108,13 +114,15 @@ public class TeleportCommand extends KCommand {
     }
 
     private void teleportPlayerToCoordinates(CommandSender sender, String travellerName, String[] args, int offset, String server) {
-        NetworkPlayerInfo traveller = resolveNetwork(sender, travellerName);
-        if (traveller == null) return;
+        Optional<NetworkPlayerInfo> onlineTraveller = npm.findPlayer(travellerName);
 
         String world = null;
         float yaw = 0.0f;
         float pitch = 0.0f;
-        Player localTraveller = org.bukkit.Bukkit.getPlayer(traveller.getUuid());
+        Player localTraveller = onlineTraveller
+                .map(NetworkPlayerInfo::getUuid)
+                .map(org.bukkit.Bukkit::getPlayer)
+                .orElse(null);
         if (localTraveller != null && module.currentServer().equalsIgnoreCase(server)) {
             world = localTraveller.getWorld().getName();
             yaw = localTraveller.getLocation().getYaw();
@@ -123,7 +131,13 @@ public class TeleportCommand extends KCommand {
 
         TeleportModule.CoordinateTarget target = target(sender, args, offset, server, world, yaw, pitch);
         if (target == null) return;
-        module.teleportToCoordinates(sender, traveller, target);
+        if (onlineTraveller.isPresent()) {
+            module.teleportToCoordinates(sender, onlineTraveller.get(), target);
+            return;
+        }
+
+        UUID offlineUuid = org.bukkit.Bukkit.getOfflinePlayer(travellerName).getUniqueId();
+        module.queueOfflineCoordinateTeleport(sender, offlineUuid, travellerName, target);
     }
 
     private TeleportModule.CoordinateTarget target(CommandSender sender, String[] args, int offset,

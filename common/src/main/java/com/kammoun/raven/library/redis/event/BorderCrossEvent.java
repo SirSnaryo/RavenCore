@@ -14,4 +14,12 @@ public class BorderCrossEvent extends CrossServerEvent {
     private double z;
     private float yaw;
     private float pitch;
+    /**
+     * Optional Continuum seamless-switch metadata. Zero means unavailable or disabled.
+     */
+    private int continuumClientEntityId;
+    /**
+     * Optional target dimension hint; Continuum still validates the real client dimension itself.
+     */
+    private String continuumDimensionKey;
 }

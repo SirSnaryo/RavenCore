@@ -26,9 +26,10 @@ public class BorderTransferStore {
         this.logger = logger;
     }
 
-    public void store(UUID playerUuid, String dimension, double x, double y, double z, float yaw, float pitch) {
+    public void store(UUID playerUuid, String targetServer, String dimension,
+                      double x, double y, double z, float yaw, float pitch) {
         if (pool == null) return;
-        Arrival arrival = new Arrival(dimension, x, y, z, yaw, pitch);
+        Arrival arrival = new Arrival(targetServer, dimension, x, y, z, yaw, pitch);
         try (Jedis jedis = pool.getResource()) {
             jedis.setex(KEY_PREFIX + playerUuid, TTL_SECONDS, GSON.toJson(arrival));
         } catch (Exception e) {
@@ -36,13 +37,19 @@ public class BorderTransferStore {
         }
     }
 
-    /** Returns and deletes the pending arrival, or null if none. */
-    public Arrival consume(UUID playerUuid) {
+    /** Returns and deletes the pending arrival only when this server is the intended target. */
+    public Arrival consume(UUID playerUuid, String currentServer) {
         if (pool == null) return null;
         try (Jedis jedis = pool.getResource()) {
-            String json = jedis.getDel(KEY_PREFIX + playerUuid);
+            String json = jedis.get(KEY_PREFIX + playerUuid);
             if (json == null) return null;
-            return GSON.fromJson(json, Arrival.class);
+            Arrival arrival = GSON.fromJson(json, Arrival.class);
+            if (arrival.targetServer() != null
+                    && !arrival.targetServer().equalsIgnoreCase(currentServer)) {
+                return null;
+            }
+            jedis.del(KEY_PREFIX + playerUuid);
+            return arrival;
         } catch (JsonSyntaxException e) {
             logger.warning("[Borders] Malformed arrival payload for " + playerUuid);
             return null;
@@ -52,5 +59,6 @@ public class BorderTransferStore {
         }
     }
 
-    public record Arrival(String dimension, double x, double y, double z, float yaw, float pitch) {}
+    public record Arrival(String targetServer, String dimension, double x, double y, double z,
+                          float yaw, float pitch) {}
 }

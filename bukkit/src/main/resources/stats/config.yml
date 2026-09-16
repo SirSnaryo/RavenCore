@@ -11,6 +11,10 @@ database-workers: 2
 # Requires a restart to resize because the queue is allocated when Stats starts.
 database-queue-capacity: 4096
 
+# Maximum quit/offline writes Raven keeps when MySQL is failing.
+# Prevents memory growth during long database outages.
+detached-write-capacity: 4096
+
 # Maximum rows per JDBC executeBatch / bulk-refresh query.
 database-batch-size: 250
 

@@ -3,7 +3,7 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, FancyHolograms]
+softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, FancyHolograms, HuskSync]
 depend: [Vault]
 load: POSTWORLD
 commands:
@@ -277,9 +277,101 @@ commands:
     permission: raven.nightvision
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
+  bordermanager:
+    description: Inspect and manage this server border cell
+    usage: /bordermanager <info|view|tp|setcell|setorigin|reload>
+    aliases: [boardermanager, bmanager, bm]
+    permission: raven.borders.admin
+    permission-message: You don't have permission to manage borders.
+
+  staffmode:
+    description: Toggle Raven staff mode
+    usage: /staffmode
+    aliases: [stmode]
+    permission: raven.staffmode
+    permission-message: You don't have permission to use staff mode.
+
+  staff:
+    description: Open the Raven staff control menu
+    usage: /staff
+    permission: raven.staffmode
+    permission-message: You don't have permission to use staff tools.
+
+  invsee:
+    description: Inspect a player's inventory while in staff mode
+    usage: /invsee <player> [edit]
+    permission: raven.staffmode.invsee.view
+    permission-message: You don't have permission to inspect inventories.
+
+  ban:
+    description: Ban a player from the Raven network
+    usage: /ban <player> [duration] [reason]
+    permission: raven.punishment.ban
+    permission-message: You don't have permission to ban players.
+
+  tempban:
+    description: Temporarily ban a player from the Raven network
+    usage: /tempban <player> <duration> [reason]
+    permission: raven.punishment.ban
+    permission-message: You don't have permission to ban players.
+
+  unban:
+    description: Remove an active player ban
+    usage: /unban <player>
+    permission: raven.punishment.unban
+    permission-message: You don't have permission to unban players.
+
+  mute:
+    description: Mute a player from public chat
+    usage: /mute <player> [duration] [reason]
+    permission: raven.punishment.mute
+    permission-message: You don't have permission to mute players.
+
+  tempmute:
+    description: Temporarily mute a player from public chat
+    usage: /tempmute <player> <duration> [reason]
+    permission: raven.punishment.mute
+    permission-message: You don't have permission to mute players.
+
+  unmute:
+    description: Remove an active player mute
+    usage: /unmute <player>
+    permission: raven.punishment.unmute
+    permission-message: You don't have permission to unmute players.
+
+  kick:
+    description: Kick a player from this server
+    usage: /kick <player> [reason]
+    permission: raven.punishment.kick
+    permission-message: You don't have permission to kick players.
+
+  warn:
+    description: Warn a player and store it in punishment history
+    usage: /warn <player> [reason]
+    permission: raven.punishment.warn
+    permission-message: You don't have permission to warn players.
+
+  history:
+    description: Show a player's punishment history
+    usage: /history <player>
+    permission: raven.punishment.history
+    permission-message: You don't have permission to view punishment history.
+
+  punish:
+    description: Open or run Raven punishment actions
+    usage: /punish <player> <ban|mute|kick|warn|history> [duration] [reason]
+    permission: raven.punishment.use
+    permission-message: You don't have permission to punish players.
+
+  devmode:
+    description: Toggle Raven developer diagnostics mode
+    usage: /devmode
+    permission: raven.devmode
+    permission-message: You don't have permission to use dev mode.
+
   ravencore:
     description: RavenCore version and safe module reload
-    usage: /ravencore <version|modules|reload>
+    usage: /ravencore <version|modules|memory|reload>
     aliases: [rcore]
     permission-message: §x§D§9§0§4§2§9You don't have permission to use this command.
 
@@ -442,4 +534,61 @@ permissions:
     default: op
   raven.nightvision:
     description: Toggle permanent night vision with /nv
+    default: op
+  raven.borders.admin:
+    description: Inspect, teleport to, and edit this server border cell
+    default: op
+  raven.staffmode:
+    description: Toggle Raven staff mode
+    default: op
+  raven.staffmode.bypass-gate:
+    description: Use gated staff commands without enabling staff mode
+    default: op
+  raven.staffmode.invsee.view:
+    description: View player inventories in staff mode
+    default: op
+  raven.staffmode.invsee.edit:
+    description: Edit player inventories in staff mode
+    default: op
+  raven.staffmode.invsee.offline:
+    description: View offline inventory snapshots through HuskSync
+    default: op
+  raven.staffmode.invsee.restore:
+    description: Restore HuskSync inventory snapshots
+    default: op
+  raven.staffmode.enderchest.view:
+    description: View player Ender Chests in staff mode
+    default: op
+  raven.staffmode.enderchest.edit:
+    description: Edit player Ender Chests in staff mode
+    default: op
+  raven.staffmode.homes:
+    description: Open configured player homes action from staff mode
+    default: op
+  raven.punishment.use:
+    description: Use the Raven punishment router
+    default: op
+  raven.punishment.ban:
+    description: Ban players from the Raven network
+    default: op
+  raven.punishment.unban:
+    description: Remove network bans
+    default: op
+  raven.punishment.mute:
+    description: Mute players from public chat
+    default: op
+  raven.punishment.unmute:
+    description: Remove public chat mutes
+    default: op
+  raven.punishment.kick:
+    description: Kick players from the current server
+    default: op
+  raven.punishment.warn:
+    description: Warn players and store the warning in history
+    default: op
+  raven.punishment.history:
+    description: View player punishment history
+    default: op
+  raven.devmode:
+    description: Toggle Raven developer diagnostics mode
     default: op

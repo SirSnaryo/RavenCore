@@ -56,6 +56,11 @@ public final class PearlStasisJoinListener implements Listener {
                         playerUuid, plugin.getServerId(), config.getTtlMillis());
 
                 if (pendingOpt.isEmpty()) {
+                    if (marked && config.isDebug()) {
+                        plugin.getLogger().info("[PearlStasis] Marker found for " + player.getName()
+                                + " but no pending landing for server " + plugin.getServerId()
+                                + " (attempt " + attempt + "/" + MAX_ATTEMPTS + ").");
+                    }
                     if (marked && attempt < MAX_ATTEMPTS) {
                         SchedulerUtil.runAsyncLater(() -> consumePending(player, attempt + 1), RETRY_DELAY_TICKS);
                     } else if (!repository.hasPending(playerUuid, config.getTtlMillis())) {
@@ -93,6 +98,12 @@ public final class PearlStasisJoinListener implements Listener {
                     player.teleportAsync(loc).whenComplete((success, error) -> {
                         if (Boolean.TRUE.equals(success)) {
                             config.playArrivalSound(player);
+                            if (config.isLogTransfers()) {
+                                plugin.getLogger().info("[PearlStasis] Applied landing for " + player.getName()
+                                        + " at " + record.world() + " "
+                                        + String.format(java.util.Locale.ROOT, "%.2f %.2f %.2f",
+                                        record.x(), record.y(), record.z()) + ".");
+                            }
                         }
                     });
                 });

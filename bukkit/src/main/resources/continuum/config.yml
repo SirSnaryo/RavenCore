@@ -1,0 +1,34 @@
+# Optional Continuum receiver for seamless server switches.
+#
+# Velocity side should run Continuum with:
+# - remove-reconfig = true
+# - keep-client-world-on-switch = true
+#
+# This requires every backend to expose Paper/Canvas internal entity-id
+# reservation during AsyncPlayerSpawnLocationEvent:
+# event.getConnection().setInternalPluginDefinedEntityId(clientEntityId)
+#
+# RavenCore stores a Redis-backed network entity id before the proxy switch,
+# then reserves it during Paper's async spawn-location/configuration stage.
+# If the runtime does not expose entity-id reservation, RavenCore disables this
+# reservation path for the current runtime and uses normal transfers.
+
+enabled: false
+
+# Keep this enabled when using Continuum. Disable to leave the module loaded but
+# never touch entity ids.
+apply-client-entity-id: true
+
+# Must match the Velocity RavenCore continuum.network-entity-id-pool range.
+# IDs inside this high range are assigned by Redis and are not taken from the
+# world entity counter. Keep the range far away from normal entity ids.
+network-entity-id-pool:
+  enabled: true
+  min-id: 1000000000
+  max-id: 1100000000
+
+# Redis metadata TTL. Keep this close to the Velocity config value.
+transfer-metadata-ttl-seconds: 30
+
+# Enables extra console messages for diagnosing seamless-switch attempts.
+debug: false

@@ -1,9 +1,9 @@
 package com.kammoun.raven.library.redis;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -25,7 +25,7 @@ public class RedisMessenger {
     }
 
     public void subscribe(String channel, Consumer<String> handler) {
-        subscribers.computeIfAbsent(channel, k -> new ArrayList<>()).add(handler);
+        subscribers.computeIfAbsent(channel, k -> new CopyOnWriteArrayList<>()).add(handler);
         connection.addHandler(channel, handler);
     }
 

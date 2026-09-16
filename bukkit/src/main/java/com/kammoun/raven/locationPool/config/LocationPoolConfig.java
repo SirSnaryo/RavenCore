@@ -19,18 +19,24 @@ import java.util.logging.Logger;
 
 public final class LocationPoolConfig {
 
-    private static final int TARGET_SIZE = 50;
-
     private final long refillIntervalTicks;
+    private final int poolTargetSize;
+    private final int maxRefillPerCycle;
+    private final int maxAttemptsPerCycle;
     private final boolean netherEnabled;
     private final Map<LocationDimension, LocationSearchBounds> bounds;
     private final Set<Material> blacklistedBlocks;
     private final Set<Biome> blacklistedBiomes;
 
-    private LocationPoolConfig(long refillIntervalTicks, boolean netherEnabled,
+    private LocationPoolConfig(long refillIntervalTicks, int poolTargetSize,
+                               int maxRefillPerCycle, int maxAttemptsPerCycle,
+                               boolean netherEnabled,
                                Map<LocationDimension, LocationSearchBounds> bounds,
                                Set<Material> blacklistedBlocks, Set<Biome> blacklistedBiomes) {
         this.refillIntervalTicks = refillIntervalTicks;
+        this.poolTargetSize = poolTargetSize;
+        this.maxRefillPerCycle = maxRefillPerCycle;
+        this.maxAttemptsPerCycle = maxAttemptsPerCycle;
         this.netherEnabled = netherEnabled;
         this.bounds = Map.copyOf(bounds);
         this.blacklistedBlocks = Set.copyOf(blacklistedBlocks);
@@ -41,6 +47,10 @@ public final class LocationPoolConfig {
                                           Logger logger, ServerRole role) {
         long refillTicks = Math.max(20L,
                 module.getLong("location-library.refill-interval-seconds", 45L) * 20L);
+        int targetSize = clamp(module.getInt("location-library.pool-target-size", 50), 1, 500);
+        int maxRefill = clamp(module.getInt("location-library.max-refill-per-cycle", 10), 1, targetSize);
+        int maxAttempts = clamp(module.getInt("location-library.max-attempts-per-cycle",
+                maxRefill * 25), maxRefill, 5_000);
         boolean netherEnabled = module.getBoolean("location-library.nether-pool-enabled", true);
 
         int cellSize = root.getInt("grid.cell-size", 5000);
@@ -76,8 +86,12 @@ public final class LocationPoolConfig {
             bounds.put(LocationDimension.END, readBounds(module, "end"));
         }
 
-        return new LocationPoolConfig(refillTicks, netherEnabled,
+        return new LocationPoolConfig(refillTicks, targetSize, maxRefill, maxAttempts, netherEnabled,
                 bounds, parseMaterials(module, logger), parseBiomes(module, logger));
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private static LocationSearchBounds readBounds(FileConfiguration root, String name) {
@@ -163,7 +177,9 @@ public final class LocationPoolConfig {
         return result;
     }
 
-    public int targetSize() { return TARGET_SIZE; }
+    public int targetSize() { return poolTargetSize; }
+    public int maxRefillPerCycle() { return maxRefillPerCycle; }
+    public int maxAttemptsPerCycle() { return maxAttemptsPerCycle; }
     public long refillIntervalTicks() { return refillIntervalTicks; }
     public boolean netherEnabled() { return netherEnabled; }
     public LocationSearchBounds bounds(LocationDimension dimension) { return bounds.get(dimension); }
@@ -181,6 +197,9 @@ public final class LocationPoolConfig {
                 + b.maxX() + ":" + b.maxY() + ":" + b.maxZ()
                 + "|materials=" + materials
                 + "|biomes=" + biomes
-                + "|waterlogged=true";
+                + "|waterlogged=true"
+                + "|overworld-surface=true"
+                + "|target=" + poolTargetSize
+                + "|max-refill=" + maxRefillPerCycle;
     }
 }

@@ -119,7 +119,7 @@ public final class StatsService {
         session.capturePlayTime();
         StatsDelta delta = session.drain();
         if (!delta.isEmpty()) {
-            detachedWrites.add(new StatsWrite(player.getUniqueId(), player.getName(), delta, session));
+            enqueueDetachedWrite(new StatsWrite(player.getUniqueId(), player.getName(), delta, session));
             requestFlush();
         }
     }
@@ -307,8 +307,16 @@ public final class StatsService {
     private void restoreFailed(List<StatsWrite> writes) {
         for (StatsWrite write : writes) {
             if (sessions.get(write.uuid()) == write.owner()) write.owner().restore(write.delta());
-            else detachedWrites.add(write);
+            else enqueueDetachedWrite(write);
         }
+    }
+
+    private void enqueueDetachedWrite(StatsWrite write) {
+        int capacity = config.detachedWriteCapacity();
+        while (detachedWrites.size() >= capacity && detachedWrites.poll() != null) {
+            plugin.getLogger().warning("[Stats] Detached write queue is full; dropped oldest pending write.");
+        }
+        detachedWrites.add(write);
     }
 
     private void flushLocalInline(UUID uuid) throws SQLException {

@@ -1,0 +1,15 @@
+enabled: true
+
+messages:
+  punished: "&#33FF66Applied &#FFFFFF%type% &#33FF66to &#FFD447%player%&#33FF66. &#7A7A7AReason: &#FFFFFF%reason%"
+  pardoned: "&#33FF66Punishment removed from &#FFD447%player%&#33FF66."
+  not-punished: "&#D90429No active punishment found for &#FFD447%player%&#D90429."
+  kicked: "&#33FF66Kicked &#FFD447%player%&#33FF66."
+  error: "&#D90429Punishment action failed."
+  ban-screen: "&#D90429You are banned.<newline>&#7A7A7AReason: &#FFFFFF%reason%<newline>&#7A7A7ABy: &#FFD447%actor%<newline>&#7A7A7AExpires: &#FFFFFF%expires%"
+  kick-screen: "&#D90429You were kicked.<newline>&#7A7A7AReason: &#FFFFFF%reason%"
+  mute-notice: "&#D90429You are muted. &#7A7A7AReason: &#FFFFFF%reason% &#7A7A7AExpires: &#FFFFFF%expires%"
+  warn-notice: "&#FF9F1CYou were warned. &#7A7A7AReason: &#FFFFFF%reason%"
+  history-empty: "&#7A7A7ANo punishment history for &#FFD447%player%&#7A7A7A."
+  history-header: "&#FFD447Punishment history for &#FFFFFF%player%"
+  history-line: "&#7A7A7A#%id% &#D90429%type% &#FFFFFF%reason% &#7A7A7Aby &#FFD447%actor% &#7A7A7Aat &#4CC9F0%date%"
