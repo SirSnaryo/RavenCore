@@ -1,15 +1,14 @@
-package com.kammoun.raven.scoreboard.placeholder;
+package com.kammoun.raven.placeholder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.entity.Player;
 
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-class ScoreboardServerMetrics {
+public class ServerMetrics {
 
     private static final long GLOBAL_CACHE_MILLIS = 1_000L;
     private static final Method BUKKIT_GET_TPS = method(Bukkit.class, "getTPS");
@@ -23,22 +22,22 @@ class ScoreboardServerMetrics {
     private Method serverGetRegionTps;
     private Method serverGetTickTimes;
 
-    String tps() {
+    public String tps() {
         refreshGlobalCache();
         return cachedTps;
     }
 
-    String mspt() {
+    public String mspt() {
         refreshGlobalCache();
         return cachedMspt;
     }
 
-    String cpu() {
+    public String cpu() {
         refreshGlobalCache();
         return cachedCpu;
     }
 
-    String regionTps(Player player, int index) {
+    public String regionTps(Player player, int index) {
         double[] values = regionTpsArray(player);
         if (values.length <= index) {
             return "N/A";

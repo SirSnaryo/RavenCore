@@ -131,12 +131,6 @@ commands:
     aliases: [btoggle, togglebroadcast]
     permission: raven.chat
     permission-message: You don't have permission to use this command.
-  scoreboard:
-    description: Toggle and manage Raven scoreboards
-    usage: /scoreboard [toggle|on|off|list|current|select|reset|reload|set|clear]
-    aliases: [sb]
-    permission: raven.scoreboard
-    permission-message: You don't have permission to use this command.
   clear:
     description: Clear your own or another player's inventory
     usage: /clear [player]
@@ -495,12 +489,6 @@ permissions:
     default: op
   raven.chat.bypass.length:
     description: Bypass max chat length
-    default: op
-  raven.scoreboard:
-    description: Toggle and select your Raven scoreboard
-    default: true
-  raven.scoreboard.admin:
-    description: Reload and assign Raven scoreboards
     default: op
   raven.core.admin:
     description: Reload RavenCore modules

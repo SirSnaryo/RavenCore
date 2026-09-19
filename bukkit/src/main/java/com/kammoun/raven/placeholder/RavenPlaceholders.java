@@ -1,9 +1,8 @@
-package com.kammoun.raven.scoreboard.placeholder;
+package com.kammoun.raven.placeholder;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.economy.hook.RavenEconomy;
 import com.kammoun.raven.library.util.NumberUtils;
-import com.kammoun.raven.scoreboard.stats.ScoreboardStatsService;
 import com.kammoun.raven.stats.StatsModule;
 import com.kammoun.raven.stats.model.StatsSnapshot;
 import com.kammoun.raven.team.TeamModule;
@@ -12,6 +11,7 @@ import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @Getter
-public class ScoreboardPlaceholders {
+public class RavenPlaceholders {
 
     private static final String UNKNOWN = "N/A";
     private static final Set<String> KEYS = Collections.unmodifiableSet(new LinkedHashSet<>(List.of(
@@ -69,12 +69,10 @@ public class ScoreboardPlaceholders {
     )));
 
     private final RavenCore plugin;
-    private final ScoreboardServerMetrics metrics = new ScoreboardServerMetrics();
-    private final ScoreboardStatsService stats;
+    private final ServerMetrics metrics = new ServerMetrics();
 
-    public ScoreboardPlaceholders(RavenCore plugin, ScoreboardStatsService stats) {
+    public RavenPlaceholders(RavenCore plugin) {
         this.plugin = plugin;
-        this.stats = stats;
     }
 
     public String apply(Player player, String input) {
@@ -193,7 +191,12 @@ public class ScoreboardPlaceholders {
             return snapshot.get().kills();
         }
         Player online = onlinePlayer(player);
-        return online == null ? 0L : stats.kills(online);
+        if (online == null) return 0L;
+        try {
+            return online.getStatistic(Statistic.PLAYER_KILLS);
+        } catch (Exception ignored) {
+            return 0L;
+        }
     }
 
     private long deaths(OfflinePlayer player) {
@@ -202,7 +205,12 @@ public class ScoreboardPlaceholders {
             return snapshot.get().deaths();
         }
         Player online = onlinePlayer(player);
-        return online == null ? 0L : stats.deaths(online);
+        if (online == null) return 0L;
+        try {
+            return online.getStatistic(Statistic.DEATHS);
+        } catch (Exception ignored) {
+            return 0L;
+        }
     }
 
     private long playtimeSeconds(OfflinePlayer player) {
@@ -211,7 +219,12 @@ public class ScoreboardPlaceholders {
             return snapshot.get().playTime();
         }
         Player online = onlinePlayer(player);
-        return online == null ? 0L : stats.playtimeSeconds(online);
+        if (online == null) return 0L;
+        try {
+            return online.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20L;
+        } catch (Exception ignored) {
+            return 0L;
+        }
     }
 
     private Optional<StatsSnapshot> snapshot(OfflinePlayer player) {
@@ -281,11 +294,11 @@ public class ScoreboardPlaceholders {
         return value == null || value.isBlank() ? UNKNOWN : value;
     }
 
-    static String formatPlaytime(long ticks) {
+    public static String formatPlaytime(long ticks) {
         return formatPlaytimeSeconds(Math.max(0L, ticks) / 20L);
     }
 
-    static String formatPlaytimeSeconds(long totalSeconds) {
+    public static String formatPlaytimeSeconds(long totalSeconds) {
         totalSeconds = Math.max(0L, totalSeconds);
         long days = totalSeconds / 86_400L;
         long hours = (totalSeconds % 86_400L) / 3_600L;
@@ -300,7 +313,7 @@ public class ScoreboardPlaceholders {
         return minutes + "m";
     }
 
-    static String formatPing(int ping) {
+    public static String formatPing(int ping) {
         return Math.max(0, ping) + "ms";
     }
 }

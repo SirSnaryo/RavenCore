@@ -43,10 +43,14 @@ public final class TeamPermissionMenu extends KMenu {
             if (configured == null) return;
             ItemStack stack = replace(configured.getItemStack());
             ItemMeta meta = stack.getItemMeta();
-            List<String> lore = new ArrayList<>(meta.getLore() == null ? List.of() : meta.getLore());
-            lore.add(ChatFormatter.color("&fCurrently: "
-                    + (target.has(permission) ? "&a&lON" : "&c&lOFF")));
-            meta.setLore(lore);
+            List<String> rawLore = meta.getLore();
+            if (rawLore != null) {
+                String replacement = target.has(permission) ? "&a&lON" : "&c&lOFF";
+                List<String> newLore = rawLore.stream()
+                        .map(line -> line.replace("%status%", replacement))
+                        .toList();
+                meta.setLore(newLore);
+            }
             stack.setItemMeta(meta);
             setItem(MenuItem.of(new ItemBuilder(stack)).slot(configured.getSlot()).onClick(event -> {
                 player.closeInventory();

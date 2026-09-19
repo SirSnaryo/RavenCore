@@ -75,7 +75,7 @@ public final class DocsGenerator {
 
         out.append("PlaceholderAPI\n");
         out.append("--------------\n");
-        appendPlaceholders(out, "Raven scoreboard/network", List.of(
+        appendPlaceholders(out, "Raven network/placeholders", List.of(
                 "%raven_server%", "%raven_server_display%", "%raven_role%", "%raven_world%",
                 "%raven_online%", "%raven_network_online%", "%raven_balance%", "%raven_money%",
                 "%raven_ravs%", "%raven_kills%", "%raven_deaths%", "%raven_blocks_broken%",
@@ -106,7 +106,7 @@ public final class DocsGenerator {
         out.append("Config Files\n");
         out.append("------------\n");
         for (String path : List.of(
-                "config.yml", "chat/config.yml", "scoreboard/config.yml", "leaderboard/config.yml",
+                "config.yml", "chat/config.yml", "leaderboard/config.yml",
                 "leaderboard/gui/menu.yml", "leaderboard/gui/page.yml", "rtp/config.yml",
                 "locationpool/config.yml", "respawn/config.yml", "borders/config.yml",
                 "spawn/config.yml", "teleport/config.yml", "economy/config.yml", "global/config.yml")) {

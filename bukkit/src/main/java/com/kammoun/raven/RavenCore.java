@@ -28,7 +28,7 @@ import com.kammoun.raven.rtp.RtpModule;
 import com.kammoun.raven.pearlstasis.PearlStasisModule;
 import com.kammoun.raven.punishment.PunishmentModule;
 import com.kammoun.raven.respawn.RespawnModule;
-import com.kammoun.raven.scoreboard.ScoreboardModule;
+import com.kammoun.raven.placeholder.PlaceholderModule;
 import com.kammoun.raven.serverinfo.ServerInfoModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.settings.SettingsModule;
@@ -108,7 +108,7 @@ public final class RavenCore extends JavaPlugin {
     private ChatModule chatModule;
     private SettingsModule settingsModule;
     private ServerInfoModule serverInfoModule;
-    private ScoreboardModule scoreboardModule;
+    private PlaceholderModule placeholderModule;
     private BillfordModule billfordModule;
     private StatsModule statsModule;
     private LeaderboardModule leaderboardModule;
@@ -282,9 +282,9 @@ public final class RavenCore extends JavaPlugin {
         teleportModule.onEnable(this);
         enabledModules.add("Teleport");
 
-        scoreboardModule = new ScoreboardModule();
-        scoreboardModule.onEnable(this);
-        enabledModules.add("Scoreboard");
+        placeholderModule = new PlaceholderModule();
+        placeholderModule.onEnable(this);
+        enabledModules.add("Placeholder");
 
         settingsModule = new SettingsModule();
         settingsModule.onEnable(this);
@@ -394,7 +394,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "nightvision", nightVisionModule);
         putModule(modules, "global", globalModule);
         putModule(modules, "chat", chatModule);
-        putModule(modules, "scoreboard", scoreboardModule);
+        putModule(modules, "placeholder", placeholderModule);
         putModule(modules, "serverinfo", serverInfoModule);
         putModule(modules, "settings", settingsModule);
         putModule(modules, "staffmode", staffModeModule);
@@ -725,7 +725,7 @@ public final class RavenCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (scoreboardModule != null) scoreboardModule.onDisable(this);
+        if (placeholderModule != null) placeholderModule.onDisable(this);
         if (continuumModule != null) continuumModule.onDisable(this);
         if (serverInfoModule != null) serverInfoModule.onDisable(this);
         if (combatModule != null) combatModule.onDisable(this);

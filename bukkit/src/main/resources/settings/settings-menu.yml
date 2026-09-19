@@ -184,31 +184,6 @@ Items:
         - ""
         - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
 
-  scoreboard:
-    setting: scoreboard.enabled
-    slot: 21
-    enabled:
-      material: NAME_TAG
-      name: "&#33FF66&lSCOREBOARD"
-      lore:
-        - "&fThe sidebar is displayed while you play."
-        - ""
-        - "&#55FF55✔ &#AAAAAAStatus: %status%"
-        - "&#55FF55✔ &#AAAAAAEffect: &fSidebar is shown"
-        - "&#55FF55✔ &#AAAAAANote: &fSaved per player"
-        - ""
-        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
-    disabled:
-      material: GRAY_DYE
-      name: "&#FF4D4D&lSCOREBOARD"
-      lore:
-        - "&fThe sidebar stays off while you play."
-        - ""
-        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
-        - "&#FF4D4D✕ &#AAAAAAEffect: &fSidebar is hidden"
-        - "&#FF4D4D✕ &#AAAAAANote: &fSaved per player"
-        - ""
-        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
 
   payments:
     setting: economy.payments

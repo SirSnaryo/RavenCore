@@ -57,7 +57,6 @@ public class SettingsModule extends KModule<RavenCore> {
     private void registerBuiltInSettings() {
         registerTeleportSettings();
         registerChatSettings();
-        registerScoreboardSettings();
         registerEconomySettings();
     }
 
@@ -159,21 +158,6 @@ public class SettingsModule extends KModule<RavenCore> {
                 .build());
     }
 
-    private void registerScoreboardSettings() {
-        if (api.getScoreboardModule() == null || api.getScoreboardModule().getService() == null) {
-            return;
-        }
-
-        registry.register(PlayerSettingDefinition.builder("scoreboard.enabled")
-                .category("Scoreboard")
-                .displayName("Scoreboard")
-                .description(List.of("Show or hide your sidebar.", "Uses the same state as /scoreboard."))
-                .material(Material.NAME_TAG)
-                .priority(30)
-                .getter(player -> api.getScoreboardModule().getService().isEnabled(player))
-                .setter((player, enabled) -> api.getScoreboardModule().getService().setEnabled(player, enabled))
-                .build());
-    }
 
     private void ensureEditableMenuItems() {
         File file = new File(getDataFolder(), "settings-menu.yml");
