@@ -33,6 +33,7 @@ import com.kammoun.raven.serverinfo.ServerInfoModule;
 import com.kammoun.raven.shop.ShopModule;
 import com.kammoun.raven.settings.SettingsModule;
 import com.kammoun.raven.staffmode.StaffModeModule;
+import com.kammoun.raven.survival.SurvivalModule;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
@@ -121,6 +122,7 @@ public final class RavenCore extends JavaPlugin {
     private DevModeModule devModeModule;
     private PunishmentModule punishmentModule;
     private ContinuumModule continuumModule;
+    private SurvivalModule survivalModule;
 
     @Override
     public void onEnable() {
@@ -301,7 +303,10 @@ public final class RavenCore extends JavaPlugin {
         spawnModule = new SpawnModule();
         spawnModule.onEnable(this);
         enabledModules.add("Spawn");
-        ;
+
+        survivalModule = new SurvivalModule();
+        survivalModule.onEnable(this);
+        enabledModules.add("Survival");
 
         // The RTP zone (WorldGuard region -> countdown -> random overworld teleport) lives on the
         // spawn/hub server, so it only enables there. It reuses RTP's shared pools for destinations.
@@ -416,6 +421,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "borders", borderModule);
         putModule(modules, "pearlstasis", pearlStasisModule);
         putModule(modules, "endportal", endPortalModule);
+        putModule(modules, "survival", survivalModule);
         return modules;
     }
 

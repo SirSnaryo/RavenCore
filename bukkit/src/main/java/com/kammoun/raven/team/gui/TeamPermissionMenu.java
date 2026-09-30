@@ -47,7 +47,7 @@ public final class TeamPermissionMenu extends KMenu {
             if (rawLore != null) {
                 String replacement = target.has(permission) ? "&a&lON" : "&c&lOFF";
                 List<String> newLore = rawLore.stream()
-                        .map(line -> line.replace("%status%", replacement))
+                        .map(line -> line.replace("%status%", ChatFormatter.color(replacement)))
                         .toList();
                 meta.setLore(newLore);
             }

@@ -1,0 +1,18 @@
+# Survival quality-of-life rules shared by every Raven server.
+hunger:
+  # true keeps players permanently fed and stops all food/saturation drain.
+  # Set to false to restore vanilla hunger behaviour.
+  disable-hunger: true
+
+  # Food level and saturation held while disable-hunger is on (0-20).
+  food-level: 20
+  saturation: 20.0
+
+  # Worlds the rule does not apply to. Leave empty to cover every world.
+  # Either a YAML list:
+  #   ignored-worlds:
+  #     - 'world_the_end'
+  # or a keyed form:
+  #   ignored-worlds:
+  #     world_the_end: true
+  ignored-worlds: []
