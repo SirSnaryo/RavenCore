@@ -1,4 +1,4 @@
-# SMP Network — Technical Briefing
+# SMP Network — Technical Briefing11
 
 This document summarizes the full architecture of the SMP network for
 onboarding a developer or AI coding agent. It covers infrastructure,
