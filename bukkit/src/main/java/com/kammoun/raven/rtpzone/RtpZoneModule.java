@@ -42,7 +42,7 @@ public class RtpZoneModule extends KModule<RavenCore> {
     private int countdownTime;
     private int currentTime;
 
-    private SchedulerUtil.Task activeTimerTask;
+    private SchedulerUtil.Task countdownTask;
     private SchedulerUtil.Task regionCheckTask;
     private boolean active;
 
@@ -75,6 +75,7 @@ public class RtpZoneModule extends KModule<RavenCore> {
 
         registerEvent();
         startRegionCheckTask();
+        startCountdown();
         this.active = true;
 
         getLogger().info("[RtpZone] Enabled (" + zoneConfig.getRegions().size() + " region(s)).");
@@ -114,25 +115,25 @@ public class RtpZoneModule extends KModule<RavenCore> {
 
         playerManager.clearAll();
         startRegionCheckTask();
+        startCountdown();
     }
 
     // -------------------------------------------------------------------------
     // Countdown
 
+    /**
+     * The countdown is owned by the server, not by the players standing in the zone: it ticks
+     * continuously from enable to disable and never restarts when someone enters or leaves, so
+     * joining mid-cycle shows the time still remaining instead of a fresh countdown.
+     */
     public void startCountdown() {
-        if (activeTimerTask != null) return;
+        if (countdownTask != null) return;
 
-        activeTimerTask = SchedulerUtil.runTimer(() -> {
-            if (playerManager.isEmpty()) {
-                stopCountdown();
-                return;
-            }
-
+        countdownTask = SchedulerUtil.runTimer(() -> {
             if (currentTime <= 0) {
+                currentTime = countdownTime;
                 Set<Player> group = playerManager.getOnlinePlayers();
-                // Stop and clear BEFORE teleporting so the region-check task doesn't re-fire the
-                // countdown for the same players in the window before the async pop completes.
-                stopCountdown();
+                if (group.isEmpty()) return;
                 playerManager.clearAll();
                 teleportManager.teleportAll(group);
                 return;
@@ -144,9 +145,9 @@ public class RtpZoneModule extends KModule<RavenCore> {
     }
 
     public void stopCountdown() {
-        if (activeTimerTask != null) {
-            activeTimerTask.cancel();
-            activeTimerTask = null;
+        if (countdownTask != null) {
+            countdownTask.cancel();
+            countdownTask = null;
         }
         this.currentTime = countdownTime;
     }

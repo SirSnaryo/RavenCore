@@ -13,6 +13,7 @@ import com.kammoun.raven.crates.CratesModule;
 import com.kammoun.raven.devmode.DevModeModule;
 import com.kammoun.raven.docs.DocsGenerator;
 import com.kammoun.raven.economy.EconomyModule;
+import com.kammoun.raven.end.EndModule;
 import com.kammoun.raven.globalcontrol.GlobalModule;
 import com.kammoun.raven.home.HomeModule;
 import com.kammoun.raven.joinfix.JoinFixModule;
@@ -37,6 +38,7 @@ import com.kammoun.raven.survival.SurvivalModule;
 import com.kammoun.raven.tpa.TeleportModule;
 import com.kammoun.raven.team.TeamModule;
 import com.kammoun.raven.time.TimeSyncModule;
+import com.kammoun.raven.afkportal.AfkPortalModule;
 import com.kammoun.raven.spawn.SpawnModule;
 import com.kammoun.raven.stats.StatsModule;
 import com.kammoun.raven.library.database.MySQLDBManager;
@@ -97,6 +99,8 @@ public final class RavenCore extends JavaPlugin {
     private TimeSyncModule timeSyncModule;
     private TeleportModule teleportModule;
     private SpawnModule spawnModule;
+    private AfkPortalModule afkPortalModule;
+    private EndModule endModule;
     private RtpZoneModule rtpZoneModule;
     private RtpModule rtpModule;
     private RespawnModule respawnModule;
@@ -196,6 +200,10 @@ public final class RavenCore extends JavaPlugin {
         locationPoolModule = new LocationPoolModule();
         locationPoolModule.onEnable(this);
         enabledModules.add("LocationPool");
+
+        endModule = new EndModule();
+        endModule.onEnable(this);
+        enabledModules.add("End");
 
         rtpModule = new RtpModule();
         rtpModule.onEnable(this);
@@ -304,6 +312,10 @@ public final class RavenCore extends JavaPlugin {
         spawnModule.onEnable(this);
         enabledModules.add("Spawn");
 
+        afkPortalModule = new AfkPortalModule();
+        afkPortalModule.onEnable(this);
+        enabledModules.add("AfkPortal");
+
         survivalModule = new SurvivalModule();
         survivalModule.onEnable(this);
         enabledModules.add("Survival");
@@ -407,6 +419,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "punishment", punishmentModule);
         putModule(modules, "teleport", teleportModule);
         putModule(modules, "spawn", spawnModule);
+        putModule(modules, "afkportal", afkPortalModule);
         putModule(modules, "rtpzone", rtpZoneModule);
         putModule(modules, "lastlocation", lastLocationModule);
         putModule(modules, "locationpool", locationPoolModule);
@@ -420,6 +433,7 @@ public final class RavenCore extends JavaPlugin {
         putModule(modules, "timesync", timeSyncModule);
         putModule(modules, "borders", borderModule);
         putModule(modules, "pearlstasis", pearlStasisModule);
+        putModule(modules, "end", endModule);
         putModule(modules, "endportal", endPortalModule);
         putModule(modules, "survival", survivalModule);
         return modules;
@@ -740,7 +754,9 @@ public final class RavenCore extends JavaPlugin {
         if (respawnModule != null) respawnModule.onDisable(this);
         if (joinFixModule != null) joinFixModule.onDisable(this);
         if (rtpModule != null) rtpModule.onDisable(this);
+        if (endModule != null) endModule.onDisable(this);
         if (spawnModule != null) spawnModule.onDisable(this);
+        if (afkPortalModule != null) afkPortalModule.onDisable(this);
         if (rtpZoneModule != null) rtpZoneModule.onDisable(this);
         if (settingsModule != null) settingsModule.onDisable(this);
         if (teleportModule != null) teleportModule.onDisable(this);

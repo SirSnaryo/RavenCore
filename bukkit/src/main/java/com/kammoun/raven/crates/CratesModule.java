@@ -11,7 +11,6 @@ import com.kammoun.raven.crates.listener.CrateListener;
 import com.kammoun.raven.crates.papi.CratesPlaceholders;
 import com.kammoun.raven.crates.player.CratePlayerManager;
 import com.kammoun.raven.crates.service.CrateService;
-import com.kammoun.raven.crates.service.CrateHologramService;
 import com.kammoun.raven.crates.service.CrateTimerService;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.platform.placeholder.KPlaceholderExpansion;
@@ -45,7 +44,7 @@ public final class CratesModule extends KModule<RavenCore> {
         CrateLocationRepository locations = new CrateLocationRepository(api.getMySqlManager(), api.getServerId());
         CrateTimerRepository timers = new CrateTimerRepository(api.getMySqlManager());
         playerManager = new CratePlayerManager(api, keys);
-        service = new CrateService(api, configModel, keys, locations, new CrateHologramService(), playerManager);
+        service = new CrateService(api, configModel, keys, locations, playerManager);
         timerService = new CrateTimerService(api, configModel, timers, keys, playerManager);
         service.loadPlacedCrates();
         playerManager.loadOnline();

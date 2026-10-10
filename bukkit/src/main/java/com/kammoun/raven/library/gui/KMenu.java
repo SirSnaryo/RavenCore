@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kammoun.raven.library.util.PlaceholderHelper.parsePlaceholders;
 
@@ -26,6 +28,8 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
     protected Inventory inventory;
     protected final Map<Integer, MenuItem> menuItems = new HashMap<>();
 
+    private final Map<UUID, MenuSession> sessions = new ConcurrentHashMap<>();
+    private MenuSession current;
     private final String title;
     private final int size;
     private MenuItem goBack;
@@ -54,11 +58,15 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
     protected void setItem(MenuItem item) {
         if (item == null || item.getSlot() < 0) return;
         menuItems.put(item.getSlot(), item);
+        if (current != null) current.items().put(item.getSlot(), item);
         inventory.setItem(item.getSlot(), item.getItemStack());
     }
 
     public void handleClick(InventoryClickEvent event) {
-        MenuItem item = menuItems.get(event.getSlot());
+        if (!(event.getWhoClicked() instanceof Player clicker)) return;
+        MenuSession session = sessions.get(clicker.getUniqueId());
+        Map<Integer, MenuItem> items = session == null ? menuItems : session.items();
+        MenuItem item = items.get(event.getSlot());
         if (item != null) item.handleClick(event);
     }
 
@@ -68,8 +76,10 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
 
     public void open(Player player, int currentPage, int maxPage, String... placeholders) {
         String formattedTitle = ChatFormatter.menuTitle(parsePlaceholders(title, placeholders));
-        inventory = Bukkit.createInventory(this, size, formattedTitle);
-        menuItems.clear();
+        MenuSession session = new MenuSession(Bukkit.createInventory(this, size, formattedTitle),
+                currentPage, maxPage);
+        sessions.put(player.getUniqueId(), session);
+        bind(session);
 
         setNavigationItems(currentPage, maxPage);
         setMenuItems(player, placeholders);
@@ -78,11 +88,41 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
         player.openInventory(inventory);
     }
 
+    /**
+     * Rebuilds the visible contents of an already open menu without closing and reopening it, so an
+     * in-place toggle does not flicker the player's screen or desync the item they are holding.
+     */
+    public void refresh(Player player, String... placeholders) {
+        MenuSession session = sessions.get(player.getUniqueId());
+        if (session == null) {
+            open(player, placeholders);
+            return;
+        }
+        bind(session);
+        inventory.setContents(new ItemStack[size]);
+        menuItems.clear();
+        session.items().clear();
+
+        setNavigationItems(session.currentPage(), session.maxPage());
+        setMenuItems(player, placeholders);
+        addFillerItem();
+    }
+
+    private void bind(MenuSession session) {
+        this.current = session;
+        this.inventory = session.inventory();
+        this.menuItems.clear();
+        this.menuItems.putAll(session.items());
+    }
+
     protected void setNavigationItems(int currentPage, int maxPage) {
         if (goBack != null)                             setItem(goBack);
         if (nextPage != null && currentPage < maxPage)  setItem(nextPage);
         if (prevPage != null && currentPage > 1)        setItem(prevPage);
-        if (closePage != null)                          setItem(closePage);
+        if (closePage != null) {
+            closePage.onClick(event -> event.getWhoClicked().closeInventory());
+            setItem(closePage);
+        }
     }
 
     private void addFillerItem() {
@@ -98,5 +138,34 @@ public abstract class KMenu extends KConfigLoader implements InventoryHolder {
     @Override
     public @NotNull Inventory getInventory() {
         return inventory;
+    }
+
+    private static final class MenuSession {
+        private final Inventory inventory;
+        private final Map<Integer, MenuItem> items = new HashMap<>();
+        private final int currentPage;
+        private final int maxPage;
+
+        private MenuSession(Inventory inventory, int currentPage, int maxPage) {
+            this.inventory = inventory;
+            this.currentPage = currentPage;
+            this.maxPage = maxPage;
+        }
+
+        private Inventory inventory() {
+            return inventory;
+        }
+
+        private Map<Integer, MenuItem> items() {
+            return items;
+        }
+
+        private int currentPage() {
+            return currentPage;
+        }
+
+        private int maxPage() {
+            return maxPage;
+        }
     }
 }

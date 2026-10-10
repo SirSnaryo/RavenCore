@@ -6,7 +6,7 @@ received-reward: "&aYou received: %reward%"
 crate-placed: "&aYou placed a %crate% crate!"
 crate-broken: "&cYou broke a %crate% crate!"
 received-keys: "&aYou received &f%amount% &a%crate% key(s)!"
-received-crate: "&aYou received &f%amount% &a%crate% crate(s)!\n&7Place the chest to spawn the crate with hologram."
+received-crate: "&aYou received &f%amount% &a%crate% crate(s)!\n&7Place the chest to spawn the crate."
 keys-set: "&aYour &f%crate% &akeys have been set to &f%amount%"
 
 gave-keys: "&aGave &f%amount% &a%crate% key(s) to &f%player%"

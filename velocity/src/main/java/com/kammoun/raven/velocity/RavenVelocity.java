@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 @Plugin(
         id = "ravencore",
         name = "RavenCore",
-        version = "2.11",
+        version = "2.12",
         description = "RavenCore - Velocity",
         authors = {"Kammoun"}
 )

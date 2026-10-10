@@ -41,23 +41,25 @@ public final class HomeMenu extends KMenu {
             if (bed != null) {
                 bed.onClick(event -> {
                     if (state == State.NO_PERMISSION) return;
+                    Player clicker = (Player) event.getWhoClicked();
                     if (home == null) {
-                        player.closeInventory();
-                        module.getService().set(player, name, () -> module.openMenu(player));
-                    } else module.getService().teleport(player, name);
+                        clicker.closeInventory();
+                        module.getService().set(clicker, name, () -> module.openMenu(clicker));
+                    } else module.getService().teleport(clicker, name);
                 });
                 setItem(bed);
             }
             if (dye != null) {
                 dye.onClick(event -> {
                     if (state == State.NO_PERMISSION) return;
+                    Player clicker = (Player) event.getWhoClicked();
                     if (home == null) {
-                        player.closeInventory();
-                        module.getService().set(player, name, () -> module.openMenu(player));
+                        clicker.closeInventory();
+                        module.getService().set(clicker, name, () -> module.openMenu(clicker));
                     } else {
                         new HomeDeleteConfirmMenu(module.getApi(),
-                                () -> module.getService().delete(player, name),
-                                () -> module.openMenu(player)).open(player);
+                                () -> module.getService().delete(clicker, name),
+                                () -> module.openMenu(clicker)).open(clicker);
                     }
                 });
                 setItem(dye);
@@ -82,11 +84,12 @@ public final class HomeMenu extends KMenu {
         if (bed != null) {
             bed.onClick(event -> {
                 if (!visit) return;
-                if (hasHome) module.getApi().getTeamModule().getService().home(player);
+                Player clicker = (Player) event.getWhoClicked();
+                if (hasHome) module.getApi().getTeamModule().getService().home(clicker);
                 else if (edit) {
-                    player.closeInventory();
-                    module.getApi().getTeamModule().getService().setHome(player,
-                            () -> module.openMenu(player));
+                    clicker.closeInventory();
+                    module.getApi().getTeamModule().getService().setHome(clicker,
+                            () -> module.openMenu(clicker));
                 }
             });
             setItem(bed);
@@ -94,15 +97,16 @@ public final class HomeMenu extends KMenu {
         if (dye != null) {
             dye.onClick(event -> {
                 if (!edit) return;
+                Player clicker = (Player) event.getWhoClicked();
                 if (hasHome) {
                     new HomeDeleteConfirmMenu(module.getApi(),
-                            () -> module.getApi().getTeamModule().getService().deleteHome(player,
-                                    () -> module.openMenu(player)),
-                            () -> module.openMenu(player)).open(player);
+                            () -> module.getApi().getTeamModule().getService().deleteHome(clicker,
+                                    () -> module.openMenu(clicker)),
+                            () -> module.openMenu(clicker)).open(clicker);
                 } else {
-                    player.closeInventory();
-                    module.getApi().getTeamModule().getService().setHome(player,
-                            () -> module.openMenu(player));
+                    clicker.closeInventory();
+                    module.getApi().getTeamModule().getService().setHome(clicker,
+                            () -> module.openMenu(clicker));
                 }
             });
             setItem(dye);

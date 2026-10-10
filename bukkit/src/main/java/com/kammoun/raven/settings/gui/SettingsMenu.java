@@ -15,10 +15,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SettingsMenu extends KMenu {
+
+    private static final Map<String, Integer> FALLBACK_SLOTS = Map.of("mob-spawn", 16);
 
     private final SettingsModule module;
     private final String enabledText;
@@ -43,10 +47,35 @@ public class SettingsMenu extends KMenu {
     protected void setMenuItems(Player player, String... placeholders) {
         for (PlayerSettingDefinition definition : module.getRegistry().definitions()) {
             SettingItemTemplate template = templates.get(definition.id().toLowerCase());
-            if (template == null) continue;
+            if (template == null) {
+                MenuItem fallback = fallback(player, definition);
+                if (fallback != null) setItem(fallback);
+                continue;
+            }
             MenuItem item = item(player, definition, template);
             if (item != null) setItem(item);
         }
+    }
+
+    private MenuItem fallback(Player player, PlayerSettingDefinition definition) {
+        Integer slot = FALLBACK_SLOTS.get(definition.id().toLowerCase());
+        if (slot == null) return null;
+        boolean enabled = definition.value(player);
+
+        List<String> lore = new ArrayList<>();
+        for (String line : definition.description()) lore.add(ChatFormatter.color("&f" + line));
+        lore.add("");
+        lore.add(ChatFormatter.color((enabled ? "&#55FF55✔" : "&#FF4D4D✕") + " &#AAAAAAStatus: "
+                + (enabled ? enabledText : disabledText)));
+        lore.add("");
+        lore.add(ChatFormatter.color("&#FFFF55▸ &#FFFF55&nCLICK&r " + (enabled ? "&#55FF55" : "&#FF4D4D") + "to Toggle"));
+
+        return MenuItem.of(new ItemBuilder(definition.material())
+                .name(ChatFormatter.color((enabled ? "&#33FF66&l" : "&#FF4D4D&l")
+                        + definition.displayName().toUpperCase()))
+                .lore(lore))
+                .slot(slot)
+                .onClick(event -> toggle((Player) event.getWhoClicked(), definition, event));
     }
 
     private MenuItem item(Player player, PlayerSettingDefinition definition, SettingItemTemplate template) {
@@ -64,13 +93,13 @@ public class SettingsMenu extends KMenu {
         return MenuItem.of(new ItemBuilder(rendered))
                 .slot(base.getSlot())
                 .permission(base.getPermission())
-                .onClick(event -> toggle(player, definition, event));
+                .onClick(event -> toggle((Player) event.getWhoClicked(), definition, event));
     }
 
     private void toggle(Player player, PlayerSettingDefinition definition, InventoryClickEvent event) {
         boolean newValue = !definition.value(player);
         definition.set(player, newValue);
-        open(player);
+        refresh(player);
         if (toggleSound != null) {
             toggleSound.playSound(player);
         }

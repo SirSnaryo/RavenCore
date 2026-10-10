@@ -8,6 +8,11 @@ Status:
 Messages:
   Updated: "&#55FF55✔ &#AAAAAA%setting% &fis now %status%"
 
+Mob-Spawn:
+  # Hostile spawns are cancelled inside this radius of a player who switched mob spawning off.
+  # Only that player is affected; everyone else in the same area still gets normal spawns.
+  Radius: 48
+
 Sounds:
   Toggle:
     sound: ENTITY_EXPERIENCE_ORB_PICKUP
@@ -15,14 +20,6 @@ Sounds:
     volume: 1.0
 
 Navigation:
-  Close-Page:
-    material: BARRIER
-    name: "&#FF4D4D&lCLOSE"
-    slot: 31
-    lore:
-      - "&fClose this menu and keep your settings."
-      - ""
-      - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Close"
   Filler-Item:
     material: BLACK_STAINED_GLASS_PANE
     name: " "
@@ -184,6 +181,34 @@ Items:
         - ""
         - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
 
+
+  mob-spawn:
+    setting: mob-spawn
+    slot: 16
+    enabled:
+      material: ZOMBIE_HEAD
+      amount: 1
+      name: "&#33FF66&lMOB SPAWN"
+      lore:
+        - "&fHostile mobs spawn around you."
+        - ""
+        - "&#55FF55✔ &#AAAAAAStatus: %status%"
+        - "&#55FF55✔ &#AAAAAAEffect: &fHostile mobs spawn near you"
+        - "&#55FF55✔ &#AAAAAANote: &fOnly you are affected, not other players"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#55FF55to Toggle"
+    disabled:
+      material: ZOMBIE_HEAD
+      amount: 1
+      name: "&#FF4D4D&lMOB SPAWN"
+      lore:
+        - "&fHostile mobs never spawn around you."
+        - ""
+        - "&#FF4D4D✕ &#AAAAAAStatus: %status%"
+        - "&#FF4D4D✕ &#AAAAAAEffect: &fHostile mobs never spawn near you"
+        - "&#FF4D4D✕ &#AAAAAANote: &fOnly you are affected, not other players"
+        - ""
+        - "&#FFFF55▸ &#FFFF55&nCLICK&r &#FF4D4Dto Toggle"
 
   payments:
     setting: economy.payments

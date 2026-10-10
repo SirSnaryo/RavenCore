@@ -2,7 +2,6 @@ package com.kammoun.raven.crates.config;
 
 import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.crates.model.CrateDefinition;
-import com.kammoun.raven.crates.model.CrateDefinition.HologramConfig;
 import com.kammoun.raven.crates.model.CrateReward;
 import com.kammoun.raven.library.item.ItemBuilder;
 import com.kammoun.raven.library.item.ItemReader;
@@ -83,8 +82,10 @@ public final class CratesConfig {
             String raw = config.getString("icon.nbt.crate_id", "");
             id = raw.contains(":") ? raw.split(":", 2)[1] : file.getName().replace(".yml", "");
         }
-        ItemStack block = readItem(config.getConfigurationSection("block"), Material.ENDER_CHEST, "&d" + id);
-        if (config.isConfigurationSection("icon")) {
+        ItemStack block;
+        if (config.isConfigurationSection("block")) {
+            block = readItem(config.getConfigurationSection("block"), Material.ENDER_CHEST, "&d" + id);
+        } else {
             block = readItem(config.getConfigurationSection("icon"), Material.CHEST, "&d" + id);
         }
         ItemStack filler = readOptionalItem(config.getConfigurationSection("inventory.filler"));
@@ -112,19 +113,9 @@ public final class CratesConfig {
         }
         int size = config.getInt("inventory.size", 27);
         if (size < 9 || size > 54 || size % 9 != 0) size = 27;
-        List<HologramConfig> holograms = new ArrayList<>();
-        ConfigurationSection hologramSection = config.getConfigurationSection("hologram");
-        if (hologramSection != null) {
-            for (String key : hologramSection.getKeys(false)) {
-                ConfigurationSection section = hologramSection.getConfigurationSection(key);
-                if (section == null) continue;
-                holograms.add(new HologramConfig(section.getDouble("height", 1.5),
-                        section.getStringList("lines").stream().map(ChatFormatter::color).toList()));
-            }
-        }
         return new CrateDefinition(id, config.getString("display-name", file.getName().replace(".yml", "")), block,
                 ChatFormatter.color(config.getString("inventory.name", config.getString("inventory.title", "&8" + id))),
-                size, filler, holograms, rewards);
+                size, filler, rewards);
     }
 
     private ItemStack readOptionalItem(ConfigurationSection section) {

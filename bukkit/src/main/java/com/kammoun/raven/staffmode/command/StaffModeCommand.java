@@ -18,8 +18,7 @@ public class StaffModeCommand extends KCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        Player player = (Player) sender;
-        service.toggle(player);
+        service.toggleStaffMode((Player) sender);
     }
 
     @Override

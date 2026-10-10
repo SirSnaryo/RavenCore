@@ -52,10 +52,6 @@ public abstract class KCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (permission != null && !sender.hasPermission(permission)) {
-            return true;
-        }
-
         if (args.length > 0) {
             for (KSubCommand subCommand : subCommands) {
                 if (subCommand.getName().equalsIgnoreCase(args[0])) {

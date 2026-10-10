@@ -29,36 +29,37 @@ public final class CrateService {
     private final CratesConfig config;
     private final CrateKeyRepository keyRepository;
     private final CrateLocationRepository locationRepository;
-    private final CrateHologramService holograms;
     private final CratePlayerManager players;
     private final Map<String, CrateLocation> placedCrates = new HashMap<>();
     private final ConcurrentMap<UUID, Boolean> opening = new ConcurrentHashMap<>();
 
     public CrateService(RavenCore plugin, CratesConfig config, CrateKeyRepository keyRepository,
-                        CrateLocationRepository locationRepository, CrateHologramService holograms,
-                        CratePlayerManager players) {
+                        CrateLocationRepository locationRepository, CratePlayerManager players) {
         this.plugin = plugin;
         this.config = config;
         this.keyRepository = keyRepository;
         this.locationRepository = locationRepository;
-        this.holograms = holograms;
         this.players = players;
     }
 
     public void loadPlacedCrates() {
         placedCrates.clear();
         SchedulerUtil.runAsync(() -> {
-            Collection<CrateLocation> loaded = locationRepository.loadAll();
+            Collection<CrateLocation> loaded;
+            try {
+                loaded = locationRepository.loadAll();
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Crates] Failed to load placed crates: " + e.getMessage());
+                return;
+            }
             SchedulerUtil.run(() -> {
                 for (CrateLocation location : loaded) {
                     CrateDefinition definition = config.crate(location.crateId());
-                    Location bukkitLocation = location.toLocation();
-                    if (definition == null || bukkitLocation == null) continue;
+                    if (definition == null) continue;
+                    // Registered before the world is resolved so the crate survives the restart.
+                    // The world block itself is never touched - whatever block the crate was
+                    // placed as keeps its own type forever.
                     placedCrates.put(location.key(), location);
-                    SchedulerUtil.execute(bukkitLocation, () -> {
-                        bukkitLocation.getBlock().setType(definition.blockItem().getType());
-                        holograms.createHolograms(bukkitLocation, definition);
-                    });
                 }
             });
         });
@@ -76,8 +77,14 @@ public final class CrateService {
     public void placeCrate(Player player, Location location, CrateDefinition crate) {
         CrateLocation placed = CrateLocation.of(location, crate.id());
         placedCrates.put(placed.key(), placed);
-        SchedulerUtil.runAsync(() -> locationRepository.save(placed));
-        holograms.createHolograms(location, crate);
+        SchedulerUtil.runAsync(() -> {
+            try {
+                locationRepository.save(placed);
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Crates] Failed to save crate location for " + player.getName()
+                        + ": " + e.getMessage());
+            }
+        });
         player.sendMessage(color(config.cratePlacedMessage(), crate));
     }
 
@@ -85,8 +92,14 @@ public final class CrateService {
         CrateLocation placed = placedCrates.remove(key(location));
         if (placed == null) return;
         CrateDefinition definition = config.crate(placed.crateId());
-        SchedulerUtil.runAsync(() -> locationRepository.delete(placed));
-        holograms.removeHolograms(location);
+        SchedulerUtil.runAsync(() -> {
+            try {
+                locationRepository.delete(placed);
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Crates] Failed to delete crate location for " + player.getName()
+                        + ": " + e.getMessage());
+            }
+        });
         player.sendMessage(color(config.crateRemovedMessage(), definition));
     }
 
@@ -110,10 +123,6 @@ public final class CrateService {
 
     public CratePlayerManager players() {
         return players;
-    }
-
-    public int cleanupHolograms() {
-        return holograms.cleanupAllCrateHolograms();
     }
 
     public void openReward(Player player, CrateDefinition crate, CrateReward reward) {

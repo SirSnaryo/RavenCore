@@ -3,7 +3,7 @@ version: '${version}'
 main: com.kammoun.raven.RavenCore
 api-version: '1.21'
 folia-supported: true
-softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, FancyHolograms, HuskSync]
+softdepend: [PlaceholderAPI, WorldGuard, RavenSell, Ravs, HuskSync]
 depend: [Vault]
 load: POSTWORLD
 commands:
@@ -285,11 +285,23 @@ commands:
     permission: raven.staffmode
     permission-message: You don't have permission to use staff mode.
 
-  staff:
-    description: Open the Raven staff control menu
-    usage: /staff
-    permission: raven.staffmode
-    permission-message: You don't have permission to use staff tools.
+  vanish:
+    description: Toggle Raven vanish
+    usage: /vanish
+    permission: raven.vanish
+    permission-message: You don't have permission to use vanish.
+
+  endsee:
+    description: Inspect a player's Ender Chest
+    usage: /endsee <player> [edit]
+    permission: raven.staffmode.enderchest.view
+    permission-message: You don't have permission to inspect Ender Chests.
+
+  echest:
+    description: Inspect a player's Ender Chest
+    usage: /echest <player> [edit]
+    permission: raven.staffmode.enderchest.view
+    permission-message: You don't have permission to inspect Ender Chests.
 
   invsee:
     description: Inspect a player's inventory while in staff mode
@@ -528,6 +540,12 @@ permissions:
     default: op
   raven.staffmode:
     description: Toggle Raven staff mode
+    default: op
+  raven.vanish:
+    description: Toggle Raven vanish and see other vanished players
+    default: op
+  raven.ownervanish:
+    description: Use the higher vanish tier through /vanish, hidden from normal vanish
     default: op
   raven.staffmode.bypass-gate:
     description: Use gated staff commands without enabling staff mode

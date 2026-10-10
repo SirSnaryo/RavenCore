@@ -18,7 +18,8 @@ public enum RtpMessage implements MessageKey {
     QUEUE_JOINED("queue.joined", "&#4CC9F0RTP Queue &#7A7A7AYou joined the queue. Waiting for another player..."),
     QUEUE_LEFT("queue.left", "&#4CC9F0RTP Queue &#7A7A7AYou left the queue."),
     QUEUE_MATCHED("queue.matched", "&#33FF66RTP Queue matched you with &#FFFFFF%player%&#33FF66. Teleporting..."),
-    QUEUE_FAILED("queue.failed", "&#D90429RTP Queue failed to teleport you. Please try again.");
+    QUEUE_FAILED("queue.failed", "&#D90429RTP Queue failed to teleport you. Please try again."),
+    END_DISABLED("end-disabled", "&#D90429Random teleport to the End is currently disabled.");
 
     private final String path;
     private final String[] defaults;

@@ -17,17 +17,6 @@ inventory:
       - '&7which of the 7 you want.'
     glow: false
 
-hologram:
-  1:
-    height: 1.5
-    lines:
-      - '&bᴘʀɪᴍᴇ ᴄʀᴀᴛᴇ'
-      - '&f/store'
-  2:
-    height: -0.3
-    lines:
-      - '&b%crates_keys_prime_crate% &fKeys'
-
 rewards:
   1:
     give-icon: true

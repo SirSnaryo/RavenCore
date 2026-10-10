@@ -1,19 +1,18 @@
 enabled: true
 
-messages:
-  requires-op: "&#D90429DevMode requires operator access."
-  enabled: "&#33FF66DevMode enabled."
-  disabled: "&#D90429DevMode disabled."
-
-maps:
-  # Minecraft maps are real renderers and can show in Spark when held.
-  # Keep disabled by default; enable only while actively profiling charts.
-  enabled: false
-  update-ms: 10000
-
 hud:
   update-ticks: 20
-  actionbar: "&#FF2B2BRaven Dev &#7A7A7A| &#FFFFFFTPS &#33FF66%tps% &#7A7A7A| &#FFFFFFMSPT &#FF9F1C%mspt% &#7A7A7A| &#FFFFFFHeap &#A855F7%heap%"
+  actionbar: "&#FF2B2B&lDeveloper Mode &#7A7A7A| &#FFFFFFTPS %tps% &#7A7A7A| &#FFFFFFMSPT %mspt% &#7A7A7A| &#FFFFFFCPU %cpu% &#7A7A7A| &#FFFFFFHeap %heap% &#7A7A7A| &#FFFFFFPing %ping%"
   bossbar:
     enabled: true
-    text: "&#FF2B2BDevMode &#7A7A7A| &#FFFFFFCPU &#A855F7%cpu% &#7A7A7A| &#FFFFFFOnline &#4CC9F0%online%"
+    text: "&#FF2B2B&lDeveloper Mode &#7A7A7A| &#FFFFFFTPS %tps% &#7A7A7A| &#FFFFFFMSPT %mspt% &#7A7A7A| &#FFFFFFCPU %cpu%"
+
+# Values arrive pre-coloured, so add &#RRGGBB only to the labels around them.
+# %tps% %mspt% %heap% (used/committed) %allocated% (committed/max) %cpu% %process_cpu%
+# %system_cpu% %chunks% %entities% %online% %uptime% %server%
+# %ping% is the server ping - the average of every connected player, not your own.
+sounds:
+  toggle:
+    sound: BLOCK_NOTE_BLOCK_CHIME
+    pitch: 1.0
+    volume: 1.0

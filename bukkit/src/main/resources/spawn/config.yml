@@ -31,3 +31,22 @@ teleport-countdown:
       sound: ENTITY_VILLAGER_NO
       pitch: 1.0
       volume: 1.0
+
+# Holds a player at the stored /setafk spot. The world is taken from the stored location:
+# a player who stands at the AFK spot and then walks away is teleported back, as long as
+# they are still in that world. Walking into another world, or moving to another server,
+# releases them. Vanished and staff mode players are never pulled.
+afk-anchor:
+  enabled: true
+  # Distance from the AFK spot that still counts as "being at AFK".
+  radius: 64
+  # How far above or below the AFK spot still counts as "being at AFK". Keep this small so
+  # falling off the platform is caught immediately instead of after a long drop.
+  height: 16
+  # Minimum seconds between two pull-backs for the same player.
+  cooldown-seconds: 2
+  # WorldGuard regions that count as the AFK area. While WorldGuard is installed and this
+  # list is not empty, leaving one of these regions pulls you back, and the distances above
+  # are ignored.
+  regions:
+    - afkportal

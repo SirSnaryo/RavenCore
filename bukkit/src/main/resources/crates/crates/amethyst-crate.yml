@@ -17,17 +17,6 @@ inventory:
       - '&#7A7A7Awhich of the 4 mythic tools you want.'
     glow: false
 
-hologram:
-  1:
-    height: 1.5
-    lines:
-      - '&#B466DFᴀᴍᴇᴛʜʏѕᴛ ᴄʀᴀᴛᴇ'
-      - '&f/store'
-  2:
-    height: -0.3
-    lines:
-      - '&#B466DF%crates_keys_amethyst_crate% &fKeys'
-
 rewards:
   1:
     give-item: false

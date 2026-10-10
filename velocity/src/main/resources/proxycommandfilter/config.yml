@@ -224,3 +224,12 @@ groups:
       - "statsmanager"
       - "combatmanager"
       - "billfordpreset"
+permission-unlocks:
+  "raven.punishment.ban": ["ban", "tempban"]
+  "raven.punishment.unban": ["unban"]
+  "raven.punishment.mute": ["mute", "tempmute"]
+  "raven.punishment.unmute": ["unmute"]
+  "raven.punishment.kick": ["kick"]
+  "raven.punishment.warn": ["warn"]
+  "raven.punishment.history": ["history"]
+  "raven.punishment.use": ["punish"]

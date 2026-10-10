@@ -143,7 +143,13 @@ public class ProxyCommandFilterModule extends VModule {
     }
 
     private Set<String> visibleCommands(Player player) {
-        return visibility.visibleCommands(visibility.groupFor(player));
+        Set<String> visible = new LinkedHashSet<>(visibility.visibleCommands(visibility.groupFor(player)));
+        visibility.permissionUnlocks().forEach((permission, commands) -> {
+            if (player.hasPermission(permission)) {
+                visible.addAll(commands);
+            }
+        });
+        return visible;
     }
 
     private boolean shouldHide(Player player, String command, Set<String> visible) {

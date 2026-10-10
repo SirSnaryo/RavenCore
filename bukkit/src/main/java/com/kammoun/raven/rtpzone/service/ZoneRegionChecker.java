@@ -16,8 +16,8 @@ import java.util.List;
 
 /**
  * Polls every online player each second and syncs the {@link ZonePlayerManager} with who is
- * actually inside one of the configured WorldGuard regions, firing enter/exit cues on the edges
- * and starting/stopping the shared countdown accordingly.
+ * actually inside one of the configured WorldGuard regions, firing enter/exit cues on the edges.
+ * The countdown itself is server-side and keeps running regardless of who is inside.
  */
 public class ZoneRegionChecker {
 
@@ -60,12 +60,6 @@ public class ZoneRegionChecker {
         }
 
         playerManager.removeOffline();
-
-        if (!playerManager.isEmpty()) {
-            module.startCountdown();
-        } else {
-            module.stopCountdown();
-        }
     }
 
     private void exitZone(Player player, ZonePlayerManager playerManager, ZoneSoundManager soundManager) {

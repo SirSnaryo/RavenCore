@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Holds every online player's key counts in memory. Loaded once on join, written through
- * on every change, so reads (placeholders, holograms, menus) never touch the database.
+ * on every change, so reads (placeholders, menus) never touch the database.
  */
 public final class CratePlayerManager {
     private final RavenCore plugin;

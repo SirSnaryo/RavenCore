@@ -187,15 +187,7 @@ public class BorderMovementListener implements Listener {
         String dimension = env.name();
 
         String targetServer = registry.resolve(config.cluster(), dimension, neighborCellX, neighborCellZ);
-        if (targetServer == null) {
-            if (event != null) event.setCancelled(true);
-            returnInsideCurrentCell(player);
-            deny(player);
-            return;
-        }
-        if (targetServer.equalsIgnoreCase(sourceServer)) {
-            if (event != null) event.setCancelled(true);
-            returnInsideCurrentCell(player);
+        if (targetServer == null || targetServer.equalsIgnoreCase(sourceServer)) {
             return;
         }
 

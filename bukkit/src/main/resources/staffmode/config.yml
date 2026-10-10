@@ -27,41 +27,10 @@ external:
     - "userdata list %player%"
     - "husksync:userdata list %player%"
 
-command-gate:
-  enabled: true
-  bypass-permission: raven.staffmode.bypass-gate
-  commands:
-    - staff
-    - invsee
-    - ban
-    - tempban
-    - unban
-    - mute
-    - tempmute
-    - unmute
-    - kick
-    - punish
-    - warn
-    - history
-    - freeze
-    - vanish
-    - socialspy
-    - spectate
-    - ravencore
-    - rcore
-    - ravenauction
-    - auction
-    - ah
-    - gamemode
-    - gmc
-    - gms
-    - gmsp
-    - tool
-
 sounds:
   toggle:
-    sound: ENTITY_EXPERIENCE_ORB_PICKUP
-    pitch: 1.35
+    sound: BLOCK_NOTE_BLOCK_BIT
+    pitch: 1.0
     volume: 1.0
   deny:
     sound: ENTITY_VILLAGER_NO

@@ -11,9 +11,6 @@ public record CrateDefinition(
         String inventoryTitle,
         int inventorySize,
         ItemStack fillerItem,
-        List<HologramConfig> holograms,
         List<CrateReward> rewards
 ) {
-    public record HologramConfig(double height, List<String> lines) {
-    }
 }

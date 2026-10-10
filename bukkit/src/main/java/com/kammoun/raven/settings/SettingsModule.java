@@ -5,14 +5,20 @@ import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.settings.command.SettingsCommand;
 import com.kammoun.raven.settings.gui.SettingsMenu;
 import com.kammoun.raven.settings.model.PlayerSettingDefinition;
+import com.kammoun.raven.settings.listener.MobSpawnListener;
 import com.kammoun.raven.settings.model.PlayerSettingRegistry;
+import com.kammoun.raven.settings.service.MobSpawnSettingsService;
 import com.kammoun.raven.tpa.model.TeleportPreference;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,6 +30,7 @@ public class SettingsModule extends KModule<RavenCore> {
 
     private final PlayerSettingRegistry registry = new PlayerSettingRegistry();
     private SettingsMenu menu;
+    private MobSpawnSettingsService mobSpawnService;
 
     public SettingsModule() {
         super("settings");
@@ -33,15 +40,21 @@ public class SettingsModule extends KModule<RavenCore> {
     public void onModuleEnable() {
         saveDefaultConfig("settings-menu.yml");
         ensureEditableMenuItems();
+        migrateWorldSettings();
         menu = new SettingsMenu(api, this);
+        mobSpawnService = new MobSpawnSettingsService(api);
         registerBuiltInSettings();
         registerCommand(new SettingsCommand(this), "settings");
+        registerEvent(new MobSpawnListener(mobSpawnService, menuConfig().getInt("Mob-Spawn.Radius", 48)));
+        onEvent(PlayerJoinEvent.class, event -> mobSpawnService.load(event.getPlayer()));
+        onEvent(PlayerQuitEvent.class, event -> mobSpawnService.unload(event.getPlayer()));
         getLogger().info("[Settings] Enabled.");
     }
 
     @Override
     public void onModuleDisable() {
         registry.clear();
+        if (mobSpawnService != null) mobSpawnService.clear();
         getLogger().info("[Settings] Disabled.");
     }
 
@@ -57,6 +70,7 @@ public class SettingsModule extends KModule<RavenCore> {
     private void registerBuiltInSettings() {
         registerTeleportSettings();
         registerChatSettings();
+        registerWorldSettings();
         registerEconomySettings();
     }
 
@@ -132,6 +146,18 @@ public class SettingsModule extends KModule<RavenCore> {
                 .build());
     }
 
+    private void registerWorldSettings() {
+        registry.register(PlayerSettingDefinition.builder("mob-spawn")
+                .category("World")
+                .displayName("Mob Spawn")
+                .description(List.of("Hostile mobs spawn around you.", "Only affects you, not other players."))
+                .material(Material.ZOMBIE_HEAD)
+                .priority(50)
+                .getter(player -> mobSpawnService.allowsMobSpawn(player.getUniqueId()))
+                .setter((player, enabled) -> mobSpawnService.set(player, enabled))
+                .build());
+    }
+
     private void registerEconomySettings() {
         if (api.getEconomyModule() == null || api.getEconomyModule().getSettingsService() == null) {
             return;
@@ -158,6 +184,73 @@ public class SettingsModule extends KModule<RavenCore> {
                 .build());
     }
 
+
+    private YamlConfiguration menuConfig() {
+        return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "settings-menu.yml"));
+    }
+
+    private void migrateWorldSettings() {
+        File userFile = new File(getDataFolder(), "settings-menu.yml");
+        if (!userFile.exists()) {
+            return;
+        }
+
+        YamlConfiguration userConfig = YamlConfiguration.loadConfiguration(userFile);
+        ConfigurationSection userItems = userConfig.getConfigurationSection("Items");
+        boolean changed = false;
+
+        if (userItems != null && userItems.getKeys(false).contains("world.mob-spawn")) {
+            userConfig.set("Items.world.mob-spawn", null);
+            changed = true;
+        }
+        ConfigurationSection staleWorld = userConfig.getConfigurationSection("Items.world");
+        if (staleWorld != null && staleWorld.getKeys(false).contains("mob-spawn")) {
+            userConfig.set("Items.world", null);
+            changed = true;
+        }
+
+        if (userItems == null || !userItems.getKeys(false).contains("mob-spawn")) {
+            InputStream stream = api.getResource("settings/settings-menu.yml");
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration resourceConfig = YamlConfiguration.loadConfiguration(reader);
+                    ConfigurationSection template = resourceConfig.getConfigurationSection("Items.mob-spawn");
+                    if (template != null) {
+                        userConfig.set("Items.mob-spawn", template.getValues(true));
+                        changed = true;
+                    }
+                } catch (IOException e) {
+                    getLogger().warning("[Settings] Failed to read bundled settings-menu.yml: " + e.getMessage());
+                }
+            }
+        }
+
+        if (!userConfig.isConfigurationSection("Mob-Spawn")) {
+            InputStream stream = api.getResource("settings/settings-menu.yml");
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration resourceConfig = YamlConfiguration.loadConfiguration(reader);
+                    userConfig.set("Mob-Spawn", resourceConfig.get("Mob-Spawn"));
+                    changed = true;
+                } catch (IOException e) {
+                    getLogger().warning("[Settings] Failed to read bundled settings-menu.yml: " + e.getMessage());
+                }
+            }
+        }
+
+        if (userConfig.isConfigurationSection("Navigation.Close-Page")) {
+            userConfig.set("Navigation.Close-Page", null);
+            changed = true;
+        }
+
+        if (changed) {
+            try {
+                userConfig.save(userFile);
+            } catch (IOException e) {
+                getLogger().warning("[Settings] Failed to migrate settings-menu.yml: " + e.getMessage());
+            }
+        }
+    }
 
     private void ensureEditableMenuItems() {
         File file = new File(getDataFolder(), "settings-menu.yml");

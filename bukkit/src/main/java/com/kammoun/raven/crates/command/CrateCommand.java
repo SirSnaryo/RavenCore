@@ -45,7 +45,6 @@ public final class CrateCommand implements CommandExecutor, TabCompleter {
             case "setkey", "set" -> setKey(sender, args);
             case "list" -> list(sender);
             case "reload" -> reload(sender);
-            case "cleanup" -> cleanup(sender);
             case "preview" -> preview(sender, args);
             case "keyall" -> keyAll(sender, args);
             case "edit" -> edit(sender, args);
@@ -66,7 +65,6 @@ public final class CrateCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager setkey <player> <crate> <amount> &8— &7Set keys"));
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager list &8— &7List crates"));
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager reload &8— &7Reload config"));
-        sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager cleanup &8— &7Remove crate holograms"));
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager preview <crate> &8— &7Preview rewards"));
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager keyall <crate> [amount] &8— &7Give all online keys"));
         sender.sendMessage(ChatFormatter.color("  &#FFD900/cratemanager edit <crate> &8— &7Open reward editor"));
@@ -196,12 +194,6 @@ public final class CrateCommand implements CommandExecutor, TabCompleter {
         new CrateMenu(crate, module.getService()).open(player);
     }
 
-    private void cleanup(CommandSender sender) {
-        if (!sender.hasPermission("raven.crates.admin")) return;
-        int removed = module.getService().cleanupHolograms();
-        sender.sendMessage(ChatFormatter.color("&aRemoved &f" + removed + " &acrate hologram(s)."));
-    }
-
     private void edit(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatFormatter.color("&cThis command can only be used by players!"));
@@ -240,7 +232,7 @@ public final class CrateCommand implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                                 @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            return List.of("give", "givecrate", "setkey", "list", "reload", "cleanup", "preview", "keyall", "edit", "setblock", "time");
+            return List.of("give", "givecrate", "setkey", "list", "reload", "preview", "keyall", "edit", "setblock", "time");
         }
         if (args.length == 2 && List.of("setblock", "preview", "keyall", "edit").contains(args[0].toLowerCase())) {
             return new ArrayList<>(module.getConfigModel().crates().keySet());

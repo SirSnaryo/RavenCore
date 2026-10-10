@@ -4,7 +4,12 @@ import com.kammoun.raven.RavenCore;
 import com.kammoun.raven.library.module.KModule;
 import com.kammoun.raven.library.platform.sound.KSound;
 import com.kammoun.raven.library.redis.event.LocationsUpdatedEvent;
+import com.kammoun.raven.spawn.afk.AfkAnchorService;
+import com.kammoun.raven.spawn.afk.AfkRegionChecker;
+import com.kammoun.raven.library.tasks.SchedulerUtil;
+import org.bukkit.Location;
 import com.kammoun.raven.spawn.cache.LocationCache;
+import com.kammoun.raven.spawn.listener.AfkAnchorListener;
 import com.kammoun.raven.spawn.command.AfkCommand;
 import com.kammoun.raven.spawn.command.SetAfkCommand;
 import com.kammoun.raven.spawn.command.SetSpawnCommand;
@@ -30,6 +35,11 @@ public class SpawnModule extends KModule<RavenCore> {
     private SpawnMessages messages;
     private TeleportCountdown countdown;
     private ScheduledTask refreshTask;
+    private AfkAnchorService afkAnchorService;
+
+    public Location afkLocation() {
+        return afkAnchorService == null ? null : afkAnchorService.afkLocation();
+    }
 
     public SpawnModule() {
         super("spawn");
@@ -65,6 +75,21 @@ public class SpawnModule extends KModule<RavenCore> {
                 LocationTransferHelper.consumeOnJoin(api, api.getRedisMessenger().getConnection().getPool(), event.getPlayer()));
 
         onEvent(PlayerMoveEvent.class, countdown::onMove);
+
+        if (getConfig().getBoolean("afk-anchor.enabled", true)) {
+            afkAnchorService = new AfkAnchorService(api, cache,
+                    new AfkRegionChecker(getConfig().getStringList("afk-anchor.regions")),
+                    getConfig().getInt("afk-anchor.radius", 64),
+                    getConfig().getInt("afk-anchor.height", 16),
+                    getConfig().getInt("afk-anchor.cooldown-seconds", 2));
+            registerEvent(new AfkAnchorListener(afkAnchorService));
+            SchedulerUtil.runLater(() -> {
+                if (afkAnchorService.afkLocation() == null) {
+                    getLogger().warning("[Spawn] afk-anchor is enabled but no stored /setafk"
+                            + " location exists - run /setafk so falling players have a spot to return to.");
+                }
+            }, 100L);
+        }
 
         api.getNetworkEventBus().subscribe(LocationsUpdatedEvent.class, event -> {
             if (api.getServerId().equals(event.getSourceServer())) return; // already reloaded locally by the writer

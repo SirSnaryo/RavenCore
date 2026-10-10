@@ -1,8 +1,8 @@
 package com.kammoun.raven.devmode;
 
-import org.bukkit.inventory.ItemStack;
+import java.util.UUID;
 
 public record DevModeSession(
-        ItemStack[] hotbar
+        UUID uuid
 ) {
 }

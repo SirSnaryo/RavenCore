@@ -1,39 +1,40 @@
 package com.kammoun.raven.devmode;
 
-import com.kammoun.raven.devmode.map.DevMapService;
 import com.kammoun.raven.library.platform.chat.ChatFormatter;
+import com.kammoun.raven.library.platform.sound.KSound;
 import com.kammoun.raven.library.tasks.SchedulerUtil;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryUsage;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DevModeService {
 
-    private static final int[] MAP_SLOTS = {0, 1, 2};
-
     private final JavaPlugin plugin;
     private final FileConfiguration config;
-    private final DevMapService mapService;
+    private final DevModeStateStore stateStore;
     private final Map<UUID, DevModeSession> sessions = new ConcurrentHashMap<>();
     private final Map<UUID, BossBar> bossBars = new ConcurrentHashMap<>();
+    private final KSound toggleSound;
     private SchedulerUtil.Task task;
 
-    public DevModeService(JavaPlugin plugin, FileConfiguration config, DevMapService mapService) {
+    public DevModeService(JavaPlugin plugin, FileConfiguration config, DevModeStateStore stateStore) {
         this.plugin = plugin;
         this.config = config;
-        this.mapService = mapService;
+        this.stateStore = stateStore;
+        ConfigurationSection section = config == null ? null : config.getConfigurationSection("sounds.toggle");
+        this.toggleSound = section == null ? null : KSound.getSoundFromConfig(section);
     }
 
     public boolean toggle(Player player) {
@@ -46,22 +47,39 @@ public class DevModeService {
     }
 
     public void enable(Player player) {
-        if (sessions.containsKey(player.getUniqueId())) return;
-        sessions.put(player.getUniqueId(), new DevModeSession(captureHotbar(player)));
+        UUID uuid = player.getUniqueId();
+        if (sessions.putIfAbsent(uuid, new DevModeSession(uuid)) != null) return;
         startHudTask();
-        applyMaps(player);
-        updateHud(player);
-        player.sendMessage(ChatFormatter.color(config.getString("messages.enabled", "&#33FF66DevMode enabled.")));
+        updateHud(player, DevSnapshot.capture());
+        play(player);
+        persist(player, true);
     }
 
     public void disable(Player player) {
-        DevModeSession session = sessions.remove(player.getUniqueId());
-        if (session == null) return;
-        restoreHotbar(player, session.hotbar());
-        removeBossBar(player.getUniqueId());
-        player.sendActionBar(net.kyori.adventure.text.Component.empty());
-        player.sendMessage(ChatFormatter.color(config.getString("messages.disabled", "&#D90429DevMode disabled.")));
+        UUID uuid = player.getUniqueId();
+        if (sessions.remove(uuid) == null) return;
+        removeBossBar(uuid);
+        player.sendActionBar(Component.empty());
+        play(player);
+        persist(player, false);
         stopHudTaskIfIdle();
+    }
+
+    /** Drops the local session without touching the carried state, so a transfer can restore it. */
+    public void forget(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (sessions.remove(uuid) == null) return;
+        removeBossBar(uuid);
+        stopHudTaskIfIdle();
+    }
+
+    /** Re-applies Developer Mode carried over from the previous server. */
+    public void restoreOnJoin(Player player) {
+        if (stateStore == null || !stateStore.load(player.getUniqueId())) return;
+        UUID uuid = player.getUniqueId();
+        if (sessions.putIfAbsent(uuid, new DevModeSession(uuid)) != null) return;
+        startHudTask();
+        updateHud(player, DevSnapshot.capture());
     }
 
     public void clear() {
@@ -69,16 +87,8 @@ public class DevModeService {
             task.cancel();
             task = null;
         }
-        if (plugin.isEnabled()) {
-            for (Map.Entry<UUID, DevModeSession> entry : sessions.entrySet()) {
-                Player player = Bukkit.getPlayer(entry.getKey());
-                if (player == null) continue;
-                SchedulerUtil.execute(player, () -> {
-                    restoreHotbar(player, entry.getValue().hotbar());
-                    player.sendActionBar(net.kyori.adventure.text.Component.empty());
-                    removeBossBar(player.getUniqueId());
-                });
-            }
+        for (UUID uuid : sessions.keySet()) {
+            if (stateStore != null) stateStore.clear(uuid);
         }
         sessions.clear();
         if (plugin.isEnabled()) {
@@ -95,11 +105,15 @@ public class DevModeService {
                 stopHudTaskIfIdle();
                 return;
             }
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!sessions.containsKey(player.getUniqueId())) continue;
+            // One sample per tick, shared by every viewer.
+            DevSnapshot snapshot = DevSnapshot.capture();
+            Set<UUID> watching = new HashSet<>(sessions.keySet());
+            for (UUID uuid : watching) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null || !player.isOnline()) continue;
                 SchedulerUtil.execute(player, () -> {
-                    if (player.isOnline() && sessions.containsKey(player.getUniqueId())) {
-                        updateHud(player);
+                    if (player.isOnline() && sessions.containsKey(uuid)) {
+                        updateHud(player, snapshot);
                     }
                 });
             }
@@ -112,69 +126,53 @@ public class DevModeService {
         task = null;
     }
 
-    private void updateHud(Player player) {
-        String actionBar = replace(config.getString("hud.actionbar",
-                "&#FF2B2BRaven Dev &#7A7A7A| &#FFFFFFTPS &#33FF66%tps% &#7A7A7A| &#FFFFFFMSPT &#FF9F1C%mspt% &#7A7A7A| &#FFFFFFHeap &#A855F7%heap%"));
-        player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(ChatFormatter.color(actionBar)));
+    private void updateHud(Player player, DevSnapshot snapshot) {
+        String actionBar = config.getString("hud.actionbar",
+                "&#FF2B2B&lDeveloper Mode &#7A7A7A| &#FFFFFFTPS %tps% &#7A7A7A| &#FFFFFFMSPT %mspt% "
+                        + "&#7A7A7A| &#FFFFFFCPU %cpu% &#7A7A7A| &#FFFFFFHeap %heap%");
+        player.sendActionBar(LegacyComponentSerializer.legacySection()
+                .deserialize(ChatFormatter.color(apply(actionBar, snapshot))));
 
         if (!config.getBoolean("hud.bossbar.enabled", true)) return;
-        BossBar bossBar = bossBars.computeIfAbsent(player.getUniqueId(), uuid -> {
-            BossBar created = Bukkit.createBossBar("", BarColor.RED, BarStyle.SOLID);
-            created.addPlayer(player);
-            return created;
-        });
-        bossBar.setTitle(ChatFormatter.color(replace(config.getString("hud.bossbar.text",
-                "&#FF2B2BDevMode &#7A7A7A| &#FFFFFFCPU &#A855F7%cpu% &#7A7A7A| &#FFFFFFOnline &#4CC9F0%online%"))));
-        bossBar.setProgress(Math.max(0.05D, Math.min(1D, 1D - (Bukkit.getAverageTickTime() / 100D))));
+        UUID uuid = player.getUniqueId();
+        BossBar bossBar = bossBars.get(uuid);
+        if (bossBar == null) {
+            bossBar = Bukkit.createBossBar("", snapshot.color(), BarStyle.SOLID);
+            bossBar.addPlayer(player);
+            bossBars.put(uuid, bossBar);
+        }
+        bossBar.setColor(snapshot.color());
+        bossBar.setProgress(snapshot.progress());
+        bossBar.setTitle(ChatFormatter.color(apply(config.getString("hud.bossbar.text",
+                "&#FF2B2B&lDeveloper Mode &#7A7A7A| &#FFFFFFTPS %tps% &#7A7A7A| &#FFFFFFMSPT %mspt% "
+                        + "&#7A7A7A| &#FFFFFFCPU %cpu%"), snapshot)));
     }
 
-    private String replace(String text) {
-        MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        long used = heap.getUsed() / 1024L / 1024L;
-        long max = heap.getMax() / 1024L / 1024L;
+    private String apply(String text, DevSnapshot snapshot) {
         return text
-                .replace("%tps%", String.format("%.2f", Bukkit.getTPS()[0]))
-                .replace("%mspt%", String.format("%.1f", Bukkit.getAverageTickTime()))
-                .replace("%heap%", used + "/" + max + "M")
-                .replace("%cpu%", cpu())
-                .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
-                .replace("%server%", Bukkit.getServer().getName());
+                .replace("%tps%", snapshot.tps())
+                .replace("%mspt%", snapshot.mspt())
+                .replace("%heap%", snapshot.heap())
+                .replace("%allocated%", snapshot.allocated())
+                .replace("%cpu%", snapshot.cpu())
+                .replace("%process_cpu%", snapshot.processCpu())
+                .replace("%system_cpu%", snapshot.systemCpu())
+                .replace("%chunks%", snapshot.chunks())
+                .replace("%entities%", snapshot.entities())
+                .replace("%online%", snapshot.online())
+                .replace("%uptime%", snapshot.uptime())
+                .replace("%ping%", snapshot.ping())
+                .replace("%server%", snapshot.server());
     }
 
-    private String cpu() {
-        try {
-            Object bean = ManagementFactory.getOperatingSystemMXBean();
-            double load = (double) bean.getClass().getMethod("getProcessCpuLoad").invoke(bean);
-            if (load < 0D) return "n/a";
-            return String.format("%.0f%%", load * 100D);
-        } catch (ReflectiveOperationException ignored) {
-            return "n/a";
-        }
+    private void persist(Player player, boolean active) {
+        if (stateStore == null) return;
+        UUID uuid = player.getUniqueId();
+        SchedulerUtil.runAsync(() -> stateStore.save(uuid, active));
     }
 
-    private ItemStack[] captureHotbar(Player player) {
-        ItemStack[] items = new ItemStack[MAP_SLOTS.length];
-        for (int i = 0; i < MAP_SLOTS.length; i++) {
-            ItemStack item = player.getInventory().getItem(MAP_SLOTS[i]);
-            items[i] = item == null ? null : item.clone();
-        }
-        return items;
-    }
-
-    private void applyMaps(Player player) {
-        if (!config.getBoolean("maps.enabled", false)) {
-            return;
-        }
-        player.getInventory().setItem(0, mapService.createPerformanceMap(player));
-        player.getInventory().setItem(1, mapService.createMemoryMap(player));
-        player.getInventory().setItem(2, mapService.createNetworkMap(player));
-    }
-
-    private void restoreHotbar(Player player, ItemStack[] hotbar) {
-        if (hotbar == null) return;
-        for (int i = 0; i < MAP_SLOTS.length && i < hotbar.length; i++) {
-            player.getInventory().setItem(MAP_SLOTS[i], hotbar[i] == null ? null : hotbar[i].clone());
-        }
+    private void play(Player player) {
+        if (toggleSound != null) toggleSound.playSound(player);
     }
 
     private void removeBossBar(UUID uuid) {

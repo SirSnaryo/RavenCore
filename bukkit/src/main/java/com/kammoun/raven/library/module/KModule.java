@@ -216,6 +216,9 @@ public abstract class KModule<T extends JavaPlugin> implements Module {
             return false;
         }
 
+        if (command.getPermission() != null && !command.getPermission().isEmpty()) {
+            pluginCommand.setPermission(command.getPermission());
+        }
         pluginCommand.setExecutor(command);
         pluginCommand.setTabCompleter(command);
         return true;

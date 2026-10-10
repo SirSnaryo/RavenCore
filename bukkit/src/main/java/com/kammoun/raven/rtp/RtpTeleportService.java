@@ -71,6 +71,10 @@ public final class RtpTeleportService {
     }
 
     public void end(Player player) {
+        if (plugin.getEndModule() == null || !plugin.getEndModule().isRtpEnabled()) {
+            sounds.play(player, "warmup-cancelled");
+            return;
+        }
         begin(player, () -> pool.getRandomLocation(config.endServer(), LocationDimension.END));
     }
 

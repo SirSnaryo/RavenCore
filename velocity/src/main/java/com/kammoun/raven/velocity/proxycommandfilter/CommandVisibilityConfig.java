@@ -56,6 +56,7 @@ final class CommandVisibilityConfig {
     private Set<String> blockedCommands;
     private Set<String> safeAutoDiscoverCommands;
     private Set<String> reservedDefaultCommands;
+    private Map<String, Set<String>> permissionUnlocks;
     private List<String> groupOrder;
     private Map<String, CommandGroup> groups;
 
@@ -86,6 +87,7 @@ final class CommandVisibilityConfig {
         blockedCommands = normalizeCommands(list("blocked-commands"));
         safeAutoDiscoverCommands = normalizeCommands(list("safe-auto-discover-commands"));
         reservedDefaultCommands = normalizeCommands(list("reserved-default-commands"));
+        permissionUnlocks = readPermissionUnlocks();
         groupOrder = list("group-order").stream().map(CommandVisibilityConfig::normalize).filter(s -> !s.isBlank()).toList();
         groups = readGroups();
     }
@@ -211,6 +213,7 @@ final class CommandVisibilityConfig {
     boolean blockNamespaceCommands() { return blockNamespaceCommands; }
     String denyMessage() { return denyMessage; }
     Set<String> blockedCommands() { return blockedCommands; }
+    Map<String, Set<String>> permissionUnlocks() { return permissionUnlocks; }
     List<String> groupOrder() { return groupOrder; }
     Map<String, CommandGroup> groups() { return groups; }
 
@@ -240,6 +243,17 @@ final class CommandVisibilityConfig {
             collectCommands(inherited, output, seen);
         }
         output.addAll(definition.commands());
+    }
+
+    private Map<String, Set<String>> readPermissionUnlocks() {
+        Map<String, Object> section = mutableMap(raw.get("permission-unlocks"));
+        Map<String, Set<String>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : section.entrySet()) {
+            String permission = entry.getKey();
+            if (permission == null || permission.isBlank()) continue;
+            result.put(permission, normalizeCommands(mutableStringList(entry.getValue())));
+        }
+        return Map.copyOf(result);
     }
 
     private Map<String, CommandGroup> readGroups() {
@@ -278,6 +292,21 @@ final class CommandVisibilityConfig {
         changed |= mergeList("safe-auto-discover-commands", DEFAULT_SAFE_AUTO_DISCOVER);
         changed |= mergeList("reserved-default-commands", DEFAULT_RESERVED_DEFAULT);
         changed |= mergeList("group-order", DEFAULT_GROUP_ORDER);
+
+        Map<String, Object> unlocks = mutableMap(raw.get("permission-unlocks"));
+        if (unlocks.isEmpty()) {
+            Map<String, Object> defaults = new LinkedHashMap<>();
+            defaults.put("raven.punishment.ban", new ArrayList<>(List.of("ban", "tempban")));
+            defaults.put("raven.punishment.unban", new ArrayList<>(List.of("unban")));
+            defaults.put("raven.punishment.mute", new ArrayList<>(List.of("mute", "tempmute")));
+            defaults.put("raven.punishment.unmute", new ArrayList<>(List.of("unmute")));
+            defaults.put("raven.punishment.kick", new ArrayList<>(List.of("kick")));
+            defaults.put("raven.punishment.warn", new ArrayList<>(List.of("warn")));
+            defaults.put("raven.punishment.history", new ArrayList<>(List.of("history")));
+            defaults.put("raven.punishment.use", new ArrayList<>(List.of("punish")));
+            raw.put("permission-unlocks", defaults);
+            changed = true;
+        }
 
         Map<String, Object> groupsMap = mutableMap(raw.get("groups"));
         changed |= ensureGroup(groupsMap, "default", "", List.of(), DEFAULT_COMMANDS);

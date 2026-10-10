@@ -29,6 +29,10 @@ public final class EndPortalModule extends KModule<RavenCore> {
 
     @Override
     public void onModuleEnable() {
+        if (api.getEndModule() != null && !api.getEndModule().isPortalsEnabled()) {
+            getLogger().info("[EndPortal] Disabled by end/config.yml (portals.enabled: false).");
+            return;
+        }
         endPortalConfig = EndPortalConfig.load(getConfig());
         service = new EndPortalService(api, endPortalConfig,
                 new EndPortalMessages(api), new EndPortalSounds(api));
@@ -56,6 +60,10 @@ public final class EndPortalModule extends KModule<RavenCore> {
     @Override
     public void reload() {
         reloadConfig();
+        if (service == null) {
+            getLogger().info("[EndPortal] Disabled by end/config.yml (portals.enabled: false).");
+            return;
+        }
         getLogger().info("[EndPortal] Configuration changes apply after a server restart.");
     }
 }
