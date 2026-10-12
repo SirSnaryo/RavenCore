@@ -1,0 +1,13 @@
+enabled: true
+timezone: "Asia/Riyadh"
+restart-time: "03:00"
+warmup-minutes: 5
+restart-message: "&#FF2B2BRaven SMP &8→ &fRestarting in &#FF2B2B%time%"
+restart-now-message: "&#FF2B2BRaven SMP &8→ &fRestarting now"
+title-main: "&#FF2B2BRaven SMP"
+title-sub: "&fRestarting in &#FF2B2B%time%"
+title-sub-now: "&fRestarting now"
+sound: "block.note_block.pling"
+kick-message: "&#FF2B2BRaven SMP &8→ &fThe server is restarting. You can rejoin in a moment!"
+proxy-shutdown-delay-seconds: 20
+restart-command: ""

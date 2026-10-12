@@ -1,0 +1,8 @@
+# Single switch board for the End.
+# rtp.enabled     - allow /rtp to send players to the End server (end-server in rtp/config.yml).
+# portals.enabled - allow the End portal link to the dedicated End server.
+rtp:
+  enabled: false
+
+portals:
+  enabled: false
