@@ -71,7 +71,7 @@ public final class RtpTeleportService {
     }
 
     public void end(Player player) {
-        begin(player, () -> pool.getRandomLocation(config.endServer(), LocationDimension.END));
+        begin(player, () -> pool.getRandomLocation(config.endServer(), LocationDimension.END), true);
     }
 
     public void stop() {
@@ -135,6 +135,10 @@ public final class RtpTeleportService {
     }
 
     private void begin(Player player, Supplier<Optional<RtpLocation>> destination) {
+        begin(player, destination, false);
+    }
+
+    private void begin(Player player, Supplier<Optional<RtpLocation>> destination, boolean endRtp) {
         if (plugin.getCombatModule() != null && !plugin.getCombatModule().canTransfer(player, true)) return;
         UUID uuid = player.getUniqueId();
         if (warmups.isActive(uuid) || resolving.contains(uuid)) {
@@ -149,10 +153,10 @@ public final class RtpTeleportService {
             sounds.play(player, "cooldown");
             return;
         }
-        warmups.begin(player, () -> resolve(player, destination));
+        warmups.begin(player, () -> resolve(player, destination, endRtp));
     }
 
-    private void resolve(Player player, Supplier<Optional<RtpLocation>> destination) {
+    private void resolve(Player player, Supplier<Optional<RtpLocation>> destination, boolean endRtp) {
         UUID uuid = player.getUniqueId();
         if (!resolving.add(uuid)) return;
         SchedulerUtil.runAsync(() -> {
@@ -165,12 +169,12 @@ public final class RtpTeleportService {
                     sounds.play(player, "warmup-cancelled");
                     return;
                 }
-                teleport(player, selected.get());
+                teleport(player, selected.get(), endRtp);
             });
         });
     }
 
-    private void teleport(Player player, RtpLocation target) {
+    private void teleport(Player player, RtpLocation target, boolean endRtp) {
         if (target.serverId().equalsIgnoreCase(plugin.getServerId())) {
             teleportLocal(player, target);
             return;
@@ -186,6 +190,7 @@ public final class RtpTeleportService {
         CrossServerTeleportEvent event = new CrossServerTeleportEvent();
         event.setPlayerUuid(player.getUniqueId().toString());
         event.setTargetServer(target.serverId());
+        if (endRtp) event.setPurpose("RTP_END");
         event.setWorld(target.world());
         event.setX(target.x());
         event.setY(target.y());

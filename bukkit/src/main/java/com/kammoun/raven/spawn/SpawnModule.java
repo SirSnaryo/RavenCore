@@ -90,6 +90,16 @@ public class SpawnModule extends KModule<RavenCore> {
         return YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml"));
     }
 
+    public org.bukkit.Location afkLocation() {
+        if (cache == null) return null;
+        return cache.get(com.kammoun.raven.library.location.LocationType.AFK, api.getServerId())
+                .filter(com.kammoun.raven.library.location.NetworkLocation::isEnabled)
+                .map(row -> {
+                    org.bukkit.World world = org.bukkit.Bukkit.getWorld(row.getWorld());
+                    return world == null ? null : new org.bukkit.Location(world, row.getX(), row.getY(), row.getZ(), row.getYaw(), row.getPitch());
+                }).orElse(null);
+    }
+
     private KSound readSound(String path, Sound fallback, float pitch, float volume) {
         if (!getConfig().isConfigurationSection(path)) {
             return new KSound(fallback, pitch, volume);

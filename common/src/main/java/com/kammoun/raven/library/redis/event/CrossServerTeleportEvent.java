@@ -12,6 +12,8 @@ public class CrossServerTeleportEvent extends CrossServerEvent {
     private String destinationUuid;
     /** Backend server where the moving player must arrive before Bukkit applies the teleport. */
     private String targetServer;
+    /** Optional transfer purpose, used by the proxy for policy checks. */
+    private String purpose;
     /** Optional target world. If empty, the target server's join world is used. */
     private String world;
     private Double x;

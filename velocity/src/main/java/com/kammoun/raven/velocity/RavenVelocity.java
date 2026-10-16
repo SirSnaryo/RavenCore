@@ -59,6 +59,7 @@ public class RavenVelocity {
     private final Path dataDirectory;
 
     private Map<String, Object> config = new HashMap<>();
+    private String serverId = "velocity-proxy";
 
     private RedisMessenger redisMessenger;
     private NetworkEventBus networkEventBus;
@@ -86,7 +87,7 @@ public class RavenVelocity {
         saveDefaultConfig();
         loadConfig();
 
-        String serverId = getString("network.server-id", "velocity-proxy");
+        serverId = getString("network.server-id", "velocity-proxy");
 
         redisMessenger = new RedisMessenger(logger);
         RedisCredentials credentials = new RedisCredentials(
@@ -157,6 +158,18 @@ public class RavenVelocity {
 
     private void onTeleportTransfer(CrossServerTeleportEvent event) {
         if (event == null || event.getPlayerUuid() == null || event.getTargetServer() == null) {
+            return;
+        }
+        if ("RTP_END".equalsIgnoreCase(event.getPurpose()) && !getBoolean("end.enabled", false)) {
+            try {
+                UUID blockedPlayer = UUID.fromString(event.getPlayerUuid());
+                String message = getString("end.disabled-message", "&cRTP to the End is currently disabled.");
+                server.getScheduler().buildTask(this, () -> server.getPlayer(blockedPlayer).ifPresent(player ->
+                        player.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                                .legacyAmpersand().deserialize(message)))).schedule();
+            } catch (IllegalArgumentException ignored) {
+                logger.warning("[RTP] Invalid player UUID in blocked End RTP transfer.");
+            }
             return;
         }
 

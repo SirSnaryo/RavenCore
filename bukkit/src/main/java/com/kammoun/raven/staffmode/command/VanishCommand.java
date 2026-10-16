@@ -18,7 +18,7 @@ public class VanishCommand extends KCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        service.toggleVanish((Player) sender);
+        service.toggle((Player) sender);
     }
 
     @Override

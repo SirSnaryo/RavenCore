@@ -1,3 +1,8 @@
+# End RTP policy. This applies to End RTP requests sent from Bukkit through the proxy.
+end:
+  enabled: false
+  disabled-message: "&cRTP to the End is currently disabled."
+
 # Unique ID for this proxy on the network.
 # Used as the server identifier in Redis and cross-server events.
 network:

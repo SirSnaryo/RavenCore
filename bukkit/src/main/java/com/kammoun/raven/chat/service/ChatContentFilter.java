@@ -273,13 +273,28 @@ public final class ChatContentFilter {
     }
 
     private String normalizeLeet(String message) {
-        String normalized = Normalizer.normalize(message.toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
+        // Normalize only the filter's comparison copy. The chat itself is never rewritten.
+        // NFKC folds Arabic presentation forms/ligatures; dropping combining marks makes
+        // harakat optional for matching, while preserving Arabic letters and punctuation.
+        String normalized = Normalizer.normalize(message.toLowerCase(Locale.ROOT), Normalizer.Form.NFKC)
                 .replaceAll("\\p{M}", "");
         StringBuilder out = new StringBuilder(normalized.length());
         for (int i = 0; i < normalized.length(); i++) {
-            out.append(mapLeet(normalized.charAt(i)));
+            char c = normalized.charAt(i);
+            if (c == '\u0640') continue; // tatweel/kashida
+            out.append(mapLeet(mapArabic(c)));
         }
         return out.toString();
+    }
+
+    private char mapArabic(char value) {
+        return switch (value) {
+            case '\u0622', '\u0623', '\u0625', '\u0671' -> '\u0627'; // alef variants
+            case '\u0649' -> '\u064a'; // alef maqsura / ya
+            case '\u0624' -> '\u0648'; // waw with hamza
+            case '\u0626' -> '\u064a'; // ya with hamza
+            default -> value;
+        };
     }
 
     private char mapLeet(char value) {
